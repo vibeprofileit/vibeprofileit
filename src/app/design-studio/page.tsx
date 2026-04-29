@@ -365,6 +365,7 @@ export default function UploadPage() {
     new Promise((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
 
   // vibeProfileit watermark — sağ alt köşeye 20px boşlukla mühür basar
+  // Neon Mor (#8B5CF6) VP + Gradyan Metin, %75 opacity
   const stampWatermark = (canvas: HTMLCanvasElement): void => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -383,7 +384,7 @@ export default function UploadPage() {
 
     // Semi-transparent dark pill background
     const bpad = 5;
-    ctx.globalAlpha = 0.58;
+    ctx.globalAlpha = 0.75; // %75 opacity
     ctx.fillStyle = "#000000";
     ctx.beginPath();
     const r = 4, bx = rx - bpad, by = ry - bpad, bw = totalW + bpad * 2, bh = lh + bpad * 2;
@@ -395,15 +396,18 @@ export default function UploadPage() {
     ctx.closePath();
     ctx.fill();
 
-    // Mini VP glyph — gradient stroke
-    ctx.globalAlpha = 1;
+    // Neon Mor (#8B5CF6) VP glyph — gradient stroke
+    ctx.globalAlpha = 0.75;
     ctx.lineWidth   = Math.max(1, fs * 0.13);
     ctx.lineCap     = "round";
     ctx.lineJoin    = "round";
     const g = ctx.createLinearGradient(rx, ry, rx + iconW, ry + lh);
-    g.addColorStop(0, "#C084FC");
-    g.addColorStop(1, "#E2E8F0");
+    g.addColorStop(0, "#8B5CF6");
+    g.addColorStop(1, "#8B5CF6");
     ctx.strokeStyle = g;
+    // Drop shadow for neon glow
+    ctx.shadowColor = "#8B5CF6";
+    ctx.shadowBlur  = 10;
     // V
     const vt = ry + 1, vb = ry + lh - 1, vm = rx + iconW * 0.44;
     ctx.beginPath(); ctx.moveTo(rx, vt); ctx.lineTo(vm, vb); ctx.stroke();
@@ -420,10 +424,14 @@ export default function UploadPage() {
     ctx.lineTo(ps, pm);
     ctx.stroke();
 
-    // vibeProfileit text
-    ctx.globalAlpha = 0.93;
-    ctx.fillStyle   = "#ffffff";
-    ctx.font        = `bold ${fs}px Arial, sans-serif`;
+    // vibeProfileit text — gradient from #8B5CF6 via #A78BFA to white
+    ctx.shadowBlur = 0;
+    const textGrad = ctx.createLinearGradient(rx + iconW + 6, ry, rx + iconW + 6 + tw, ry);
+    textGrad.addColorStop(0, "#8B5CF6");
+    textGrad.addColorStop(0.5, "#A78BFA");
+    textGrad.addColorStop(1, "#ffffff");
+    ctx.fillStyle = textGrad;
+    ctx.font = `bold ${fs}px Arial, sans-serif`;
     ctx.fillText(txt, rx + iconW + 6, ry + lh - 2);
     ctx.restore();
   };
@@ -852,9 +860,7 @@ export default function UploadPage() {
               <Scissors size={15} />
             </motion.span>
             {isProcessing
-              ? (eliteActive
-                  ? `Processing: ${progress}% · Elite Mode`
-                  : `Processing: ${progress}% (GIFs may take a long time)`)
+              ? `Processing: ${progress}%`
               : "Cut & Download"}
             {!isProcessing && <ChevronRight size={14} />}
           </button>
