@@ -83,8 +83,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Post-crop size check -- skip compression if already under target or elite bypass ──────
-    // GIF watermark (overlay) requires FFmpeg binary.
-    // When available, add: ffmpeg -i base -i watermark.png -filter_complex "overlay=W-w-20:H-h-20" output
+    // GIF watermark (overlay) using FFmpeg
     const baseSize = await fsize(base);
     if (baseSize <= TARGET_BYTES || noCompress) return respond(base);
 

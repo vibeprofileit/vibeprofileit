@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ArtworkStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Artwork {
+  id        String        @id @default(uuid())
+  sourceUrl String
+  r2Key     String?
+  width     Int
+  height    Int
+  sizeBytes Int
+  format    String
+  theme     String?
+  color     String?
+  vibe      String?
+  mediaType   String        @default("STATIC")
+  status      ArtworkStatus @default(PENDING)
+  isFeatured  Boolean       @default(false)
+  isNSFW      Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
