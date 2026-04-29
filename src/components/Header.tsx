@@ -9,74 +9,21 @@ const LogoIcon = () => (
   <svg
     width="34" height="34" viewBox="0 0 40 40" fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    style={{ filter: "drop-shadow(0 0 7px rgba(139,92,246,0.9))" }}
+    className="drop-shadow-[0_0_8px_#8B5CF6]"
   >
-    <defs>
-      <linearGradient id="vpx_frame" x1="2" y1="2" x2="38" y2="38" gradientUnits="userSpaceOnUse">
-        <stop offset="0%"   stopColor="#C084FC"/>
-        <stop offset="55%"  stopColor="#8B5CF6"/>
-        <stop offset="100%" stopColor="#4C1D95" stopOpacity="0.75"/>
-      </linearGradient>
-      <linearGradient id="vpx_mono" x1="8" y1="10" x2="34" y2="30" gradientUnits="userSpaceOnUse">
-        <stop offset="0%"   stopColor="#F0ABFC"/>
-        <stop offset="50%"  stopColor="#A855F7"/>
-        <stop offset="100%" stopColor="#DDD6FE"/>
-      </linearGradient>
-      <filter id="vpx_glow" x="-25%" y="-25%" width="150%" height="150%">
-        <feGaussianBlur stdDeviation="1.1" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-
-    {/* Chamfered outer frame — octagonal cut corners */}
-    <path d="M8 2 L32 2 L38 8 L38 32 L32 38 L8 38 L2 32 L2 8 Z"
-          stroke="url(#vpx_frame)" strokeWidth="1.4" fill="none"/>
-
-    {/* Inner secondary ring — subtle depth layer */}
-    <path d="M10 4.5 L30 4.5 L35.5 10 L35.5 30 L30 35.5 L10 35.5 L4.5 30 L4.5 10 Z"
-          stroke="rgba(139,92,246,0.20)" strokeWidth="0.55" fill="none"/>
-
-    {/* Subtle internal grid lines */}
-    <line x1="2"  y1="20" x2="38" y2="20" stroke="rgba(139,92,246,0.10)" strokeWidth="0.5"/>
-    <line x1="14" y1="2"  x2="14" y2="38" stroke="rgba(139,92,246,0.08)" strokeWidth="0.5"/>
-
-    {/* Top-left L-bracket — primary accent */}
-    <path d="M2 12 L2 4 L12 4" stroke="#A855F7" strokeWidth="2.2" strokeLinecap="square" fill="none"/>
-    {/* Top-right L-bracket */}
-    <path d="M38 12 L38 4 L28 4" stroke="#A855F7" strokeWidth="2.2" strokeLinecap="square" fill="none"/>
-    {/* Bottom corners — dimmer */}
-    <path d="M2 28 L2 36 L12 36" stroke="#7C3AED" strokeWidth="0.9" strokeLinecap="square" fill="none" opacity="0.45"/>
-    <path d="M38 28 L38 36 L28 36" stroke="#7C3AED" strokeWidth="0.9" strokeLinecap="square" fill="none" opacity="0.45"/>
-
-    {/* Diagonal energy slash — top-right corner accent */}
-    <line x1="30" y1="3.5" x2="36.5" y2="10" stroke="#C084FC" strokeWidth="0.9" opacity="0.55"/>
-
-    {/* Pixel dot accents */}
-    <rect x="3.5" y="3.5" width="1.8" height="1.8" fill="#A855F7" opacity="0.80"/>
-    <rect x="34.7" y="3.5" width="1.8" height="1.8" fill="#A855F7" opacity="0.80"/>
-    <rect x="3.5" y="34.7" width="1.8" height="1.8" fill="#6D28D9" opacity="0.40"/>
-    <rect x="34.7" y="34.7" width="1.8" height="1.8" fill="#6D28D9" opacity="0.40"/>
-
-    {/* VP interlocked monogram with glow filter */}
-    <g filter="url(#vpx_glow)">
-      {/* V — left arm */}
-      <path d="M8 11 L15.5 28" stroke="url(#vpx_mono)" strokeWidth="2.3" strokeLinecap="round"/>
-      {/* V — right arm (top shares point with P stem) */}
-      <path d="M23 11 L15.5 28" stroke="url(#vpx_mono)" strokeWidth="2.3" strokeLinecap="round"/>
-
-      {/* Segment tick marks across V arms */}
-      <line x1="10.2" y1="17.5" x2="13.0" y2="15.3" stroke="rgba(192,132,252,0.50)" strokeWidth="0.9"/>
-      <line x1="18.8" y1="17.5" x2="21.6" y2="15.3" stroke="rgba(192,132,252,0.50)" strokeWidth="0.9"/>
-
-      {/* P — vertical stem */}
-      <path d="M23 11 L23 29" stroke="url(#vpx_mono)" strokeWidth="2.3" strokeLinecap="round"/>
-      {/* P — angular bowl (geometric segments, not arc) */}
-      <path d="M23 11 L30 11 L33 14.5 L33 18.5 L30 22 L23 22"
-            stroke="url(#vpx_mono)" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-      {/* P inner bowl secondary highlight */}
-      <path d="M24.8 14 L29 14 L31 16 L31 17.5 L29 19.5 L24.8 19.5"
-            stroke="rgba(192,132,252,0.28)" strokeWidth="0.75" fill="none"/>
-    </g>
+    {/* V — left arm */}
+    <path d="M6 10 L16 30" stroke="#8B5CF6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    {/* V — right arm */}
+    <path d="M26 10 L16 30" stroke="#8B5CF6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    {/* P — vertical stem (shares top with V right arm) */}
+    <path d="M26 10 L26 32" stroke="#8B5CF6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+    {/* P — angular bowl */}
+    <path d="M26 10 L34 10 L36 14 L36 20 L34 24 L26 24"
+          stroke="#8B5CF6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+    {/* Interlocking segment lines */}
+    <line x1="12" y1="18" x2="20" y2="18" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+    <line x1="14" y1="22" x2="22" y2="22" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
+    <line x1="10" y1="14" x2="18" y2="14" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" opacity="0.6" />
   </svg>
 )
 
@@ -90,7 +37,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
           <LogoIcon />
-          <span className="font-semibold text-[1.34rem] tracking-tight text-white">
+          <span className="font-semibold text-[1.34rem] tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-[#8B5CF6] to-white">
             vibeProfileit
           </span>
         </Link>
