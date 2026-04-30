@@ -49,23 +49,23 @@ function BadgeCell({ icon, label }: { icon: string; label: string }) {
 }
 
 // ─── Dropzone ─────────────────────────────────────────────────
-function Dropzone({ label, hint, icon, imageUrl, onFile, validate, disabled }: {
+function Dropzone({ label, hint, icon, imageUrl, onFile, validate, accept, disabled }: {
   label: string;
   hint: string;
   icon: React.ReactNode;
   imageUrl: string | null;
   onFile: (url: string, file: File) => void;
-  validate?: (file: File, inputEl: HTMLInputElement | null) => boolean;
+  validate?: (file: File, inputEl: HTMLInputElement | null) => Promise<boolean>;
+  accept?: string;
   disabled?: boolean;
 }) {
   const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     if (disabled) return;
     if (!file.type.startsWith("image/")) return;
-    // Stop processing if validation fails
-    if (validate && !validate(file, inputRef.current)) return;
+    if (validate && !(await validate(file, inputRef.current))) return;
     onFile(URL.createObjectURL(file), file);
   }, [onFile, validate, disabled]);
 
@@ -92,7 +92,7 @@ function Dropzone({ label, hint, icon, imageUrl, onFile, validate, disabled }: {
       <input
         ref={inputRef}
         type="file"
-        accept="image/*"
+        accept={accept ?? "image/*"}
         className="hidden"
         onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
       />
@@ -308,26 +308,73 @@ export default function UploadPage() {
     setResetKey((k) => k + 1); // forces Dropzone remount → clears file inputs
   };
 
-  // FFmpeg engine managed via ref — not reloaded on every call
-  // 15MB size limit for background
-  const validateBackground = (file: File, inputEl: HTMLInputElement | null): boolean => {
+  const readImageDimensions = (file: File): Promise<{ width: number; height: number }> =>
+    new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file);
+      const img = new window.Image();
+      img.onload  = () => { URL.revokeObjectURL(url); resolve({ width: img.naturalWidth, height: img.naturalHeight }); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("unreadable")); };
+      img.src = url;
+    });
+
+  const validateBackground = async (file: File, inputEl: HTMLInputElement | null): Promise<boolean> => {
+    const ALLOWED = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+    if (!ALLOWED.includes(file.type)) {
+      alert("Only JPEG, PNG, and GIF files are allowed for background.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    }
     if (file.size > MAX_FILE_SIZE) {
-      alert("File size exceeds the 15MB limit. Please choose a smaller file.");
+      alert("File size exceeds 15MB limit.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    }
+    let dims: { width: number; height: number };
+    try { dims = await readImageDimensions(file); } catch {
+      alert("Could not read image dimensions.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    }
+    if (dims.width < 600) {
+      alert("Minimum width of 600px is required for quality.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    }
+    if (dims.width > 4000 || dims.height > 4000) {
+      alert("Image dimensions are too large. Max 4000px supported.");
       if (inputEl) inputEl.value = "";
       return false;
     }
     return true;
   };
 
-  // 20MB size limit and GIF ban for avatar
-  const validateAvatar = (file: File, inputEl: HTMLInputElement | null): boolean => {
-    if (file.size > MAX_FILE_SIZE) {
-      alert("File size exceeds the 15MB limit. Please choose a smaller file.");
+  const validateAvatar = async (file: File, inputEl: HTMLInputElement | null): Promise<boolean> => {
+    const ALLOWED = ["image/jpeg", "image/jpg", "image/png"];
+    if (!ALLOWED.includes(file.type)) {
+      alert(file.type === "image/gif"
+        ? "GIF files are not supported for avatars."
+        : "Only JPEG and PNG files are allowed for avatars.");
       if (inputEl) inputEl.value = "";
       return false;
     }
-    if (file.type === "image/gif") {
-      alert("Steam custom GIF avatars are not supported. Please upload PNG or JPG.");
+    if (file.size > MAX_FILE_SIZE) {
+      alert("File size exceeds 15MB limit.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    }
+    let dims: { width: number; height: number };
+    try { dims = await readImageDimensions(file); } catch {
+      alert("Could not read image dimensions.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    }
+    if (dims.width < 600) {
+      alert("Minimum width of 600px is required for quality.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    }
+    if (dims.width > 4000 || dims.height > 4000) {
+      alert("Image dimensions are too large. Max 4000px supported.");
       if (inputEl) inputEl.value = "";
       return false;
     }
@@ -727,6 +774,7 @@ export default function UploadPage() {
                   </svg>
                 }
                 imageUrl={bgUrl}
+                accept="image/jpeg,image/png,image/gif"
                 validate={validateBackground}
                 onFile={(url, file) => { setBgUrl(url); setBgFile(file); }}
               />
@@ -757,6 +805,7 @@ export default function UploadPage() {
                   </svg>
                 }
                 imageUrl={avatarUrl}
+                accept="image/jpeg,image/png"
                 validate={validateAvatar}
                 onFile={(url, file) => { setAvatarUrl(url); setAvatarFile(file); }}
               />
