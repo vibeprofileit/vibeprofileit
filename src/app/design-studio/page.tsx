@@ -11,6 +11,8 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import type { SteamProfileData, SteamFriend } from "../api/steam/profile/route";
 import { stampWatermark } from "@/lib/watermark";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { fetchFile, toBlobURL } from "@ffmpeg/util";
 
 const MAX_FILE_SIZE      = 15 * 1024 * 1024; // 15MB
 const ELITE_BYPASS_BYTES = 5_138_022;        // 4.9 MB — bu altı dosyalara sıkıştırma uygulanmaz
@@ -431,6 +433,29 @@ export default function UploadPage() {
     return null;
   };
 
+  async function normalizeGif(file: File): Promise<File> {
+    const ffmpeg = new FFmpeg();
+    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
+    await ffmpeg.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
+    });
+
+    await ffmpeg.writeFile("input.gif", await fetchFile(file));
+
+    await ffmpeg.exec([
+      "-y", "-i", "input.gif",
+      "-vf", "fps=15,scale=if(gt(iw\\,630)\\,630\\,iw):-2",
+      "-t", "3",
+      "output.gif"
+    ]);
+
+    const data = await ffmpeg.readFile("output.gif");
+    const buffer = data instanceof Uint8Array ? data.buffer : data;
+    const blob = new Blob([buffer], { type: "image/gif" });
+    return new File([blob], file.name, { type: "image/gif" });
+  }
+
   const handleCutAndDownload = async () => {
     if (!bgUrl && !avatarUrl) {
       alert("Please upload at least a background image or an avatar.");
@@ -488,6 +513,7 @@ export default function UploadPage() {
         const isFeatured = showcaseMode === 'featured';
 
         if (isGif) {
+          effectiveBgFile = await normalizeGif(effectiveBgFile);
           setProgress(15);
 
           const compressGif = async (cropX?: number, cropW?: number): Promise<Uint8Array> => {
