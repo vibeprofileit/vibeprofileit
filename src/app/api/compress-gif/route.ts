@@ -156,7 +156,8 @@ export async function POST(req: NextRequest) {
 
   } catch (err) {
     await cleanup();
-    console.error("[compress-gif]", err);
-    return NextResponse.json({ error: "Compression failed" }, { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[compress-gif] FULL ERROR:", message);
+    return NextResponse.json({ error: "Compression failed", detail: message }, { status: 500 });
   }
 }

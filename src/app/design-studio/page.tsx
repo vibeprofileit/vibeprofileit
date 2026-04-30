@@ -450,9 +450,9 @@ export default function UploadPage() {
       "output.gif"
     ]);
 
-    const data = await ffmpeg.readFile("output.gif");
-    const buffer = data instanceof Uint8Array ? data.buffer : data;
-    const blob = new Blob([buffer], { type: "image/gif" });
+    const raw = await ffmpeg.readFile("output.gif");
+    const safe = new Uint8Array((raw as Uint8Array).buffer).slice();
+    const blob = new Blob([safe], { type: "image/gif" });
     return new File([blob], file.name, { type: "image/gif" });
   }
 
