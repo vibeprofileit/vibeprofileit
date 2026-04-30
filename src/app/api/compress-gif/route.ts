@@ -5,6 +5,7 @@ import { writeFile, readFile, unlink, stat } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
 import { randomUUID } from "crypto";
+import ffmpegStatic from "ffmpeg-static";
 
 export const maxDuration = 60;
 
@@ -16,6 +17,11 @@ const PASS1_CEILING = Math.floor(6.5  * 1024 * 1024); // 6.5 MB  -- Pass 1 ust s
 function getGifsicle(): string {
   const ext = process.platform === "win32" ? ".exe" : "";
   return join(process.cwd(), "node_modules", "gifsicle", "vendor", `gifsicle${ext}`);
+}
+
+function getFfmpeg(): string {
+  if (!ffmpegStatic) throw new Error("ffmpeg-static binary not found");
+  return ffmpegStatic;
 }
 
 function getGifLogicalSize(buf: Buffer): { w: number; h: number } {
