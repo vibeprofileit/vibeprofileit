@@ -93,7 +93,7 @@ function ImageModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 16 }}
           transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-          className="modal-scroll relative w-[85vw] max-h-[88vh] overflow-y-auto rounded-2xl flex flex-col pr-2"
+          className="modal-scroll relative w-[85vw] max-h-[88vh] overflow-y-auto rounded-2xl flex flex-col"
           style={{
             maxWidth: "1150px",
             minHeight: "750px",
@@ -121,7 +121,7 @@ function ImageModal({
             <X size={16} color="#fff" />
           </button>
 
-          <div className="relative overflow-hidden isolate flex flex-col md:flex-row gap-6 p-6 items-stretch flex-1">
+          <div className="flex flex-col md:flex-row gap-6 p-6 items-stretch flex-1">
             {/* Sol: Görsel */}
             <div
               className="rounded-xl relative overflow-hidden isolate"
@@ -240,7 +240,7 @@ function ImageModal({
           {related.length > 0 && (
             <div className="relative z-[70] px-6 py-5 mt-auto" style={{ borderTop: "1px solid rgba(188,19,254,0.15)", background: "rgba(5,5,5,0.8)" }}>
               <h3 className="text-white text-xs font-bold uppercase tracking-widest mb-4 pl-1">Related Vibes</h3>
-              <div className="grid grid-cols-4 gap-3 relative z-[80] isolate pointer-events-auto" style={{ paddingBottom: "8px", overflow: "visible" }}>
+              <div className="grid grid-cols-4 gap-3 isolate pointer-events-auto" style={{ paddingBottom: "8px", overflow: "visible" }}>
                 {Array.from(new Map(related.map((r) => [r.id, r])).values()).map((rel) => (
                   <RelatedVibeCard key={rel.id} rel={rel} onSelect={onSelect} />
                 ))}
@@ -455,7 +455,7 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
             <Pencil size={10} color="#fff" />
             <span style={{ color: "#fff", fontSize: "10px", fontWeight: 700 }}>View in Studio</span>
           </Link>
-          <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center z-10">
             <button
               onClick={(e) => { e.stopPropagation(); onSelect(rel); }}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-white font-semibold pointer-events-auto"
