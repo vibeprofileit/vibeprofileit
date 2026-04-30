@@ -7,6 +7,7 @@ interface ProtectedImageProps {
   alt: string
   className?: string
   isBlurred?: boolean
+  style?: React.CSSProperties
 }
 
 const GHOST =
@@ -19,6 +20,7 @@ export default function ProtectedImage({
   alt,
   className = "",
   isBlurred = false,
+  style,
 }: ProtectedImageProps) {
   return (
     <div
@@ -34,6 +36,7 @@ export default function ProtectedImage({
         draggable={false}
         onContextMenu={block}
         onDragStart={block}
+        style={style}
         className={`w-full h-auto block transition-all duration-300 pointer-events-none${
           isBlurred ? " blur-xl scale-110" : ""
         }`}

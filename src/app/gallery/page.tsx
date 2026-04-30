@@ -133,7 +133,7 @@ function ImageModal({
               }}
             >
               {item.src ? (
-                <img
+                <ProtectedImage
                   src={item.src}
                   alt={item.theme}
                   className="w-auto object-contain relative z-[1]"
