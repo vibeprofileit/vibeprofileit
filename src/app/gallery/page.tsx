@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Header from "@/components/Header";
+import ProtectedImage from "@/components/ui/ProtectedImage";
 import { Search, ExternalLink, ChevronDown, Pencil, Eye, X, Download, Heart } from "lucide-react";
 
 const CHUNK_SIZE = 24;
@@ -235,9 +236,11 @@ function ImageModal({
             <div className="px-6 py-5 mt-auto" style={{ borderTop: "1px solid rgba(188,19,254,0.15)", background: "rgba(5,5,5,0.8)" }}>
               <h3 className="text-white text-xs font-bold uppercase tracking-widest mb-4 pl-1">Related Vibes</h3>
               <div className="grid grid-cols-4 gap-4" style={{ paddingBottom: "8px" }}>
-                {related.map((rel) => (
-                  <RelatedVibeCard key={rel.id} rel={rel} onSelect={onSelect} />
-                ))}
+                {related
+                  .filter((rel, idx, arr) => arr.findIndex((r) => r.id === rel.id) === idx)
+                  .map((rel, index) => (
+                    <RelatedVibeCard key={`${rel.id}-${index}`} rel={rel} onSelect={onSelect} />
+                  ))}
               </div>
             </div>
           )}
@@ -660,14 +663,10 @@ function GalleryCard({
           </div>
         </>
       ) : item.src ? (
-        <img
+        <ProtectedImage
           src={item.src}
           alt={item.theme}
           className="absolute inset-0 w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-          style={{ filter: hovered ? "brightness(0.8)" : "none", transition: "filter 0.2s ease", transform: "translateZ(0)", backfaceVisibility: "hidden" }}
-          onError={() => setImageError(true)}
         />
       ) : (
         <PremiumPlaceholder />
