@@ -4,11 +4,15 @@ import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { MessageCircle, X } from "lucide-react"
 
+type Status = "idle" | "success" | "error"
+
 export default function FeedbackButton() {
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState("")
   const [errors, setErrors] = useState({ email: "", message: "" })
+  const [isSending, setIsSending] = useState(false)
+  const [status, setStatus] = useState<Status>("idle")
   const pathname = usePathname()
 
   useEffect(() => {
@@ -24,14 +28,35 @@ export default function FeedbackButton() {
     return !next.email && !next.message
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validate()) return
-    console.log("Feedback submitted:", { email, message })
-    setEmail("")
-    setMessage("")
-    setErrors({ email: "", message: "" })
-    setOpen(false)
+
+    setIsSending(true)
+    setStatus("idle")
+
+    try {
+      const res = await fetch("/api/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, message }),
+      })
+
+      if (!res.ok) throw new Error("non-2xx response")
+
+      setEmail("")
+      setMessage("")
+      setErrors({ email: "", message: "" })
+      setStatus("success")
+      setTimeout(() => {
+        setOpen(false)
+        setStatus("idle")
+      }, 3000)
+    } catch {
+      setStatus("error")
+    } finally {
+      setIsSending(false)
+    }
   }
 
   return (
@@ -103,11 +128,23 @@ export default function FeedbackButton() {
             )}
           </div>
 
+          {status === "success" && (
+            <p className="text-xs text-emerald-400 text-center">
+              Thank you! We received your message.
+            </p>
+          )}
+          {status === "error" && (
+            <p className="text-xs text-rose-400 text-center">
+              Something went wrong. Please try again.
+            </p>
+          )}
+
           <button
             type="submit"
-            className="w-full rounded-xl bg-gradient-to-r from-[#6600ff] to-[#7c3aed] py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+            disabled={isSending}
+            className="w-full rounded-xl bg-gradient-to-r from-[#6600ff] to-[#7c3aed] py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Send Feedback
+            {isSending ? "Sending..." : "Send Feedback"}
           </button>
         </form>
       </div>
