@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import type { SteamProfileData, SteamFriend } from "../api/steam/profile/route";
+import { stampWatermark } from "@/lib/watermark";
 
 const MAX_FILE_SIZE      = 15 * 1024 * 1024; // 15MB
 const ELITE_BYPASS_BYTES = 5_138_022;        // 4.9 MB — bu altı dosyalara sıkıştırma uygulanmaz
@@ -363,59 +364,6 @@ export default function UploadPage() {
 
   const canvasToBlob = (canvas: HTMLCanvasElement): Promise<Blob> =>
     new Promise((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
-
-  // logo-vibe.png: sag alt kose, %17 genislik, yuvarlatilmis siyah pill arka plan + 0.7 opacity
-  const stampWatermark = async (canvas: HTMLCanvasElement): Promise<void> => {
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const wm = new Image();
-    await new Promise<void>((resolve, reject) => {
-      wm.onload  = () => resolve();
-      wm.onerror = () => reject(new Error("Watermark load failed"));
-      wm.src = "/logo-vibe.png";
-    });
-
-    const PAD   = 20;
-    const BGPAD = 8;  // logonun etrafindaki ic bosluk
-    const RADIUS = 6; // pill kose yuvarlama
-
-    const wmW = Math.round(canvas.width * 0.12);
-    const wmH = Math.round(wm.naturalHeight * (wmW / wm.naturalWidth));
-    const x   = canvas.width  - PAD - wmW;
-    const y   = canvas.height - PAD - wmH;
-
-    const bgX = x - BGPAD;
-    const bgY = y - BGPAD;
-    const bgW = wmW + BGPAD * 2;
-    const bgH = wmH + BGPAD * 2;
-
-    ctx.save();
-
-    // 1. Yuvarlatilmis siyah arka plan
-    ctx.globalAlpha = 0.4;
-    ctx.fillStyle   = "#000000";
-    ctx.beginPath();
-    ctx.moveTo(bgX + RADIUS, bgY);
-    ctx.lineTo(bgX + bgW - RADIUS, bgY);
-    ctx.quadraticCurveTo(bgX + bgW, bgY,      bgX + bgW, bgY + RADIUS);
-    ctx.lineTo(bgX + bgW, bgY + bgH - RADIUS);
-    ctx.quadraticCurveTo(bgX + bgW, bgY + bgH, bgX + bgW - RADIUS, bgY + bgH);
-    ctx.lineTo(bgX + RADIUS, bgY + bgH);
-    ctx.quadraticCurveTo(bgX,      bgY + bgH, bgX,      bgY + bgH - RADIUS);
-    ctx.lineTo(bgX, bgY + RADIUS);
-    ctx.quadraticCurveTo(bgX,      bgY,       bgX + RADIUS, bgY);
-    ctx.closePath();
-    ctx.fill();
-
-    // 2. Logo arka plan uzerine
-    ctx.globalAlpha = 0.7;
-    ctx.shadowColor = "rgba(0,0,0,0.8)";
-    ctx.shadowBlur  = 8;
-    ctx.drawImage(wm, x, y, wmW, wmH);
-
-    ctx.restore();
-  };
 
   const STEAM_MAX_BYTES  = 5242880;                          // 5 MB (Steam hard limit)
   const STEAM_SAFE_BYTES = Math.floor(4.95 * 1024 * 1024); // 4.95 MB -- backend ile eslesik
