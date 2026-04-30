@@ -51,7 +51,7 @@ export default function ProtectedImage({
         onContextMenu={block}
         onDragStart={block}
         onDrop={block}
-        className="absolute inset-0 z-50 w-full h-full cursor-default select-none"
+        className="absolute inset-0 z-10 w-full h-full cursor-default select-none"
       />
     </div>
   )
