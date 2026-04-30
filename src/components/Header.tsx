@@ -17,7 +17,7 @@ export default function Header() {
         <Link href="/">
           <div className="flex items-center gap-3">
             <Image
-              src="/logo-vibe (1).png"
+              src="/logo-vibe-main.png"
               alt="Logo"
               width={36}
               height={36}
