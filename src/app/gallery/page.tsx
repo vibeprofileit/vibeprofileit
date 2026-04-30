@@ -58,11 +58,13 @@ function ImageModal({
   useEffect(() => {
     document.body.style.overflow = "hidden";
     window.history.pushState(null, "", `/gallery?id=${item.id}`);
+    document.dispatchEvent(new CustomEvent("vp-modal-open"));
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = "";
       window.history.pushState(null, "", "/gallery");
+      document.dispatchEvent(new CustomEvent("vp-modal-close"));
       window.removeEventListener("keydown", onKey);
     };
   }, [onClose, item.id]);
@@ -206,28 +208,20 @@ function ImageModal({
                 <Link
                   href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}`}
                   target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white transition-all duration-200"
-                  style={{ background: "linear-gradient(135deg, rgba(188,19,254,0.6), rgba(188,19,254,0.2))", border: "1px solid rgba(188,19,254,0.8)", boxShadow: "0 0 8px rgba(188,19,254,0.3)" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 15px rgba(188,19,254,0.5)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 8px rgba(188,19,254,0.3)"; }}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all duration-200"
+                  style={{ background: "linear-gradient(135deg, rgba(188,19,254,0.85), rgba(120,0,200,0.6))", border: "1px solid rgba(188,19,254,1)", boxShadow: "0 0 14px rgba(188,19,254,0.5), 0 0 28px rgba(188,19,254,0.2)" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 24px rgba(188,19,254,0.75), 0 0 48px rgba(188,19,254,0.3)"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 14px rgba(188,19,254,0.5), 0 0 28px rgba(188,19,254,0.2)"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)"; }}
                 >
-                  <Pencil size={14} /> View in Studio
+                  <Download size={15} /> Customize & Download
                 </Link>
                 <button
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold text-white transition-all duration-200"
-                  style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(188,19,254,0.25)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
+                  className="flex items-center justify-center gap-2 py-2 rounded-xl text-[12px] font-medium transition-all duration-200"
+                  style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#00ff88"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,255,136,0.4)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 12px rgba(0,255,136,0.15)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.5)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
                 >
-                  <Download size={14} /> Download
-                </button>
-                <button
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-200"
-                  style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#00ff88"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,255,136,0.4)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 15px rgba(0,255,136,0.2)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.6)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
-                >
-                  <Heart size={14} /> Like
+                  <Heart size={13} /> Like
                 </button>
               </div>
             </div>
@@ -371,7 +365,7 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
 
   return (
     <div
-      className="relative z-[60] isolate rounded-xl overflow-hidden cursor-pointer pointer-events-auto"
+      className="relative rounded-xl overflow-hidden cursor-pointer pointer-events-auto"
       style={{ aspectRatio: "9/14", background: "#050505", border: "1px solid rgba(188,19,254,0.25)", willChange: "transform" }}
       onClick={(e) => { e.stopPropagation(); if (!rel.isAdult) onSelect(rel); }}
       onMouseEnter={() => { if (!rel.isAdult) setHov(true); }}

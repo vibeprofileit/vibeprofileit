@@ -13,11 +13,23 @@ export default function FeedbackButton() {
   const [errors, setErrors] = useState({ email: "", message: "" })
   const [isSending, setIsSending] = useState(false)
   const [status, setStatus] = useState<Status>("idle")
+  const [modalOpen, setModalOpen] = useState(false)
   const pathname = usePathname()
 
   useEffect(() => {
     setOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    const onOpen  = () => { setModalOpen(true);  setOpen(false); }
+    const onClose = () => setModalOpen(false)
+    document.addEventListener("vp-modal-open",  onOpen)
+    document.addEventListener("vp-modal-close", onClose)
+    return () => {
+      document.removeEventListener("vp-modal-open",  onOpen)
+      document.removeEventListener("vp-modal-close", onClose)
+    }
+  }, [])
 
   function validate() {
     const next = { email: "", message: "" }
@@ -60,7 +72,7 @@ export default function FeedbackButton() {
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3">
+    <div className={`fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3 transition-opacity duration-200${modalOpen ? " opacity-0 pointer-events-none" : ""}`}>
       {/* Popover Form */}
       <div
         className={`w-80 rounded-2xl border border-white/10 bg-[#0d0d12] backdrop-blur-md shadow-2xl shadow-black/60 overflow-hidden transition-all duration-300 origin-bottom-right ${
