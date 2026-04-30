@@ -1,18 +1,36 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { MessageCircle, X } from "lucide-react"
 
 export default function FeedbackButton() {
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState("")
   const [message, setMessage] = useState("")
+  const [errors, setErrors] = useState({ email: "", message: "" })
+  const pathname = usePathname()
+
+  useEffect(() => {
+    setOpen(false)
+  }, [pathname])
+
+  function validate() {
+    const next = { email: "", message: "" }
+    if (!email.trim()) next.email = "Please fill in this field."
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) next.email = "Please enter a valid email address."
+    if (!message.trim()) next.message = "Please fill in this field."
+    setErrors(next)
+    return !next.email && !next.message
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!validate()) return
     console.log("Feedback submitted:", { email, message })
     setEmail("")
     setMessage("")
+    setErrors({ email: "", message: "" })
     setOpen(false)
   }
 
@@ -42,19 +60,26 @@ export default function FeedbackButton() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-5">
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3 p-5">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold text-white/40 uppercase tracking-wider">
               Your Email
             </label>
             <input
               type="email"
-              required
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (errors.email) setErrors((prev) => ({ ...prev, email: "" }))
+              }}
               placeholder="you@example.com"
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500/60 transition-colors"
+              className={`w-full rounded-xl border bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none transition-colors ${
+                errors.email ? "border-rose-500/60" : "border-white/10 focus:border-violet-500/60"
+              }`}
             />
+            {errors.email && (
+              <p className="text-xs text-rose-400">{errors.email}</p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -62,13 +87,20 @@ export default function FeedbackButton() {
               Your Message
             </label>
             <textarea
-              required
               rows={4}
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Tell us what's on your mind..."
-              className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-violet-500/60 transition-colors resize-none"
+              onChange={(e) => {
+                setMessage(e.target.value)
+                if (errors.message) setErrors((prev) => ({ ...prev, message: "" }))
+              }}
+              placeholder="Write for Suggestions, Complaints, and Partnership"
+              className={`w-full rounded-xl border bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none transition-colors resize-none ${
+                errors.message ? "border-rose-500/60" : "border-white/10 focus:border-violet-500/60"
+              }`}
             />
+            {errors.message && (
+              <p className="text-xs text-rose-400">{errors.message}</p>
+            )}
           </div>
 
           <button
