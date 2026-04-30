@@ -124,7 +124,7 @@ function ImageModal({
           <div className="flex flex-col md:flex-row gap-6 p-6 items-stretch flex-1">
             {/* Sol: Görsel */}
             <div
-              className="rounded-xl relative overflow-hidden"
+              className="rounded-xl relative overflow-hidden isolate"
               style={{
                 display: "flex", alignItems: "center", justifyContent: "center",
                 alignSelf: "center",
@@ -233,11 +233,14 @@ function ImageModal({
             </div>
           </div>
 
+          {/* Stacking context ayıracı — main content ile related arasında z-sınırı */}
+          <div className="relative z-[70]" style={{ height: 0, pointerEvents: "none" }} />
+
           {/* Related Vibes */}
           {related.length > 0 && (
-            <div className="px-6 py-5 mt-auto" style={{ borderTop: "1px solid rgba(188,19,254,0.15)", background: "rgba(5,5,5,0.8)" }}>
+            <div className="relative z-[70] px-6 py-5 mt-auto" style={{ borderTop: "1px solid rgba(188,19,254,0.15)", background: "rgba(5,5,5,0.8)" }}>
               <h3 className="text-white text-xs font-bold uppercase tracking-widest mb-4 pl-1">Related Vibes</h3>
-              <div className="grid grid-cols-4 gap-3" style={{ paddingBottom: "8px", overflow: "visible" }}>
+              <div className="grid grid-cols-4 gap-3 isolate pointer-events-auto" style={{ paddingBottom: "8px", overflow: "visible" }}>
                 {Array.from(new Map(related.map((r) => [r.id, r])).values()).map((rel) => (
                   <RelatedVibeCard key={rel.id} rel={rel} onSelect={onSelect} />
                 ))}
