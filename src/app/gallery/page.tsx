@@ -203,15 +203,17 @@ function ImageModal({
                 ))}
               </div>
 
+              <div className="h-[180px]" />
+
               {/* Butonlar */}
-              <div className="flex flex-col gap-2 mt-auto">
+              <div className="flex flex-col gap-2 mt-[220px] pb-6">
                 <Link
                   href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}`}
                   target="_blank" rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all duration-200"
-                  style={{ background: "linear-gradient(135deg, rgba(188,19,254,0.85), rgba(120,0,200,0.6))", border: "1px solid rgba(188,19,254,1)", boxShadow: "0 0 14px rgba(188,19,254,0.5), 0 0 28px rgba(188,19,254,0.2)" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 24px rgba(188,19,254,0.75), 0 0 48px rgba(188,19,254,0.3)"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 14px rgba(188,19,254,0.5), 0 0 28px rgba(188,19,254,0.2)"; (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)"; }}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white"
+                  style={{ background: "linear-gradient(135deg, rgba(188,19,254,0.85), rgba(120,0,200,0.6))", border: "1px solid rgba(188,19,254,1)", transition: "transform 0.2s ease" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1.02)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1)"; }}
                 >
                   <Download size={15} /> Customize & Download
                 </Link>
