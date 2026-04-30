@@ -67,9 +67,11 @@ function ImageModal({
     };
   }, [onClose, item.id]);
 
+  const seenIds = new Set<string>();
   const related = [...allItems]
     .filter((m) => m.id !== item.id && (m.theme === item.theme || m.style === item.style))
     .sort(() => 0.5 - Math.random())
+    .filter((m) => { if (seenIds.has(m.id)) return false; seenIds.add(m.id); return true; })
     .slice(0, 4);
 
   const hash = hashCode(item.id);
@@ -235,12 +237,10 @@ function ImageModal({
           {related.length > 0 && (
             <div className="px-6 py-5 mt-auto" style={{ borderTop: "1px solid rgba(188,19,254,0.15)", background: "rgba(5,5,5,0.8)" }}>
               <h3 className="text-white text-xs font-bold uppercase tracking-widest mb-4 pl-1">Related Vibes</h3>
-              <div className="grid grid-cols-4 gap-4" style={{ paddingBottom: "8px" }}>
-                {related
-                  .filter((rel, idx, arr) => arr.findIndex((r) => r.id === rel.id) === idx)
-                  .map((rel, index) => (
-                    <RelatedVibeCard key={`${rel.id}-${index}`} rel={rel} onSelect={onSelect} />
-                  ))}
+              <div className="grid grid-cols-4 gap-3" style={{ paddingBottom: "8px", overflow: "visible" }}>
+                {Array.from(new Map(related.map((r) => [r.id, r])).values()).map((rel) => (
+                  <RelatedVibeCard key={rel.id} rel={rel} onSelect={onSelect} />
+                ))}
               </div>
             </div>
           )}
@@ -368,9 +368,9 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
 
   return (
     <div
-      className="relative rounded-xl overflow-hidden cursor-pointer"
+      className="relative z-[60] isolate rounded-xl overflow-hidden cursor-pointer pointer-events-auto"
       style={{ aspectRatio: "9/14", background: "#050505", border: "1px solid rgba(188,19,254,0.25)", willChange: "transform" }}
-      onClick={() => { if (!rel.isAdult) onSelect(rel); }}
+      onClick={(e) => { e.stopPropagation(); if (!rel.isAdult) onSelect(rel); }}
       onMouseEnter={() => { if (!rel.isAdult) setHov(true); }}
       onMouseLeave={() => { if (!rel.isAdult) { setHov(false); setStHov(false); } }}
     >
@@ -486,7 +486,7 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
       )}
 
       {/* Theme + Color etiketleri — absolute overlay */}
-      <div className="absolute bottom-0 left-0 right-0 flex gap-1 px-1.5 py-1.5 flex-wrap z-10"
+      <div className="absolute bottom-0 left-0 right-0 flex gap-1 px-1.5 py-1.5 flex-wrap z-10 pointer-events-none"
         style={{ background: "linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%)" }}>
         <span className="px-1.5 py-0.5 rounded-full font-semibold" style={{ fontSize: "8px", background: "rgba(46,16,101,0.75)", border: "1px solid rgba(188,19,254,0.3)", color: "rgba(221,180,255,0.9)" }}>
           {rel.theme}
