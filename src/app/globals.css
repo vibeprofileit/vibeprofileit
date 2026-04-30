@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@keyframes neon-pulse {
+  from { text-shadow: 0 0 10px #A020F0, 0 0 20px #A020F0; }
+  to   { text-shadow: 0 0 15px #A020F0, 0 0 30px #A020F0, 0 0 45px #BF40BF; }
+}
+
 :root {
   --background: #0a0a0f;
   --foreground: #ffffff;

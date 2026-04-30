@@ -28,6 +28,7 @@ model Artwork {
   status      ArtworkStatus @default(PENDING)
   isFeatured  Boolean       @default(false)
   isNSFW      Boolean       @default(false)
+  coverUrl    String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 }

@@ -364,75 +364,56 @@ export default function UploadPage() {
   const canvasToBlob = (canvas: HTMLCanvasElement): Promise<Blob> =>
     new Promise((resolve) => canvas.toBlob((b) => resolve(b!), "image/png"));
 
-  // vibeProfileit watermark — sağ alt köşeye 20px boşlukla mühür basar
-  // Neon Mor (#8B5CF6) VP + Gradyan Metin, %75 opacity
-  const stampWatermark = (canvas: HTMLCanvasElement): void => {
+  // logo-vibe.png: sag alt kose, %17 genislik, yuvarlatilmis siyah pill arka plan + 0.7 opacity
+  const stampWatermark = async (canvas: HTMLCanvasElement): Promise<void> => {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const PAD  = 20;
-    const fs   = Math.max(10, Math.min(15, Math.round(canvas.width * 0.020)));
-    const lh   = fs + 5;
-    const txt  = "vibeProfileit";
+
+    const wm = new Image();
+    await new Promise<void>((resolve, reject) => {
+      wm.onload  = () => resolve();
+      wm.onerror = () => reject(new Error("Watermark load failed"));
+      wm.src = "/logo-vibe.png";
+    });
+
+    const PAD   = 20;
+    const BGPAD = 8;  // logonun etrafindaki ic bosluk
+    const RADIUS = 6; // pill kose yuvarlama
+
+    const wmW = Math.round(canvas.width * 0.12);
+    const wmH = Math.round(wm.naturalHeight * (wmW / wm.naturalWidth));
+    const x   = canvas.width  - PAD - wmW;
+    const y   = canvas.height - PAD - wmH;
+
+    const bgX = x - BGPAD;
+    const bgY = y - BGPAD;
+    const bgW = wmW + BGPAD * 2;
+    const bgH = wmH + BGPAD * 2;
 
     ctx.save();
-    ctx.font = `bold ${fs}px Arial, sans-serif`;
-    const tw = ctx.measureText(txt).width;
-    const iconW = lh;
-    const totalW = iconW + 6 + tw;
-    const rx = canvas.width  - PAD - totalW;
-    const ry = canvas.height - PAD - lh;
 
-    // Semi-transparent dark pill background
-    const bpad = 5;
-    ctx.globalAlpha = 0.75; // %75 opacity
-    ctx.fillStyle = "#000000";
+    // 1. Yuvarlatilmis siyah arka plan
+    ctx.globalAlpha = 0.4;
+    ctx.fillStyle   = "#000000";
     ctx.beginPath();
-    const r = 4, bx = rx - bpad, by = ry - bpad, bw = totalW + bpad * 2, bh = lh + bpad * 2;
-    ctx.moveTo(bx + r, by);
-    ctx.lineTo(bx + bw - r, by); ctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
-    ctx.lineTo(bx + bw, by + bh - r); ctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - r, by + bh);
-    ctx.lineTo(bx + r, by + bh); ctx.quadraticCurveTo(bx, by + bh, bx, by + bh - r);
-    ctx.lineTo(bx, by + r); ctx.quadraticCurveTo(bx, by, bx + r, by);
+    ctx.moveTo(bgX + RADIUS, bgY);
+    ctx.lineTo(bgX + bgW - RADIUS, bgY);
+    ctx.quadraticCurveTo(bgX + bgW, bgY,      bgX + bgW, bgY + RADIUS);
+    ctx.lineTo(bgX + bgW, bgY + bgH - RADIUS);
+    ctx.quadraticCurveTo(bgX + bgW, bgY + bgH, bgX + bgW - RADIUS, bgY + bgH);
+    ctx.lineTo(bgX + RADIUS, bgY + bgH);
+    ctx.quadraticCurveTo(bgX,      bgY + bgH, bgX,      bgY + bgH - RADIUS);
+    ctx.lineTo(bgX, bgY + RADIUS);
+    ctx.quadraticCurveTo(bgX,      bgY,       bgX + RADIUS, bgY);
     ctx.closePath();
     ctx.fill();
 
-    // Neon Mor (#8B5CF6) VP glyph — gradient stroke
-    ctx.globalAlpha = 0.75;
-    ctx.lineWidth   = Math.max(1, fs * 0.13);
-    ctx.lineCap     = "round";
-    ctx.lineJoin    = "round";
-    const g = ctx.createLinearGradient(rx, ry, rx + iconW, ry + lh);
-    g.addColorStop(0, "#8B5CF6");
-    g.addColorStop(1, "#8B5CF6");
-    ctx.strokeStyle = g;
-    // Drop shadow for neon glow
-    ctx.shadowColor = "#8B5CF6";
-    ctx.shadowBlur  = 10;
-    // V
-    const vt = ry + 1, vb = ry + lh - 1, vm = rx + iconW * 0.44;
-    ctx.beginPath(); ctx.moveTo(rx, vt); ctx.lineTo(vm, vb); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(rx + iconW * 0.73, vt); ctx.lineTo(vm, vb); ctx.stroke();
-    // P stem
-    const ps = rx + iconW * 0.73;
-    ctx.beginPath(); ctx.moveTo(ps, vt); ctx.lineTo(ps, vb); ctx.stroke();
-    // P bowl (angular)
-    const pm = vt + (vb - vt) * 0.5;
-    ctx.beginPath();
-    ctx.moveTo(ps, vt);
-    ctx.lineTo(ps + iconW * 0.27, vt);
-    ctx.lineTo(ps + iconW * 0.27, pm);
-    ctx.lineTo(ps, pm);
-    ctx.stroke();
+    // 2. Logo arka plan uzerine
+    ctx.globalAlpha = 0.7;
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur  = 8;
+    ctx.drawImage(wm, x, y, wmW, wmH);
 
-    // vibeProfileit text — gradient from #8B5CF6 via #A78BFA to white
-    ctx.shadowBlur = 0;
-    const textGrad = ctx.createLinearGradient(rx + iconW + 6, ry, rx + iconW + 6 + tw, ry);
-    textGrad.addColorStop(0, "#8B5CF6");
-    textGrad.addColorStop(0.5, "#A78BFA");
-    textGrad.addColorStop(1, "#ffffff");
-    ctx.fillStyle = textGrad;
-    ctx.font = `bold ${fs}px Arial, sans-serif`;
-    ctx.fillText(txt, rx + iconW + 6, ry + lh - 2);
     ctx.restore();
   };
 
@@ -600,7 +581,7 @@ export default function UploadPage() {
             featuredCanvas.height = targetH;
             featuredCanvas.getContext("2d")!
               .drawImage(bgImg, 0, 0, bgImg.naturalWidth, bgImg.naturalHeight, 0, 0, targetW, targetH);
-            stampWatermark(featuredCanvas);
+            await stampWatermark(featuredCanvas);
             setProgress(70);
             if (isElite) {
               zip.file("featured_main.png", await canvasToBlob(featuredCanvas));
@@ -628,14 +609,14 @@ export default function UploadPage() {
             setProgress(70);
             if (isElite) {
               const mainCrop = cropCanvas(masterCanvas, 0,   506);
-              stampWatermark(mainCrop);
+              await stampWatermark(mainCrop);
               zip.file("main.png", await canvasToBlob(mainCrop));
               const sideCrop = cropCanvas(masterCanvas, 512, 100);
-              stampWatermark(sideCrop);
+              await stampWatermark(sideCrop);
               zip.file("side.png", await canvasToBlob(sideCrop));
             } else {
               const mainCrop = cropCanvas(masterCanvas, 0, 506);
-              stampWatermark(mainCrop);
+              await stampWatermark(mainCrop);
               const blobMain = await canvasToBlobUnder5MB(mainCrop);
               if (!blobMain) {
                 alert("File exceeds Steam's 5MB limit.");
@@ -645,7 +626,7 @@ export default function UploadPage() {
               }
               zip.file("main.jpg", blobMain);
               const sideCrop = cropCanvas(masterCanvas, 512, 100);
-              stampWatermark(sideCrop);
+              await stampWatermark(sideCrop);
               const blobSide = await canvasToBlobUnder5MB(sideCrop);
               if (!blobSide) {
                 alert("File exceeds Steam's 5MB limit.");

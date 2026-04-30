@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import type { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
 import sharp from "sharp";
+import { generateGifCover } from "@/lib/thumbnail";
 
 const WORKER_BASE = "https://vibe-images.vibeprofileit.workers.dev";
 
@@ -100,6 +101,16 @@ export async function POST(request: NextRequest) {
 
   const sourceUrl = `${WORKER_BASE}/${r2Key}`;
 
+  let coverUrl: string | undefined;
+  if (isGif) {
+    try {
+      coverUrl = await generateGifCover(buffer);
+      console.log(`[UPLOAD] Cover üretildi → ${coverUrl}`);
+    } catch (err) {
+      console.error("[UPLOAD] Cover üretme hatası (devam ediliyor):", err);
+    }
+  }
+
   const artwork = await prisma.artwork.create({
     data: {
       sourceUrl,
@@ -109,6 +120,7 @@ export async function POST(request: NextRequest) {
       format,
       sizeBytes: file.size,
       status: "PENDING",
+      ...(coverUrl && { coverUrl }),
     },
   });
 

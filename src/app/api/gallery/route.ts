@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
       ? await prisma.artwork.findMany({
           where:  { id: { in: pageIds } },
           select: {
-            id: true, sourceUrl: true, width: true, height: true,
+            id: true, sourceUrl: true, coverUrl: true, width: true, height: true,
             sizeBytes: true, format: true, theme: true, color: true,
             vibe: true, mediaType: true, isFeatured: true, isNSFW: true, createdAt: true,
           },
@@ -120,6 +120,7 @@ export async function GET(request: NextRequest) {
     const items = orderedArtworks.map(a => ({
       id:         a.id,
       src:        a.sourceUrl!,
+      coverUrl:   a.coverUrl ?? null,
       theme:      a.theme     ?? "",
       color:      a.color     ?? "",
       style:      a.vibe      ?? "",

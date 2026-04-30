@@ -67,8 +67,6 @@ export default function Home() {
 
       {/* Hero Section */}
       <section className="pt-36 pb-16 px-6 text-center relative">
-        {/* Background glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -139,15 +137,6 @@ export default function Home() {
                 className="relative overflow-hidden flex items-center justify-center px-8 py-3.5 rounded-full font-bold text-white transition-all duration-300"
                 style={{
                   background: "linear-gradient(to right, #3b82f6, #7c3aed, #8b5cf6)",
-                  boxShadow: "0 0 25px rgba(59,130,246,0.3), 0 0 50px rgba(188,19,254,0.2)",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 40px rgba(59,130,246,0.5), 0 0 80px rgba(188,19,254,0.35)";
-                  (e.currentTarget as HTMLAnchorElement).style.filter = "saturate(1.5) brightness(1.12)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 25px rgba(59,130,246,0.3), 0 0 50px rgba(188,19,254,0.2)";
-                  (e.currentTarget as HTMLAnchorElement).style.filter = "none";
                 }}
               >
                 Get Started

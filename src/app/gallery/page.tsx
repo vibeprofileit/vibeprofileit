@@ -16,6 +16,7 @@ const CATEGORIES = [
 type GalleryItem = {
   id: string;
   src: string;
+  coverUrl: string | null;
   theme: string;
   color: string;
   style: string;
@@ -135,7 +136,7 @@ function ImageModal({
                   src={item.src}
                   alt={item.theme}
                   className="w-auto object-contain relative z-[1]"
-                  style={{ maxHeight: "75vh" }}
+                  style={{ maxHeight: "75vh", imageRendering: "-webkit-optimize-contrast" }}
                 />
               ) : (
                 <div
@@ -352,6 +353,8 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
           canvas.height = rel.height || img.height;
           const ctx = canvas.getContext("2d");
           if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
             ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
             setThumbnailLoaded(true);
           }
@@ -396,7 +399,7 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
           <canvas
             ref={canvasRef}
             className="absolute inset-0 w-full h-full"
-            style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s" }}
+            style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s", imageRendering: "-webkit-optimize-contrast" }}
           />
           {hov && (
             <img
@@ -544,6 +547,8 @@ function GalleryCard({
       const ctx = canvas.getContext("2d");
       if (!ctx) { setCanvasFailed(true); return; }
       try {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
         ctx.drawImage(img, 0, 0);
         setThumbnailLoaded(true);
       } catch {
@@ -555,6 +560,17 @@ function GalleryCard({
     return () => { cancelled = true; };
   }, [inView, item.isAnimated, item.src, thumbnailLoaded, canvasFailed]);
 
+  // coverUrl olan kartlarda src hover beklenmeden kontrol edilir;
+  // dosya silinmişse kart hover'a gerek kalmadan anında gizlenir
+  useEffect(() => {
+    if (!inView || !item.coverUrl || !item.src) return;
+    let cancelled = false;
+    const probe = new Image();
+    probe.onerror = () => { if (!cancelled) setImageError(true); };
+    probe.src = item.src;
+    return () => { cancelled = true; };
+  }, [inView, item.coverUrl, item.src]);
+
   if (imageError) return null;
 
   return (
@@ -564,7 +580,7 @@ function GalleryCard({
       transition={{ delay: Math.min(index * 0.03, 0.6), duration: 0.4, ease: "easeOut" }}
       ref={cardRef}
       className="relative rounded-xl overflow-hidden cursor-pointer"
-      style={{ aspectRatio, width: "100%", minHeight: "100px", border: "1px solid rgba(188,19,254,0.2)", willChange: "transform" }}
+      style={{ aspectRatio, width: "100%", minHeight: "100px", border: "1px solid rgba(188,19,254,0.2)", willChange: "transform", contain: "layout style paint" }}
       onMouseEnter={() => { if (!item.isAdult) setHovered(true); }}
       onMouseLeave={() => { if (!item.isAdult) { setHovered(false); setStudioHovered(false); setViewHovered(false); } }}
       whileHover={!item.isAdult ? { scale: 1.02, transition: { duration: 0.2 } } : {}}
@@ -583,26 +599,44 @@ function GalleryCard({
         <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%)" }} />
       ) : item.isAnimated ? (
         <>
-          {!inView && <PremiumPlaceholder />}
-
-          {inView && (
+          {/* coverUrl varsa server-side WebP kapak, yoksa canvas fallback */}
+          {item.coverUrl ? (
+            !hovered && (
+              <img
+                src={item.coverUrl}
+                alt={item.theme}
+                className="absolute inset-0 w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+                style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
+                onError={() => setImageError(true)}
+              />
+            )
+          ) : (
             <>
-              {!thumbnailLoaded && !canvasFailed && <PremiumPlaceholder />}
-              {canvasFailed ? (
-                !hovered && (
-                  <img
-                    src={item.src}
-                    alt={item.theme}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    onError={() => setImageError(true)}
-                  />
-                )
-              ) : (
-                <canvas
-                  ref={canvasRef}
-                  className="absolute inset-0 w-full h-full"
-                  style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s" }}
-                />
+              {!inView && <PremiumPlaceholder />}
+
+              {inView && (
+                <>
+                  {!thumbnailLoaded && !canvasFailed && <PremiumPlaceholder />}
+                  {canvasFailed ? (
+                    !hovered && (
+                      <img
+                        src={item.src}
+                        alt={item.theme}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
+                        onError={() => setImageError(true)}
+                      />
+                    )
+                  ) : (
+                    <canvas
+                      ref={canvasRef}
+                      className="absolute inset-0 w-full h-full"
+                      style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s", transform: "translateZ(0)", backfaceVisibility: "hidden" }}
+                    />
+                  )}
+                </>
               )}
             </>
           )}
@@ -612,7 +646,7 @@ function GalleryCard({
               src={item.src}
               alt={item.theme}
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ filter: "brightness(0.8)" }}
+              style={{ filter: "brightness(0.8)", transform: "translateZ(0)", backfaceVisibility: "hidden" }}
               onError={() => setImageError(true)}
             />
           )}
@@ -632,7 +666,7 @@ function GalleryCard({
           className="absolute inset-0 w-full h-full object-cover"
           loading="lazy"
           decoding="async"
-          style={{ filter: hovered ? "brightness(0.8)" : "none", transition: "filter 0.2s ease" }}
+          style={{ filter: hovered ? "brightness(0.8)" : "none", transition: "filter 0.2s ease", transform: "translateZ(0)", backfaceVisibility: "hidden" }}
           onError={() => setImageError(true)}
         />
       ) : (
