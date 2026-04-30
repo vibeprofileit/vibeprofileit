@@ -86,13 +86,13 @@ export async function POST(req: NextRequest) {
       const { stdout } = await exec(bin, ["--info", input]);
       const match = /logical screen \d+x(\d+)/i.exec(stdout);
       const actualH = match ? parseInt(match[1], 10) : srcH;
-      await gs(bin, ["--crop", `${cropX},0+${cropW}x${actualH}`, "--optimize=3", input, "-o", cropped]);
+      await gs(bin, ["--unoptimize", "--crop", `${cropX},0+${cropW}x${actualH}`, "--optimize=3", input, "-o", cropped]);
       base = cropped;
     }
 
-    // ── Post-crop size check — skip compression if under target or elite bypass ─
+    // ── Post-crop size check — skip compression only if already under target ────
     const baseSize = await fsize(base);
-    if (baseSize <= TARGET_BYTES || noCompress) return respond(base);
+    if (baseSize <= TARGET_BYTES) return respond(base);
 
     // Determine starting lossy based on file size
     const startLossy =

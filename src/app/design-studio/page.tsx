@@ -513,7 +513,9 @@ export default function UploadPage() {
         const isFeatured = showcaseMode === 'featured';
 
         if (isGif) {
-          effectiveBgFile = await normalizeGif(effectiveBgFile);
+          if (effectiveBgFile.size >= ELITE_BYPASS_BYTES) {
+            effectiveBgFile = await normalizeGif(effectiveBgFile);
+          }
           setProgress(15);
 
           const compressGif = async (cropX?: number, cropW?: number): Promise<Uint8Array> => {
