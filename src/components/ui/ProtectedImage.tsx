@@ -22,24 +22,24 @@ export default function ProtectedImage({
 }: ProtectedImageProps) {
   return (
     <div
-      className={`relative inline-block overflow-hidden select-none ${className}`}
+      className={`relative inline-block w-full overflow-hidden select-none ${className}`}
       onContextMenu={block}
       onDragStart={block}
       onDrop={block}
     >
-      {/* VISUAL LAYER: Görsel katmanı — pointer-events yok, sürüklenemez, sağ tık çalışmaz */}
+      {/* ASIL RESİM: DOM'da var ama mouse onu algılamaz */}
       <img
         src={src}
         alt={alt}
         draggable={false}
         onContextMenu={block}
         onDragStart={block}
-        className={`w-full h-auto block transition-all duration-300 pointer-events-none ${
-          isBlurred ? "blur-xl scale-110" : ""
+        className={`w-full h-auto block transition-all duration-300 pointer-events-none${
+          isBlurred ? " blur-xl scale-110" : ""
         }`}
       />
 
-      {/* GHOST LAYER: Tüm yüzeyi kaplar. Sağ tık → 1x1 şeffaf PNG indirilir */}
+      {/* GHOST LAYER: Resmin tam üzerinde, tüm mouse olaylarını yakalar */}
       <img
         src={GHOST}
         alt=""
