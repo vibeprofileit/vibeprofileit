@@ -6,7 +6,7 @@ export async function stampWatermark(canvas: HTMLCanvasElement): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     wm.onload  = () => resolve();
     wm.onerror = () => reject(new Error("Watermark load failed"));
-    wm.src = "/logo-vibe.png";
+    wm.src = "/watermark-logo.png";
   });
 
   const PAD    = 20;

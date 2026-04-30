@@ -1,6 +1,6 @@
 "use client"
 
-const GHOST = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+import React from "react"
 
 interface ProtectedImageProps {
   src: string
@@ -9,34 +9,46 @@ interface ProtectedImageProps {
   isBlurred?: boolean
 }
 
+const GHOST =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+
+const block = (e: React.MouseEvent | React.DragEvent) => e.preventDefault()
+
 export default function ProtectedImage({
   src,
   alt,
-  className,
+  className = "",
   isBlurred = false,
 }: ProtectedImageProps) {
   return (
-    <div className={`relative overflow-hidden ${className ?? ""}`}>
-      {/* Visual layer — background-image so there is no <img> to right-click save */}
-      <div
-        aria-label={alt}
-        role="img"
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: `url(${src})`,
-          ...(isBlurred && { filter: "blur(20px)", transform: "scale(1.1)" }),
-        }}
+    <div
+      className={`relative inline-block overflow-hidden select-none ${className}`}
+      onContextMenu={block}
+      onDragStart={block}
+      onDrop={block}
+    >
+      {/* VISUAL LAYER: Görsel katmanı — pointer-events yok, sürüklenemez, sağ tık çalışmaz */}
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        onContextMenu={block}
+        onDragStart={block}
+        className={`w-full h-auto block transition-all duration-300 pointer-events-none ${
+          isBlurred ? "blur-xl scale-110" : ""
+        }`}
       />
 
-      {/* Shield — transparent 1x1 PNG covers everything; right-click and drag target this instead */}
+      {/* GHOST LAYER: Tüm yüzeyi kaplar. Sağ tık → 1x1 şeffaf PNG indirilir */}
       <img
         src={GHOST}
         alt=""
         aria-hidden="true"
         draggable={false}
-        onContextMenu={(e) => e.preventDefault()}
-        onDragStart={(e) => e.preventDefault()}
-        className="absolute inset-0 w-full h-full cursor-default select-none"
+        onContextMenu={block}
+        onDragStart={block}
+        onDrop={block}
+        className="absolute inset-0 z-50 w-full h-full cursor-default select-none"
       />
     </div>
   )
