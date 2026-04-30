@@ -18,9 +18,9 @@ function getGifsicle(): string {
   return join(process.cwd(), "node_modules", "gifsicle", "vendor", `gifsicle${ext}`);
 }
 
-function getGifLogicalSize(buf: Buffer): { h: number } {
+function getGifLogicalSize(buf: Buffer): { w: number; h: number } {
   if (buf.length < 10) throw new Error("Invalid GIF header");
-  return { h: buf.readUInt16LE(8) };
+  return { w: buf.readUInt16LE(6), h: buf.readUInt16LE(8) };
 }
 
 async function fsize(p: string): Promise<number> {
@@ -36,12 +36,15 @@ export async function POST(req: NextRequest) {
   const file       = form.get("file") as File | null;
   const cropXRaw   = form.get("cropX");
   const cropWRaw   = form.get("cropW");
-  const noCompress = form.get("noCompress") === "true";
+  let noCompress   = form.get("noCompress") === "true";
   const cropX      = cropXRaw != null ? parseInt(cropXRaw as string, 10) : null;
   const cropW      = cropWRaw != null ? parseInt(cropWRaw as string, 10) : null;
   const isFeatured = cropX === null && cropW === null;
 
   if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
+
+  const ELITE_BYPASS_BYTES = 5_138_022;
+  if (!noCompress && file.size < ELITE_BYPASS_BYTES) noCompress = true;
 
   const bin = getGifsicle();
   const id  = randomUUID();
@@ -71,12 +74,14 @@ export async function POST(req: NextRequest) {
     const buf = Buffer.from(await file.arrayBuffer());
     await writeFile(input, buf);
 
+    const { w: srcW, h: srcH } = getGifLogicalSize(buf);
+    if (srcW < 600) return respond(input);
+
     // ── Crop (Classic mod) -- mandatory regardless of file size ──────────────
     let base = input;
     if (!isFeatured) {
       const { stdout } = await exec(bin, ["--info", input]);
       const match = /logical screen \d+x(\d+)/i.exec(stdout);
-      const { h: srcH } = getGifLogicalSize(buf);
       const actualH = match ? parseInt(match[1], 10) : srcH;
       await gs(bin, ["--crop", `${cropX},0+${cropW}x${actualH}`, "--optimize=3", input, "-o", cropped]);
       base = cropped;

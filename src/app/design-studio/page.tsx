@@ -489,16 +489,12 @@ export default function UploadPage() {
 
         if (isGif) {
           setProgress(15);
-          const GIF_MAX = Math.floor(4.95 * 1024 * 1024);
-          const isElite = effectiveBgFile.size < ELITE_BYPASS_BYTES;
-          setEliteActive(isElite);
 
-          const compressGif = async (cropX?: number, cropW?: number, noCompress = false): Promise<Uint8Array> => {
+          const compressGif = async (cropX?: number, cropW?: number): Promise<Uint8Array> => {
             const fd = new FormData();
             fd.append("file", effectiveBgFile!);
             if (cropX !== undefined) fd.append("cropX", String(cropX));
             if (cropW !== undefined) fd.append("cropW", String(cropW));
-            if (noCompress) fd.append("noCompress", "true");
             const res = await fetch("/api/compress-gif", { method: "POST", body: fd });
             if (res.status === 422) {
               const { sizeMB } = await res.json();
@@ -508,30 +504,10 @@ export default function UploadPage() {
             return new Uint8Array(await res.arrayBuffer());
           };
 
-          if (isElite) {
-            // Elite bypass: sıkıştırma yok, sadece gerekirse kırp
-            if (isFeatured) {
-              setProgress(40);
-              zip.file("featured_main.gif", new Uint8Array(await effectiveBgFile.arrayBuffer()));
-              setProgress(85);
-            } else {
-              setProgress(35);
-              const [gifMain, gifSide] = await Promise.all([
-                compressGif(0, 506, true),
-                compressGif(512, 100, true),
-              ]);
-              setProgress(85);
-              zip.file("main.gif", gifMain);
-              zip.file("side.gif", gifSide);
-            }
-          } else if (isFeatured) {
+          if (isFeatured) {
             setProgress(40);
             const gifFeatured = await compressGif();
             setProgress(85);
-            if (gifFeatured.byteLength > GIF_MAX) {
-              alert(`GIF is still ${(gifFeatured.byteLength / 1024 / 1024).toFixed(1)} MB -- exceeds Steam limit, download cancelled.`);
-              setIsProcessing(false); setProgress(0); return;
-            }
             zip.file("featured_main.gif", gifFeatured);
           } else {
             setProgress(35);
@@ -540,11 +516,6 @@ export default function UploadPage() {
               compressGif(512, 100),
             ]);
             setProgress(85);
-            if (gifMain.byteLength > GIF_MAX || gifSide.byteLength > GIF_MAX) {
-              const which = gifMain.byteLength > GIF_MAX ? "main.gif" : "side.gif";
-              alert(`${which} still exceeds Steam limit -- download cancelled.`);
-              setIsProcessing(false); setProgress(0); return;
-            }
             zip.file("main.gif", gifMain);
             zip.file("side.gif", gifSide);
           }
