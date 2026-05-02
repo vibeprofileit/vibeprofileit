@@ -271,6 +271,15 @@ export async function processGif(
 ): Promise<GifProcessResult> {
   const deadline = Date.now() + TIMEOUT_MS;
 
+  // Step 1: original file.size gate — decides which path to take BEFORE decode.
+  const underLimit = file.size <= TARGET_BYTES;
+  console.log(
+    underLimit
+      ? '📍 File size ≤ 4.95 MB, skipping optimize'
+      : '⚠️ File size > 4.95 MB, starting optimize loop',
+    (file.size / 1024 / 1024).toFixed(2) + ' MB'
+  );
+
   // Step 2: Decode
   const { frames, width, height } = await decodeGif(file);
 
@@ -302,19 +311,13 @@ export async function processGif(
 
   const durationMs = processed.reduce((s, f) => s + f.delay, 0);
 
-  // Step 5: Initial encode at quality=10, fps capped at 15.
-  // We check the ENCODED byte count — not file.size. file.size can't predict what
-  // gif.js will produce after full-frame compositing; encoding first is the only
-  // reliable gate. quality=1 is intentionally avoided here: it causes gif.js to
-  // over-compress (e.g. 4.5 MB GIF → 600 KB), destroying quality unnecessarily.
-  const initial     = reduceFps(processed, 15);
-  const initialData = await encodeGif(initial, outW, outH, 10, 15); // fps=15 → 67ms/frame
-
-  if (initialData.byteLength <= TARGET_BYTES) {
-    return { data: initialData, fps: 15, durationMs, sizeBytes: initialData.byteLength };
+  // Step 5a: ≤ 4.95 MB — crop + encode only, no optimize loop
+  if (underLimit) {
+    const data = await encodeGif(processed, outW, outH, 10, 15);
+    return { data, fps: 15, durationMs, sizeBytes: data.byteLength };
   }
 
-  // Over limit → optimize loop (quality 10→25, fps 15→13→12)
+  // Step 5b: > 4.95 MB — optimize loop (quality 10→25 × fps 15→13→12)
   const { data, fps } = await optimizeLoop(processed, outW, outH, deadline);
 
   // Step 6: Quality assurance (size + duration — FPS floor enforced by the loop)
