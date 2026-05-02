@@ -505,38 +505,63 @@ export default function UploadPage() {
           console.log("🔵 BG File size:", effectiveBgFile.size / 1024 / 1024, "MB");
 
           if (isFeatured) {
-            // Scale to 630px wide, no crop
-            const result = await processGif(effectiveBgFile, { targetWidth: 630 });
-            console.log("🟢 Process GIF result:", {
-              sizeBytes: result.sizeBytes,
-              sizeMB: result.sizeBytes / 1024 / 1024,
-              fps: result.fps,
-              durationMs: result.durationMs,
-            });
+            try {
+              console.log("📍 Featured: Starting processGif...");
+              const result = await processGif(effectiveBgFile, { targetWidth: 630 });
+              console.log("✅ Featured result:", {
+                sizeBytes: result.sizeBytes,
+                sizeMB: (result.sizeBytes / 1024 / 1024).toFixed(2),
+                fps: result.fps,
+                durationMs: result.durationMs,
+                dataType: typeof result.data,
+                dataLength: result.data?.length,
+              });
+              if (!result.data || result.data.length === 0) {
+                throw new Error("Featured GIF data is empty");
+              }
+              zip.file("featured_main.gif", result.data);
+              console.log("✅ Added featured_main.gif to ZIP");
+            } catch (err) {
+              console.error("❌ Featured GIF error:", err);
+              throw err;
+            }
             setProgress(85);
-            zip.file("featured_main.gif", result.data);
 
           } else {
-            // Classic: main (0–506px) then side (512–612px)
-            setProgress(25);
-            const mainResult = await processGif(effectiveBgFile, { cropX: 0, cropW: 506 });
-            console.log("🟢 Process GIF main result:", {
-              sizeBytes: mainResult.sizeBytes,
-              sizeMB: mainResult.sizeBytes / 1024 / 1024,
-              fps: mainResult.fps,
-              durationMs: mainResult.durationMs,
-            });
-            setProgress(60);
-            const sideResult = await processGif(effectiveBgFile, { cropX: 512, cropW: 100 });
-            console.log("🟢 Process GIF side result:", {
-              sizeBytes: sideResult.sizeBytes,
-              sizeMB: sideResult.sizeBytes / 1024 / 1024,
-              fps: sideResult.fps,
-              durationMs: sideResult.durationMs,
-            });
-            setProgress(85);
-            zip.file("main.gif", mainResult.data);
-            zip.file("side.gif", sideResult.data);
+            try {
+              console.log("📍 Classic main: Starting processGif...");
+              const mainResult = await processGif(effectiveBgFile, { cropX: 0, cropW: 506 });
+              console.log("✅ Main result:", {
+                sizeBytes: mainResult.sizeBytes,
+                sizeMB: (mainResult.sizeBytes / 1024 / 1024).toFixed(2),
+                fps: mainResult.fps,
+                durationMs: mainResult.durationMs,
+              });
+              if (!mainResult.data || mainResult.data.length === 0) {
+                throw new Error("Main GIF data is empty");
+              }
+              zip.file("main.gif", mainResult.data);
+              console.log("✅ Added main.gif to ZIP");
+              setProgress(60);
+
+              console.log("📍 Classic side: Starting processGif...");
+              const sideResult = await processGif(effectiveBgFile, { cropX: 512, cropW: 100 });
+              console.log("✅ Side result:", {
+                sizeBytes: sideResult.sizeBytes,
+                sizeMB: (sideResult.sizeBytes / 1024 / 1024).toFixed(2),
+                fps: sideResult.fps,
+                durationMs: sideResult.durationMs,
+              });
+              if (!sideResult.data || sideResult.data.length === 0) {
+                throw new Error("Side GIF data is empty");
+              }
+              zip.file("side.gif", sideResult.data);
+              console.log("✅ Added side.gif to ZIP");
+              setProgress(85);
+            } catch (err) {
+              console.error("❌ Classic GIF error:", err);
+              throw err;
+            }
           }
 
         // ── Static image path: existing Canvas API logic ──────────────────────
