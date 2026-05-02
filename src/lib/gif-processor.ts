@@ -17,7 +17,7 @@ interface RenderedFrame {
 }
 
 export interface GifProcessResult {
-  data: Uint8Array;
+  data: Blob;
   fps: number;
   durationMs: number;
   sizeBytes: number;
@@ -164,13 +164,18 @@ function reduceFps(frames: RenderedFrame[], targetFps: number): RenderedFrame[] 
 // fps controls the uniform per-frame delay (1000/fps ms). We never read back
 // f.delay because original delays are unreliable for low-fps source GIFs — a
 // 3-frame/1fps GIF encoded at fps=15 should output 3 frames × 67ms, not × 1000ms.
+interface EncodeResult {
+  data: Blob;
+  sizeBytes: number;
+}
+
 function encodeGif(
   frames: RenderedFrame[],
   width: number,
   height: number,
   quality: number, // gif.js: 1=best/largest, 30=worst/smallest
   fps: number = 15
-): Promise<Uint8Array> {
+): Promise<EncodeResult> {
   const delayMs = Math.round(1000 / fps);
   return new Promise((resolve, reject) => {
     const gif = new GIF({
@@ -187,9 +192,7 @@ function encodeGif(
     }
 
     gif.on('finished', (blob: Blob) => {
-      blob.arrayBuffer()
-        .then(buf => resolve(new Uint8Array(buf)))
-        .catch(reject);
+      resolve({ data: blob, sizeBytes: blob.size });
     });
     gif.on('error', (err: Error) => reject(err));
 
@@ -212,7 +215,7 @@ async function optimizeLoop(
   width: number,
   height: number,
   deadline: number
-): Promise<{ data: Uint8Array; fps: number }> {
+): Promise<{ data: Blob; fps: number }> {
   const QUALITY_STEPS = [10, 15, 20, 25];
   const FPS_STEPS     = [15, 13, MIN_FPS];
 
@@ -223,17 +226,16 @@ async function optimizeLoop(
 
   for (const quality of QUALITY_STEPS) {
     for (const targetFps of FPS_STEPS) {
-      if (quality === 10 && targetFps === 15) continue; // already tried in processGif
 
       if (Date.now() >= deadline) {
         throw new Error('Processing taking too long - file might be too large or complex');
       }
 
       const reduced = reduceFps(frames, Math.min(targetFps, origFps));
-      const data    = await encodeGif(reduced, width, height, quality, targetFps);
+      const enc     = await encodeGif(reduced, width, height, quality, targetFps);
 
-      if (data.byteLength <= TARGET_BYTES) {
-        return { data, fps: targetFps };
+      if (enc.sizeBytes <= TARGET_BYTES) {
+        return { data: enc.data, fps: targetFps };
       }
     }
   }
@@ -253,7 +255,7 @@ function assertQuality(durationMs: number, sizeBytes: number): void {
     throw new Error(`Duration check failed: ${(durationMs / 1000).toFixed(1)}s exceeds 3s limit`);
   }
   if (sizeBytes > TARGET_BYTES) {
-    const mb = (sizeBytes / 1024 / 1024).toFixed(1);
+    const mb = (sizeBytes / 1024 / 1024).toFixed(2);
     throw new Error(`File exceeds Steam's 4.95 MB limit after compression (${mb} MB)`);
   }
 }
@@ -271,23 +273,11 @@ export async function processGif(
 ): Promise<GifProcessResult> {
   const deadline = Date.now() + TIMEOUT_MS;
 
-  // Step 1: original file.size gate — decides which path to take BEFORE decode.
-  const underLimit = file.size <= TARGET_BYTES;
-  console.log(
-    underLimit
-      ? '📍 File size ≤ 4.95 MB, skipping optimize'
-      : '⚠️ File size > 4.95 MB, starting optimize loop',
-    (file.size / 1024 / 1024).toFixed(2) + ' MB'
-  );
-
-  // Step 2: Decode
+  // Step 1: Decode
   const { frames, width, height } = await decodeGif(file);
+  if (frames.length === 0) throw new Error('GIF has no readable frames');
 
-  if (frames.length === 0) {
-    throw new Error('GIF has no readable frames');
-  }
-
-  // Step 3: Crop or scale
+  // Step 2: Crop or scale
   let processed: RenderedFrame[];
   let outW: number;
   let outH: number;
@@ -306,22 +296,25 @@ export async function processGif(
     outH = height;
   }
 
-  // Step 4: Fix duration (trim to 3s if over)
+  // Step 3: Fix duration
   processed = fixDuration(processed);
-
   const durationMs = processed.reduce((s, f) => s + f.delay, 0);
 
-  // Step 5a: ≤ 4.95 MB — crop + encode only, no optimize loop
-  if (underLimit) {
-    const data = await encodeGif(processed, outW, outH, 10, 15);
-    return { data, fps: 15, durationMs, sizeBytes: data.byteLength };
+  // Step 4: Estimate cropped raw size (frame count × pixels × 4 bytes RGBA)
+  const croppedSizeEstimate = processed.length * outW * outH * 4;
+  console.log('📍 File size (original):', (file.size / 1024 / 1024).toFixed(2), 'MB');
+  console.log('📍 Cropped size (estimate):', (croppedSizeEstimate / 1024 / 1024).toFixed(2), 'MB');
+
+  // Step 5: Estimate ≤ 4.95 MB → encode with max quality, no optimize loop
+  if (croppedSizeEstimate <= TARGET_BYTES) {
+    console.log('✅ Cropped ≤ 4.95 MB, encoding without optimization');
+    const enc = await encodeGif(processed, outW, outH, 1, 15);
+    return { data: enc.data, fps: 15, durationMs, sizeBytes: enc.sizeBytes };
   }
 
-  // Step 5b: > 4.95 MB — optimize loop (quality 10→25 × fps 15→13→12)
+  // Step 6: Estimate > 4.95 MB → optimize loop
+  console.log('⚠️ Cropped > 4.95 MB, starting optimize loop...');
   const { data, fps } = await optimizeLoop(processed, outW, outH, deadline);
-
-  // Step 6: Quality assurance (size + duration — FPS floor enforced by the loop)
-  assertQuality(durationMs, data.byteLength);
-
-  return { data, fps, durationMs, sizeBytes: data.byteLength };
+  assertQuality(durationMs, data.size);
+  return { data, fps, durationMs, sizeBytes: data.size };
 }

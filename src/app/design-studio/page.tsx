@@ -513,10 +513,10 @@ export default function UploadPage() {
                 sizeMB: (result.sizeBytes / 1024 / 1024).toFixed(2),
                 fps: result.fps,
                 durationMs: result.durationMs,
-                dataType: typeof result.data,
-                dataLength: result.data?.length,
+                dataType: result.data instanceof Blob ? "Blob" : typeof result.data,
+                dataSize: result.data?.size,
               });
-              if (!result.data || result.data.length === 0) {
+              if (!result.data || result.data.size === 0) {
                 throw new Error("Featured GIF data is empty");
               }
               zip.file("featured_main.gif", result.data);
@@ -537,7 +537,7 @@ export default function UploadPage() {
                 fps: mainResult.fps,
                 durationMs: mainResult.durationMs,
               });
-              if (!mainResult.data || mainResult.data.length === 0) {
+              if (!mainResult.data || mainResult.data.size === 0) {
                 throw new Error("Main GIF data is empty");
               }
               zip.file("main.gif", mainResult.data);
@@ -552,7 +552,7 @@ export default function UploadPage() {
                 fps: sideResult.fps,
                 durationMs: sideResult.durationMs,
               });
-              if (!sideResult.data || sideResult.data.length === 0) {
+              if (!sideResult.data || sideResult.data.size === 0) {
                 throw new Error("Side GIF data is empty");
               }
               zip.file("side.gif", sideResult.data);
