@@ -8,7 +8,6 @@ const TARGET_BYTES    = Math.floor(4.95 * 1024 * 1024); // 4.95 MB Steam limit
 const TIMEOUT_MS      = 45_000;                          // 45s hard timeout
 const MIN_FPS         = 12;                              // never go below this
 const MAX_DURATION_MS = 3_000;                           // 3 second hard cap
-const SMALL_GIF_BYTES = 100_000;                         // skip optimization below 100 KB
 const MIN_FRAME_DELAY = 20;                              // browsers ignore <20ms delays
 
 // ── Internal types ────────────────────────────────────────────────────────────
@@ -236,14 +235,11 @@ async function optimizeLoop(
 }
 
 // ── Step 6: Quality assurance check ──────────────────────────────────────────
-function assertQuality(fps: number, durationMs: number, sizeBytes: number): void {
-  if (fps < MIN_FPS && fps !== 0) {
-    throw new Error(
-      `Processing failed - GIF would be too low quality (min FPS: 12, Colors: 128). ` +
-      `Try shorter/higher-res GIF`
-    );
-  }
-  if (durationMs > MAX_DURATION_MS + 50) { // 50ms tolerance
+// FPS is NOT checked here — the optimize loop already enforces MIN_FPS=12 as
+// its floor. Checking FPS on the initial path would reject valid low-framerate
+// GIFs (e.g. 5-frame slideshow at 200ms/frame = 5 FPS, perfectly fine).
+function assertQuality(durationMs: number, sizeBytes: number): void {
+  if (durationMs > MAX_DURATION_MS + 50) { // 50ms tolerance for rounding
     throw new Error(`Duration check failed: ${(durationMs / 1000).toFixed(1)}s exceeds 3s limit`);
   }
   if (sizeBytes > TARGET_BYTES) {
@@ -263,12 +259,6 @@ export async function processGif(
   file: File,
   options: ProcessGifOptions = {}
 ): Promise<GifProcessResult> {
-  // Edge case: very small GIFs need no processing
-  if (file.size < SMALL_GIF_BYTES) {
-    const data = new Uint8Array(await file.arrayBuffer());
-    return { data, fps: 0, durationMs: 0, sizeBytes: data.byteLength };
-  }
-
   const deadline = Date.now() + TIMEOUT_MS;
 
   // Step 2: Decode
@@ -303,18 +293,21 @@ export async function processGif(
   const durationMs = processed.reduce((s, f) => s + f.delay, 0);
   const origFps    = Math.round((processed.length / durationMs) * 1000);
 
-  // Fast path: already under limit → encode at best quality and return
+  // Step 5: Branch on ORIGINAL file size — not the re-encoded output.
+  // gif.js full-frame re-encode can produce a larger result than the original
+  // even at quality=1, so we must not use encoded size to decide whether to
+  // optimize. The user's intent: small originals → crop only, no lossy/FPS changes.
   if (file.size <= TARGET_BYTES) {
-    const quick = await encodeGif(processed, outW, outH, 10);
-    assertQuality(origFps, durationMs, quick.byteLength);
-    return { data: quick, fps: origFps, durationMs, sizeBytes: quick.byteLength };
+    // Under limit: encode at maximum quality (quality=1), no FPS or lossy changes.
+    const data = await encodeGif(processed, outW, outH, 1);
+    return { data, fps: origFps, durationMs, sizeBytes: data.byteLength };
   }
 
-  // Step 5: Optimize loop
+  // Over limit: run optimize loop (quality→FPS reduction ladder)
   const { data, fps } = await optimizeLoop(processed, outW, outH, deadline);
 
-  // Step 6: Quality assurance
-  assertQuality(fps, durationMs, data.byteLength);
+  // Step 6: Quality assurance (size + duration — FPS floor enforced by the loop)
+  assertQuality(durationMs, data.byteLength);
 
   return { data, fps, durationMs, sizeBytes: data.byteLength };
 }
