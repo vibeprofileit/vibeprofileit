@@ -10,12 +10,10 @@ import { motion } from "framer-motion";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import type { SteamProfileData, SteamFriend } from "../api/steam/profile/route";
-import { stampWatermark } from "@/lib/watermark";
-import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { fetchFile, toBlobURL } from "@ffmpeg/util";
+import { processGif } from "@/lib/gif-processor";
 
-const MAX_FILE_SIZE      = 15 * 1024 * 1024; // 15MB
-const ELITE_BYPASS_BYTES = 5_138_022;        // 4.9 MB — bu altı dosyalara sıkıştırma uygulanmaz
+const MAX_FILE_SIZE      = 15 * 1024 * 1024; // 15 MB
+const ELITE_BYPASS_BYTES = 5_138_022;        // 4.9 MB — static görsel sıkıştırma eşiği
 
 // ─── BadgeCell -- gorsel yuklenirse ikon, yuklenemezse seviye etiketi ─────────
 function BadgeCell({ icon, label }: { icon: string; label: string }) {
@@ -338,7 +336,12 @@ export default function UploadPage() {
       return false;
     }
     if (dims.width < 600) {
-      alert("Minimum width of 600px is required for quality.");
+      alert("Image must be at least 600px wide.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    }
+    if (dims.height < 500) {
+      alert("Image must be at least 500px tall.");
       if (inputEl) inputEl.value = "";
       return false;
     }
@@ -371,7 +374,12 @@ export default function UploadPage() {
       return false;
     }
     if (dims.width < 600) {
-      alert("Minimum width of 600px is required for quality.");
+      alert("Image must be at least 600px wide.");
+      if (inputEl) inputEl.value = "";
+      return false;
+    }
+    if (dims.height < 500) {
+      alert("Image must be at least 500px tall.");
       if (inputEl) inputEl.value = "";
       return false;
     }
@@ -433,29 +441,6 @@ export default function UploadPage() {
     return null;
   };
 
-  async function normalizeGif(file: File): Promise<File> {
-    const ffmpeg = new FFmpeg();
-    const baseURL = "https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd";
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, "application/wasm"),
-    });
-
-    await ffmpeg.writeFile("input.gif", await fetchFile(file));
-
-    await ffmpeg.exec([
-      "-y", "-i", "input.gif",
-      "-vf", "fps=15,scale=if(gt(iw\\,630)\\,630\\,iw):-2",
-      "-t", "3",
-      "output.gif"
-    ]);
-
-    const raw = await ffmpeg.readFile("output.gif");
-    const safe = new Uint8Array((raw as Uint8Array).buffer).slice();
-    const blob = new Blob([safe], { type: "image/gif" });
-    return new File([blob], file.name, { type: "image/gif" });
-  }
-
   const handleCutAndDownload = async () => {
     if (!bgUrl && !avatarUrl) {
       alert("Please upload at least a background image or an avatar.");
@@ -469,24 +454,25 @@ export default function UploadPage() {
     try {
       const zip = new JSZip();
 
+      // ── Resolve gallery image to a local File if needed ──────────────────────
       let effectiveBgFile = bgFile;
       if (bgUrl && !bgFile) {
         try {
-          const res = await fetch(bgUrl, { mode: 'cors' });
+          const res = await fetch(bgUrl, { mode: "cors" });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const blob = await res.blob();
           const fileName = bgUrl.split("/").pop()?.split("?")[0] ?? "gallery_image";
           effectiveBgFile = new File([blob], fileName, { type: blob.type || "image/gif" });
           setBgFile(effectiveBgFile);
         } catch {
-          alert("Could not load the gallery image. The server may not allow cross-origin requests. Please upload the image manually.");
+          alert("Could not load the gallery image. Please upload manually.");
           setIsProcessing(false);
           setProgress(0);
           return;
         }
       }
 
-      // ── Avatar → cropped to 184x184 (object-cover) then added as PNG ──
+      // ── Avatar → 184×184 object-cover crop ───────────────────────────────────
       if (avatarUrl && avatarFile) {
         setProgress(5);
         const avatarImg = new Image();
@@ -504,54 +490,40 @@ export default function UploadPage() {
         const offsetY = (SIZE - drawH) / 2;
         ctx.drawImage(avatarImg, offsetX, offsetY, drawW, drawH);
         zip.file("steam_avatar.png", await canvasToBlob(avatarCanvas));
-        setProgress(10);
+        setProgress(15);
       }
 
-      // ── Background → only processed if a bg file exists ─────
+      // ── Background ────────────────────────────────────────────────────────────
       if (bgUrl && effectiveBgFile) {
-        const isGif     = effectiveBgFile.type === "image/gif" || effectiveBgFile.name.toLowerCase().endsWith(".gif");
-        const isFeatured = showcaseMode === 'featured';
+        const isGif      = effectiveBgFile.type === "image/gif" ||
+                           effectiveBgFile.name.toLowerCase().endsWith(".gif");
+        const isFeatured = showcaseMode === "featured";
 
+        // ── GIF path: 100% client-side via gif-processor ─────────────────────
         if (isGif) {
-          if (effectiveBgFile.size >= ELITE_BYPASS_BYTES) {
-            effectiveBgFile = await normalizeGif(effectiveBgFile);
-          }
-          setProgress(15);
-
-          const compressGif = async (cropX?: number, cropW?: number): Promise<Uint8Array> => {
-            const fd = new FormData();
-            fd.append("file", effectiveBgFile!);
-            if (cropX !== undefined) fd.append("cropX", String(cropX));
-            if (cropW !== undefined) fd.append("cropW", String(cropW));
-            const res = await fetch("/api/compress-gif", { method: "POST", body: fd });
-            if (res.status === 422) {
-              const { sizeMB } = await res.json();
-              throw new Error(`GIF ${sizeMB} MB could not be reduced -- exceeds Steam limit, download cancelled.`);
-            }
-            if (!res.ok) throw new Error(`Compression error: ${res.status}`);
-            return new Uint8Array(await res.arrayBuffer());
-          };
+          setProgress(20);
 
           if (isFeatured) {
-            setProgress(40);
-            const gifFeatured = await compressGif();
+            // Scale to 630px wide, no crop
+            const result = await processGif(effectiveBgFile, { targetWidth: 630 });
             setProgress(85);
-            zip.file("featured_main.gif", gifFeatured);
+            zip.file("featured_main.gif", result.data);
+
           } else {
-            setProgress(35);
-            const [gifMain, gifSide] = await Promise.all([
-              compressGif(0, 506),
-              compressGif(512, 100),
-            ]);
+            // Classic: main (0–506px) then side (512–612px)
+            setProgress(25);
+            const mainResult = await processGif(effectiveBgFile, { cropX: 0, cropW: 506 });
+            setProgress(60);
+            const sideResult = await processGif(effectiveBgFile, { cropX: 512, cropW: 100 });
             setProgress(85);
-            zip.file("main.gif", gifMain);
-            zip.file("side.gif", gifSide);
+            zip.file("main.gif", mainResult.data);
+            zip.file("side.gif", sideResult.data);
           }
 
+        // ── Static image path: existing Canvas API logic ──────────────────────
         } else {
-          // ── Static image ─────────────────────────────────────
           setProgress(20);
-          const bgImg = new Image();
+          const bgImg      = new Image();
           const localBgUrl = URL.createObjectURL(effectiveBgFile);
           bgImg.crossOrigin = "anonymous";
           await new Promise<void>((res, rej) => {
@@ -567,67 +539,46 @@ export default function UploadPage() {
           setEliteActive(isElite);
 
           if (isFeatured) {
-            // ── Featured: entire image scaled to 630px width, no crop ──────────
-            const targetW = 630;
-            const targetH = Math.max(1, Math.round(srcH * (targetW / srcW)));
+            const targetW        = 630;
+            const targetH        = Math.max(1, Math.round(srcH * (targetW / srcW)));
             const featuredCanvas = document.createElement("canvas");
             featuredCanvas.width  = targetW;
             featuredCanvas.height = targetH;
             featuredCanvas.getContext("2d")!
-              .drawImage(bgImg, 0, 0, bgImg.naturalWidth, bgImg.naturalHeight, 0, 0, targetW, targetH);
-            await stampWatermark(featuredCanvas);
+              .drawImage(bgImg, 0, 0, srcW, srcH, 0, 0, targetW, targetH);
             setProgress(70);
             if (isElite) {
               zip.file("featured_main.png", await canvasToBlob(featuredCanvas));
             } else {
-              const blobFeatured = await canvasToBlobUnder5MB(featuredCanvas);
-              if (!blobFeatured) {
-                alert("File exceeds Steam's 5MB limit.");
-                setIsProcessing(false);
-                setProgress(0);
-                return;
-              }
-              zip.file("featured_main.jpg", blobFeatured);
+              const blob = await canvasToBlobUnder5MB(featuredCanvas);
+              if (!blob) { alert("File exceeds Steam's 5 MB limit."); setIsProcessing(false); setProgress(0); return; }
+              zip.file("featured_main.jpg", blob);
             }
+
           } else {
-            // ── Classic: entire image scaled to 612px master canvas (black background) ──
-            const masterW = 612;
-            const masterH = Math.max(1, Math.round(srcH * (masterW / srcW)));
+            const masterW      = 612;
+            const masterH      = Math.max(1, Math.round(srcH * (masterW / srcW)));
             const masterCanvas = document.createElement("canvas");
             masterCanvas.width  = masterW;
             masterCanvas.height = masterH;
-            const masterCtx = masterCanvas.getContext("2d")!;
-            masterCtx.fillStyle = "#000000";
-            masterCtx.fillRect(0, 0, masterW, masterH);
-            masterCtx.drawImage(bgImg, 0, 0, bgImg.naturalWidth, bgImg.naturalHeight, 0, 0, masterW, masterH);
+            const mCtx = masterCanvas.getContext("2d")!;
+            mCtx.fillStyle = "#000000";
+            mCtx.fillRect(0, 0, masterW, masterH);
+            mCtx.drawImage(bgImg, 0, 0, srcW, srcH, 0, 0, masterW, masterH);
             setProgress(70);
+
+            const mainCrop = cropCanvas(masterCanvas, 0,   506);
+            const sideCrop = cropCanvas(masterCanvas, 512, 100);
+
             if (isElite) {
-              const mainCrop = cropCanvas(masterCanvas, 0,   506);
-              await stampWatermark(mainCrop);
               zip.file("main.png", await canvasToBlob(mainCrop));
-              const sideCrop = cropCanvas(masterCanvas, 512, 100);
-              await stampWatermark(sideCrop);
               zip.file("side.png", await canvasToBlob(sideCrop));
             } else {
-              const mainCrop = cropCanvas(masterCanvas, 0, 506);
-              await stampWatermark(mainCrop);
               const blobMain = await canvasToBlobUnder5MB(mainCrop);
-              if (!blobMain) {
-                alert("File exceeds Steam's 5MB limit.");
-                setIsProcessing(false);
-                setProgress(0);
-                return;
-              }
+              if (!blobMain) { alert("File exceeds Steam's 5 MB limit."); setIsProcessing(false); setProgress(0); return; }
               zip.file("main.jpg", blobMain);
-              const sideCrop = cropCanvas(masterCanvas, 512, 100);
-              await stampWatermark(sideCrop);
               const blobSide = await canvasToBlobUnder5MB(sideCrop);
-              if (!blobSide) {
-                alert("File exceeds Steam's 5MB limit.");
-                setIsProcessing(false);
-                setProgress(0);
-                return;
-              }
+              if (!blobSide) { alert("File exceeds Steam's 5 MB limit."); setIsProcessing(false); setProgress(0); return; }
               zip.file("side.jpg", blobSide);
             }
           }
@@ -641,8 +592,9 @@ export default function UploadPage() {
       setProgress(100);
 
     } catch (err) {
-      console.error("An error occurred during processing:", err);
-      alert(err instanceof Error ? err.message : "An error occurred during processing. Please try again.");
+      console.error("handleCutAndDownload error:", err);
+      const msg = err instanceof Error ? err.message : "An error occurred during processing. Please try again.";
+      alert(msg);
     } finally {
       setIsProcessing(false);
       setProgress(0);
