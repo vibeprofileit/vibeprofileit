@@ -201,22 +201,13 @@ function encodeGif(
 }
 
 // ── Step 5: Optimize loop (45s max) ──────────────────────────────────────────
-// Quality ladder maps roughly to gifsicle --lossy levels:
-//   quality=10 ≈ lossy=25  (minimal quality loss)
-//   quality=15 ≈ lossy=45
-//   quality=20 ≈ lossy=65
-//   quality=25 ≈ lossy=80  (maximum acceptable loss)
-// FPS is reduced only after all quality steps are exhausted.
-// processGif already tried quality=10 + fps=15 as the initial encode and it
-// exceeded TARGET_BYTES, so that combination is excluded here to avoid a
-// guaranteed-to-fail duplicate encode (saves ~10-15s on large GIFs).
 async function optimizeLoop(
   frames: RenderedFrame[],
   width: number,
   height: number,
   deadline: number
 ): Promise<{ data: Blob; fps: number }> {
-  const QUALITY_STEPS = [10, 15, 20, 25];
+  const QUALITY_STEPS = [1, 5, 10, 15, 20, 25];
   const FPS_STEPS     = [15, 13, MIN_FPS];
 
   // origFps from source delays — used only to avoid increasing fps beyond original.
@@ -300,20 +291,26 @@ export async function processGif(
   processed = fixDuration(processed);
   const durationMs = processed.reduce((s, f) => s + f.delay, 0);
 
-  // Step 4: Estimate cropped raw size (frame count × pixels × 4 bytes RGBA)
-  const croppedSizeEstimate = processed.length * outW * outH * 4;
   console.log('📍 File size (original):', (file.size / 1024 / 1024).toFixed(2), 'MB');
-  console.log('📍 Cropped size (estimate):', (croppedSizeEstimate / 1024 / 1024).toFixed(2), 'MB');
 
-  // Step 5: Estimate ≤ 4.95 MB → encode with max quality, no optimize loop
-  if (croppedSizeEstimate <= TARGET_BYTES) {
-    console.log('✅ Cropped ≤ 4.95 MB, encoding without optimization');
-    const enc = await encodeGif(processed, outW, outH, 1, 15);
+  // Step 4: < 4.95 MB → orijinal dosyayı aynen döndür, encode yok
+  if (file.size <= TARGET_BYTES) {
+    console.log('✅ File ≤ 4.95 MB — returning original (no encode, no optimization)');
+    return { data: file, fps: 15, durationMs, sizeBytes: file.size };
+  }
+
+  // Step 5: > 4.95 MB → encode with max quality first
+  console.log('⚠️ File > 4.95 MB — starting encode + optimize');
+  const enc = await encodeGif(processed, outW, outH, 1, 15);
+  console.log('📍 Encoded size (quality=1):', (enc.sizeBytes / 1024 / 1024).toFixed(2), 'MB');
+
+  if (enc.sizeBytes <= TARGET_BYTES) {
+    console.log('✅ Encoded ≤ 4.95 MB — returning encoded');
     return { data: enc.data, fps: 15, durationMs, sizeBytes: enc.sizeBytes };
   }
 
-  // Step 6: Estimate > 4.95 MB → optimize loop
-  console.log('⚠️ Cropped > 4.95 MB, starting optimize loop...');
+  // Step 6: Hala > 4.95 MB → optimize loop
+  console.log('⚠️ Encoded > 4.95 MB — starting optimize loop');
   const { data, fps } = await optimizeLoop(processed, outW, outH, deadline);
   assertQuality(durationMs, data.size);
   return { data, fps, durationMs, sizeBytes: data.size };
