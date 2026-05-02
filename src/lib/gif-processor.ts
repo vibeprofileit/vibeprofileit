@@ -216,7 +216,7 @@ async function optimizeLoop(
   height: number,
   deadline: number
 ): Promise<{ data: Blob; fps: number }> {
-  const QUALITY_STEPS = [1, 5, 10, 15, 20, 25];
+  const QUALITY_STEPS = [5, 10, 15, 20, 25]; // quality=1 already tried before optimizeLoop
   const FPS_STEPS     = [15, 13, MIN_FPS];
 
   // origFps from source delays — used only to avoid increasing fps beyond original.
