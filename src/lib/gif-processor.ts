@@ -199,6 +199,9 @@ function encodeGif(
 //   quality=20 ≈ lossy=65
 //   quality=25 ≈ lossy=80  (maximum acceptable loss)
 // FPS is reduced only after all quality steps are exhausted.
+// processGif already tried quality=10 + fps=15 as the initial encode and it
+// exceeded TARGET_BYTES, so that combination is excluded here to avoid a
+// guaranteed-to-fail duplicate encode (saves ~10-15s on large GIFs).
 async function optimizeLoop(
   frames: RenderedFrame[],
   width: number,
@@ -212,6 +215,8 @@ async function optimizeLoop(
 
   for (const quality of QUALITY_STEPS) {
     for (const targetFps of FPS_STEPS) {
+      if (quality === 10 && targetFps === 15) continue; // already tried in processGif
+
       if (Date.now() >= deadline) {
         throw new Error('Processing taking too long - file might be too large or complex');
       }

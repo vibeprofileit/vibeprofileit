@@ -502,10 +502,17 @@ export default function UploadPage() {
         // ── GIF path: 100% client-side via gif-processor ─────────────────────
         if (isGif) {
           setProgress(20);
+          console.log("🔵 BG File size:", effectiveBgFile.size / 1024 / 1024, "MB");
 
           if (isFeatured) {
             // Scale to 630px wide, no crop
             const result = await processGif(effectiveBgFile, { targetWidth: 630 });
+            console.log("🟢 Process GIF result:", {
+              sizeBytes: result.sizeBytes,
+              sizeMB: result.sizeBytes / 1024 / 1024,
+              fps: result.fps,
+              durationMs: result.durationMs,
+            });
             setProgress(85);
             zip.file("featured_main.gif", result.data);
 
@@ -513,8 +520,20 @@ export default function UploadPage() {
             // Classic: main (0–506px) then side (512–612px)
             setProgress(25);
             const mainResult = await processGif(effectiveBgFile, { cropX: 0, cropW: 506 });
+            console.log("🟢 Process GIF main result:", {
+              sizeBytes: mainResult.sizeBytes,
+              sizeMB: mainResult.sizeBytes / 1024 / 1024,
+              fps: mainResult.fps,
+              durationMs: mainResult.durationMs,
+            });
             setProgress(60);
             const sideResult = await processGif(effectiveBgFile, { cropX: 512, cropW: 100 });
+            console.log("🟢 Process GIF side result:", {
+              sizeBytes: sideResult.sizeBytes,
+              sizeMB: sideResult.sizeBytes / 1024 / 1024,
+              fps: sideResult.fps,
+              durationMs: sideResult.durationMs,
+            });
             setProgress(85);
             zip.file("main.gif", mainResult.data);
             zip.file("side.gif", sideResult.data);
