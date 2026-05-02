@@ -291,19 +291,21 @@ export async function processGif(
   processed = fixDuration(processed);
 
   const durationMs = processed.reduce((s, f) => s + f.delay, 0);
-  const origFps    = Math.round((processed.length / durationMs) * 1000);
 
-  // Step 5: Branch on ORIGINAL file size — not the re-encoded output.
-  // gif.js full-frame re-encode can produce a larger result than the original
-  // even at quality=1, so we must not use encoded size to decide whether to
-  // optimize. The user's intent: small originals → crop only, no lossy/FPS changes.
-  if (file.size <= TARGET_BYTES) {
-    // Under limit: encode at maximum quality (quality=1), no FPS or lossy changes.
-    const data = await encodeGif(processed, outW, outH, 1);
-    return { data, fps: origFps, durationMs, sizeBytes: data.byteLength };
+  // Step 5: Initial encode at quality=10, fps capped at 15.
+  // We check the ENCODED byte count — not file.size. file.size can't predict what
+  // gif.js will produce after full-frame compositing; encoding first is the only
+  // reliable gate. quality=1 is intentionally avoided here: it causes gif.js to
+  // over-compress (e.g. 4.5 MB GIF → 600 KB), destroying quality unnecessarily.
+  const initial        = reduceFps(processed, 15);
+  const initialData    = await encodeGif(initial, outW, outH, 10);
+  const initialFps     = Math.round((initial.length / initial.reduce((s, f) => s + f.delay, 0)) * 1000);
+
+  if (initialData.byteLength <= TARGET_BYTES) {
+    return { data: initialData, fps: initialFps, durationMs, sizeBytes: initialData.byteLength };
   }
 
-  // Over limit: run optimize loop (quality→FPS reduction ladder)
+  // Over limit → optimize loop (quality 10→25, fps 15→13→12)
   const { data, fps } = await optimizeLoop(processed, outW, outH, deadline);
 
   // Step 6: Quality assurance (size + duration — FPS floor enforced by the loop)
