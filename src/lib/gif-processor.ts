@@ -161,12 +161,17 @@ function reduceFps(frames: RenderedFrame[], targetFps: number): RenderedFrame[] 
 }
 
 // ── Encode: frames → GIF Uint8Array via gif.js Web Workers ───────────────────
+// fps controls the uniform per-frame delay (1000/fps ms). We never read back
+// f.delay because original delays are unreliable for low-fps source GIFs — a
+// 3-frame/1fps GIF encoded at fps=15 should output 3 frames × 67ms, not × 1000ms.
 function encodeGif(
   frames: RenderedFrame[],
   width: number,
   height: number,
-  quality: number  // gif.js: 1=best/largest, 30=worst/smallest
+  quality: number, // gif.js: 1=best/largest, 30=worst/smallest
+  fps: number = 15
 ): Promise<Uint8Array> {
+  const delayMs = Math.round(1000 / fps);
   return new Promise((resolve, reject) => {
     const gif = new GIF({
       workers: 2,
@@ -178,7 +183,7 @@ function encodeGif(
     });
 
     for (const f of frames) {
-      gif.addFrame(f.canvas, { delay: f.delay, copy: true });
+      gif.addFrame(f.canvas, { delay: delayMs, copy: true });
     }
 
     gif.on('finished', (blob: Blob) => {
@@ -211,7 +216,10 @@ async function optimizeLoop(
   const QUALITY_STEPS = [10, 15, 20, 25];
   const FPS_STEPS     = [15, 13, MIN_FPS];
 
-  const origFps = Math.round((frames.length / frames.reduce((s, f) => s + f.delay, 0)) * 1000);
+  // origFps from source delays — used only to avoid increasing fps beyond original.
+  // encodeGif now sets delays from targetFps, so this is a frame-count guard only.
+  const srcDuration = frames.reduce((s, f) => s + f.delay, 0);
+  const origFps     = srcDuration > 0 ? (frames.length / srcDuration) * 1000 : 15;
 
   for (const quality of QUALITY_STEPS) {
     for (const targetFps of FPS_STEPS) {
@@ -221,14 +229,11 @@ async function optimizeLoop(
         throw new Error('Processing taking too long - file might be too large or complex');
       }
 
-      const reduced    = reduceFps(frames, Math.min(targetFps, origFps));
-      const totalDelay = reduced.reduce((s, f) => s + f.delay, 0);
-      const actualFps  = Math.round((reduced.length / totalDelay) * 1000);
-
-      const data = await encodeGif(reduced, width, height, quality);
+      const reduced = reduceFps(frames, Math.min(targetFps, origFps));
+      const data    = await encodeGif(reduced, width, height, quality, targetFps);
 
       if (data.byteLength <= TARGET_BYTES) {
-        return { data, fps: actualFps };
+        return { data, fps: targetFps };
       }
     }
   }
@@ -302,12 +307,11 @@ export async function processGif(
   // gif.js will produce after full-frame compositing; encoding first is the only
   // reliable gate. quality=1 is intentionally avoided here: it causes gif.js to
   // over-compress (e.g. 4.5 MB GIF → 600 KB), destroying quality unnecessarily.
-  const initial        = reduceFps(processed, 15);
-  const initialData    = await encodeGif(initial, outW, outH, 10);
-  const initialFps     = Math.round((initial.length / initial.reduce((s, f) => s + f.delay, 0)) * 1000);
+  const initial     = reduceFps(processed, 15);
+  const initialData = await encodeGif(initial, outW, outH, 10, 15); // fps=15 → 67ms/frame
 
   if (initialData.byteLength <= TARGET_BYTES) {
-    return { data: initialData, fps: initialFps, durationMs, sizeBytes: initialData.byteLength };
+    return { data: initialData, fps: 15, durationMs, sizeBytes: initialData.byteLength };
   }
 
   // Over limit → optimize loop (quality 10→25, fps 15→13→12)
