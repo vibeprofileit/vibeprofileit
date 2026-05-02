@@ -204,9 +204,10 @@ function encodeGif(
 function framesToGifBuffer(
   frames: RenderedFrame[],
   width: number,
-  height: number
+  height: number,
+  fps: number
 ): Promise<Blob> {
-  return encodeGif(frames, width, height, 1, 15).then(r => r.data);
+  return encodeGif(frames, width, height, 1, fps).then(r => r.data);
 }
 
 // ── Step 5: Optimize loop (45s max) ──────────────────────────────────────────
@@ -300,24 +301,32 @@ export async function processGif(
   processed = fixDuration(processed);
   const durationMs = processed.reduce((s, f) => s + f.delay, 0);
 
+  // origFps: orijinal frame hızı, tarayıcı güvenliği için 30'da sınırla
+  const srcDuration = processed.reduce((s, f) => s + f.delay, 0);
+  const origFps = Math.min(
+    srcDuration > 0 ? Math.round((processed.length / srcDuration) * 1000) : 15,
+    30
+  );
+
   console.log('📍 File size (original):', (file.size / 1024 / 1024).toFixed(2), 'MB');
+  console.log('📍 origFps:', origFps);
 
   // Step 4: ≤ 4.95 MB → frame'leri direkt GIF buffer'a yaz, lossy compression yok
   if (file.size <= TARGET_BYTES) {
     console.log('✅ File ≤ 4.95 MB — writing frames directly to GIF (no compression)');
-    const blob = await framesToGifBuffer(processed, outW, outH);
+    const blob = await framesToGifBuffer(processed, outW, outH, origFps);
     console.log('📍 Cropped size:', (blob.size / 1024 / 1024).toFixed(2), 'MB');
-    return { data: blob, fps: 15, durationMs, sizeBytes: blob.size };
+    return { data: blob, fps: origFps, durationMs, sizeBytes: blob.size };
   }
 
   // Step 5: > 4.95 MB → encode with max quality first
   console.log('⚠️ File > 4.95 MB — encoding + optimize');
-  const enc = await encodeGif(processed, outW, outH, 1, 15);
+  const enc = await encodeGif(processed, outW, outH, 1, origFps);
   console.log('📍 Encoded size (quality=1):', (enc.sizeBytes / 1024 / 1024).toFixed(2), 'MB');
 
   if (enc.sizeBytes <= TARGET_BYTES) {
     console.log('✅ Encoded ≤ 4.95 MB — returning');
-    return { data: enc.data, fps: 15, durationMs, sizeBytes: enc.sizeBytes };
+    return { data: enc.data, fps: origFps, durationMs, sizeBytes: enc.sizeBytes };
   }
 
   // Step 6: Hala > 4.95 MB → optimize loop
