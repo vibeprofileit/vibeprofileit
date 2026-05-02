@@ -3,12 +3,15 @@
 import { parseGIF, decompressFrames } from 'gifuct-js';
 import GIF from 'gif.js';
 
+/**
+ * STEAM LİMİTLERİ VE SABİTLER
+ */
 const TARGET_BYTES = Math.floor(4.95 * 1024 * 1024);
 const MIN_FRAME_DELAY = 20;
 
 interface RenderedFrame {
   canvas: HTMLCanvasElement;
-  delay: number; // Her karenin kendine has gecikmesi
+  delay: number;
 }
 
 export interface GifProcessResult {
@@ -18,7 +21,10 @@ export interface GifProcessResult {
   sizeBytes: number;
 }
 
-// ── Step 1: Decode GIF (Zamanlamayı koruyarak) ─────────────────────────────
+/**
+ * ADIM 1: GIF DECODE
+ * Kareleri ve orijinal zamanlamaları ayrıştırır.
+ */
 async function decodeGif(file: File): Promise<{
   frames: RenderedFrame[];
   width: number;
@@ -42,12 +48,13 @@ async function decodeGif(file: File): Promise<{
   for (const frame of raw) {
     const restorePoint = stateCtx.getImageData(0, 0, gifW, gifH);
 
-    // Alpha kompozisyonu için temp canvas kullanıyoruz
     const patchCanvas = document.createElement('canvas');
     patchCanvas.width = frame.dims.width;
     patchCanvas.height = frame.dims.height;
-    const pCtx = patchCanvas.getContext('2d')!;
-    pCtx.putImageData(new ImageData(new Uint8ClampedArray(frame.patch), frame.dims.width, frame.dims.height), 0, 0);
+    patchCanvas.getContext('2d')!.putImageData(
+      new ImageData(new Uint8ClampedArray(frame.patch), frame.dims.width, frame.dims.height),
+      0, 0
+    );
     
     stateCtx.drawImage(patchCanvas, frame.dims.left, frame.dims.top);
 
@@ -56,10 +63,10 @@ async function decodeGif(file: File): Promise<{
     snap.height = gifH;
     snap.getContext('2d')!.drawImage(stateCanvas, 0, 0);
     
-    // Gecikme süresini (ms) orijinalden al, browser sınırının altına düşme
+    // Gecikmeyi ms cinsine çeviriyoruz (x10)
     result.push({ 
       canvas: snap, 
-      delay: Math.max(MIN_FRAME_DELAY, frame.delay) 
+      delay: Math.max(MIN_FRAME_DELAY, frame.delay * 10) 
     });
 
     if (frame.disposalType === 2) {
@@ -73,30 +80,29 @@ async function decodeGif(file: File): Promise<{
   return { frames: result, width: gifW, height: gifH };
 }
 
-// ── Step 2: Encode (Kare bazlı gecikme desteğiyle) ──────────────────────────
+/**
+ * ADIM 2: ENCODE
+ * Kareleri tekrar GIF formatına sokar.
+ */
 function encodeGif(
   frames: RenderedFrame[],
   width: number,
   height: number,
-  quality: number,
-  useOriginalDelays: boolean = true,
-  targetFps: number = 15
+  quality: number
 ): Promise<{ data: Blob; sizeBytes: number }> {
   return new Promise((resolve, reject) => {
     const gif = new GIF({
-      workers: 4, // Hız için worker sayısını artırdık
-      quality: quality, // 1 en iyi, 10-20 arası Steam için dengeli
+      workers: 2,
+      quality: quality, // 10 = Hız ve Boyut dengesi
       width: width,
       height: height,
       workerScript: '/gif.worker.js',
       repeat: 0,
-      transparent: null // Steam'de siyah arka plan hatasını önlemek için
+      transparent: null
     });
 
     for (const f of frames) {
-      // Eğer limit altındaysak f.delay kullan, üstündeysek targetFps'e göre uniform git
-      const finalDelay = useOriginalDelays ? f.delay : Math.round(1000 / targetFps);
-      gif.addFrame(f.canvas, { delay: finalDelay, copy: true });
+      gif.addFrame(f.canvas, { delay: f.delay, copy: true });
     }
 
     gif.on('finished', (blob: Blob) => resolve({ data: blob, sizeBytes: blob.size }));
@@ -105,13 +111,21 @@ function encodeGif(
   });
 }
 
-// ── Step 3: Crop & Scale (AspectRatio koruyarak) ───────────────────────────
-function processFrames(frames: RenderedFrame[], options: { cropX?: number, cropW?: number, targetW?: number }) {
+/**
+ * PUBLIC API: ANA İŞLEMCİ
+ */
+export async function processGif(
+  file: File, 
+  options: { cropX?: number; cropW?: number; targetWidth?: number }
+): Promise<GifProcessResult> {
+  // 1. Orijinal veriyi al
+  const { frames } = await decodeGif(file);
   const srcH = frames[0].canvas.height;
   const srcW = frames[0].canvas.width;
 
-  return frames.map(f => {
-    let outW = options.cropW || options.targetW || srcW;
+  // 2. Kırpma veya Yeniden Boyutlandırma (Sadece istenen işlem)
+  const processed = frames.map(f => {
+    let outW = options.cropW || options.targetWidth || srcW;
     let outH = options.cropW ? srcH : Math.round(srcH * (outW / srcW));
 
     const c = document.createElement('canvas');
@@ -120,38 +134,42 @@ function processFrames(frames: RenderedFrame[], options: { cropX?: number, cropW
     const ctx = c.getContext('2d')!;
 
     if (options.cropX !== undefined && options.cropW !== undefined) {
-      // Classic Mode: Kırpma
+      // Classic Mode Kırpma
       ctx.drawImage(f.canvas, options.cropX, 0, options.cropW, srcH, 0, 0, options.cropW, srcH);
-    } else {
-      // Featured Mode: Boyutlandırma
+    } else if (options.targetWidth !== undefined) {
+      // Featured Mode Ölçekleme
       ctx.drawImage(f.canvas, 0, 0, srcW, srcH, 0, 0, outW, outH);
+    } else {
+      ctx.drawImage(f.canvas, 0, 0);
     }
     return { canvas: c, delay: f.delay };
   });
-}
 
-// ── Public API ─────────────────────────────────────────────────────────────
-export async function processGif(file: File, options: { cropX?: number; cropW?: number; targetWidth?: number }): Promise<GifProcessResult> {
-  const { frames, width, height } = await decodeGif(file);
-  
-  // Önce istenen boyutlara getir (crop veya scale)
-  const processed = processFrames(frames, { 
-    cropX: options.cropX, 
-    cropW: options.cropW, 
-    targetW: options.targetWidth 
-  });
-
-  const outW = processed[0].canvas.width;
-  const outH = processed[0].canvas.height;
+  const finalW = processed[0].canvas.width;
+  const finalH = processed[0].canvas.height;
   const durationMs = processed.reduce((s, f) => s + f.delay, 0);
 
-  // KRİTİK NOKTA: Eğer dosya zaten 4.95MB altındaysa kalite=1 ve orijinal delay ile paketle
-  if (file.size <= TARGET_BYTES) {
-    const result = await encodeGif(processed, outW, outH, 1, true);
-    return { data: result.data, fps: Math.round(1000 / (durationMs / processed.length)), durationMs, sizeBytes: result.sizeBytes };
+  // 3. FAST-PATH: Dosya zaten küçükse direkt paketle ve bitir!
+  // Quality 10, Steam'in renk paleti için yeterince iyidir ve dosyayı şişirmez.
+  console.log("🚀 Fast-Path processing started...");
+  const result = await encodeGif(processed, finalW, finalH, 10);
+
+  // 4. LİMİT KONTROLÜ: Eğer hala büyükse (nadir), kaliteyi biraz daha düşür.
+  if (result.sizeBytes > TARGET_BYTES) {
+    console.warn("⚠️ Still too large, applying secondary compression...");
+    const compressed = await encodeGif(processed, finalW, finalH, 20);
+    return {
+      data: compressed.data,
+      fps: Math.round((processed.length / (durationMs / 1000))),
+      durationMs,
+      sizeBytes: compressed.sizeBytes
+    };
   }
 
-  // Eğer limit üstündeyse optimizasyona gir (Burada senin mevcut optimizeLoop mantığını kullanabilirsin)
-  const result = await encodeGif(processed, outW, outH, 10, false, 15);
-  return { data: result.data, fps: 15, durationMs, sizeBytes: result.sizeBytes };
+  return { 
+    data: result.data, 
+    fps: Math.round((processed.length / (durationMs / 1000))), 
+    durationMs, 
+    sizeBytes: result.sizeBytes 
+  };
 }
