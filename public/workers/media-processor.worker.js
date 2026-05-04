@@ -3,6 +3,8 @@
 
 self.document = self.document || { currentScript: null };
 self.window   = self.window   || self;
+self.exports  = self.exports  || {};
+self.module   = self.module   || { exports: self.exports };
 
 importScripts('/ffmpeg/ffmpeg.js', '/ffmpeg/ffmpeg-util.js');
 
