@@ -1,6 +1,9 @@
 /* eslint-disable */
 'use strict';
 
+self.document = self.document || { currentScript: null };
+self.window   = self.window   || self;
+
 importScripts('/ffmpeg/ffmpeg.js', '/ffmpeg/ffmpeg-util.js');
 
 const { FFmpeg } = FFmpegWASM;
