@@ -47,6 +47,7 @@ async function optimize(
   buf: ArrayBuffer,
   outName: string,
   startTime: number,
+  mode: 'featured' | 'classic',
   onProgress?: (v: number) => void,
 ): Promise<{ buffer: ArrayBuffer; warning?: string }> {
   if (buf.byteLength <= LIMIT) return { buffer: buf };
@@ -101,9 +102,10 @@ async function optimize(
   }
   onProgress?.(60);
 
-  // ── Lossy 40 → 60 → 70 (progress: 100) ─────────────────────────────────
+  // ── Lossy (progress: 100) ───────────────────────────────────────────────
+  const lossySteps = mode === 'featured' ? [40, 60, 70, 80] : [40, 60, 70];
   if (!timedOut() && cur.byteLength > LIMIT) {
-    for (const lossy of [40, 60, 70]) {
+    for (const lossy of lossySteps) {
       if (timedOut()) break;
       tryBest(await gRun(cur, `--lossy=${lossy} input.gif -o /out/${outName}`));
     }
@@ -151,7 +153,7 @@ export async function runGifPipeline(
   if (mode === 'featured') {
     const [crop] = await cropGif(buffer, 'featured');
     const { buffer: out, warning } = await optimize(
-      crop.buffer, crop.name, startTime,
+      crop.buffer, crop.name, startTime, 'featured',
       onProgress,
     );
     if (warning) onWarning?.();
@@ -164,8 +166,8 @@ export async function runGifPipeline(
   const sideCrop = crops.find(c => c.name === 'side.gif')!;
 
   const [mainRes, sideRes] = await Promise.all([
-    optimize(mainCrop.buffer, 'main.gif', startTime),
-    optimize(sideCrop.buffer, 'side.gif', startTime),
+    optimize(mainCrop.buffer, 'main.gif', startTime, 'classic'),
+    optimize(sideCrop.buffer, 'side.gif', startTime, 'classic'),
   ]);
 
   onProgress?.(100);
