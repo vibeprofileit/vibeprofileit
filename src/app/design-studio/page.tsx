@@ -10,8 +10,6 @@ import { motion } from "framer-motion";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import type { SteamProfileData, SteamFriend } from "../api/steam/profile/route";
-import { processGif } from "@/lib/gif-processor";
-
 const MAX_FILE_SIZE      = 15 * 1024 * 1024; // 15 MB
 const ELITE_BYPASS_BYTES = 5_138_022;        // 4.9 MB — static görsel sıkıştırma eşiği
 
@@ -499,70 +497,12 @@ export default function UploadPage() {
                            effectiveBgFile.name.toLowerCase().endsWith(".gif");
         const isFeatured = showcaseMode === "featured";
 
-        // ── GIF path: 100% client-side via gif-processor ─────────────────────
+        // TODO: Faz 2 — FFmpeg.wasm worker entegrasyonu (GIF crop + bypass + smart loop)
         if (isGif) {
-          setProgress(20);
-          console.log("🔵 BG File size:", effectiveBgFile.size / 1024 / 1024, "MB");
-
-          if (isFeatured) {
-            try {
-              console.log("📍 Featured: Starting processGif...");
-              const result = await processGif(effectiveBgFile, { targetWidth: 630 });
-              console.log("✅ Featured result:", {
-                sizeBytes: result.sizeBytes,
-                sizeMB: (result.sizeBytes / 1024 / 1024).toFixed(2),
-                fps: result.fps,
-                durationMs: result.durationMs,
-                dataType: result.data instanceof Blob ? "Blob" : typeof result.data,
-                dataSize: result.data?.size,
-              });
-              if (!result.data || result.data.size === 0) {
-                throw new Error("Featured GIF data is empty");
-              }
-              zip.file("featured_main.gif", result.data);
-              console.log("✅ Added featured_main.gif to ZIP");
-            } catch (err) {
-              console.error("❌ Featured GIF error:", err);
-              throw err;
-            }
-            setProgress(85);
-
-          } else {
-            try {
-              console.log("📍 Classic main: Starting processGif...");
-              const mainResult = await processGif(effectiveBgFile, { cropX: 0, cropW: 506 });
-              console.log("✅ Main result:", {
-                sizeBytes: mainResult.sizeBytes,
-                sizeMB: (mainResult.sizeBytes / 1024 / 1024).toFixed(2),
-                fps: mainResult.fps,
-                durationMs: mainResult.durationMs,
-              });
-              if (!mainResult.data || mainResult.data.size === 0) {
-                throw new Error("Main GIF data is empty");
-              }
-              zip.file("main.gif", mainResult.data);
-              console.log("✅ Added main.gif to ZIP");
-              setProgress(60);
-
-              console.log("📍 Classic side: Starting processGif...");
-              const sideResult = await processGif(effectiveBgFile, { cropX: 512, cropW: 100 });
-              console.log("✅ Side result:", {
-                sizeBytes: sideResult.sizeBytes,
-                sizeMB: (sideResult.sizeBytes / 1024 / 1024).toFixed(2),
-                fps: sideResult.fps,
-                durationMs: sideResult.durationMs,
-              });
-              if (!sideResult.data || sideResult.data.size === 0) {
-                throw new Error("Side GIF data is empty");
-              }
-              zip.file("side.gif", sideResult.data);
-              console.log("✅ Added side.gif to ZIP");
-              setProgress(85);
-            } catch (err) {
-              console.error("❌ Classic GIF error:", err);
-              throw err;
-            }
-          }
+          alert("GIF processing is being upgraded. Please use a static image for now.");
+          setIsProcessing(false);
+          setProgress(0);
+          return;
 
         // ── Static image path: existing Canvas API logic ──────────────────────
         } else {

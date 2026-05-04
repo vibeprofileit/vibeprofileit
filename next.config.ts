@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["gifsicle"],
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -26,7 +25,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Cross-Origin-Embedder-Policy',
-            value: 'credentialless',
+            value: 'require-corp',
           },
           {
             key: 'Cross-Origin-Opener-Policy',
