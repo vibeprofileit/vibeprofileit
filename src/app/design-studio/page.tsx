@@ -504,7 +504,8 @@ export default function UploadPage() {
           const gifResults = await processGif(
             effectiveBgFile,
             mode,
-            (p) => setProgress(20 + Math.round(p * 0.65))
+            (p) => setProgress(20 + Math.round(p * 0.65)),
+            () => setGifWarning(true)
           );
           for (const [name, blob] of Object.entries(gifResults)) {
             zip.file(name, blob);
@@ -634,10 +635,10 @@ export default function UploadPage() {
             <span style={{ fontSize: 18, lineHeight: 1, marginTop: 1, flexShrink: 0 }}>⚠</span>
             <div>
               <p className="text-sm font-bold" style={{ color: "#fca5a5", marginBottom: 2 }}>
-                File exceeds Steam{"'"}s 5MB limit.
+                GIF could not be fully optimized.
               </p>
               <p className="text-sm" style={{ color: "rgba(252,165,165,0.75)", lineHeight: 1.5 }}>
-                Even at minimum quality, this file is too large for Steam. Please try a shorter or lower-resolution GIF.
+                Processing timed out before reaching the best quality. The closest result under Steam{"'"}s 5 MB limit was used.
               </p>
             </div>
             <button

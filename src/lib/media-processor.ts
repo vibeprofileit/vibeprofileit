@@ -152,7 +152,8 @@ async function processJob(
 export function processGif(
   file: File,
   mode: 'classic' | 'featured',
-  onProgress?: (p: number) => void
+  onProgress?: (p: number) => void,
+  onWarning?: () => void
 ): Promise<Record<string, Blob>> {
   return new Promise(async (resolve, reject) => {
     const worker = new Worker(
@@ -173,7 +174,10 @@ export function processGif(
 
         case 'result':
         case 'warning': {
-          if (msg.type === 'warning') console.warn('[GIF Worker]', msg.msg);
+          if (msg.type === 'warning') {
+            console.warn('[GIF Worker]', msg.msg);
+            onWarning?.();
+          }
           const blobs: Record<string, Blob> = {};
           for (const [name, buf] of Object.entries(msg.files as Record<string, ArrayBuffer>)) {
             blobs[name] = new Blob([buf], { type: 'image/gif' });
