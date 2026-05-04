@@ -34,8 +34,7 @@ function buildFilter(
   cropW: number | null,
   cropX: number | null,
   fps: number | null,
-  colors: number,
-  lossy: number
+  colors: number
 ): string {
   const parts: string[] = [];
   if (fps !== null) parts.push(`fps=${fps}`);
@@ -45,7 +44,7 @@ function buildFilter(
   return (
     `${chain},split[s0][s1]` +
     `;[s0]palettegen=max_colors=${colors}:stats_mode=diff[p]` +
-    `;[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle:lossy=${lossy}[out]`
+    `;[s1][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle[out]`
   );
 }
 
@@ -71,12 +70,12 @@ function parseFps(logs: string[]): number {
 // ─── single FFmpeg pass ──────────────────────────────────────────────────────
 interface CropParams {
   scaleW: number; cropW: number | null; cropX: number | null;
-  fps: number | null; colors: number; lossy: number; trim: boolean;
+  fps: number | null; colors: number; trim: boolean;
 }
 
 async function execCrop(f: FFmpeg, p: CropParams): Promise<Uint8Array> {
   recentLogs = [];
-  const filter = buildFilter(p.scaleW, p.cropW, p.cropX, p.fps, p.colors, p.lossy);
+  const filter = buildFilter(p.scaleW, p.cropW, p.cropX, p.fps, p.colors);
   const args = ['-i', IN_NAME];
   if (p.trim) args.push('-t', '3');
   args.push('-filter_complex', filter, '-map', '[out]', OUT_NAME);
@@ -114,7 +113,7 @@ async function processJob(
 
   // Step 1 — Crop, max quality, no trim
   let data = await execCrop(f, { scaleW, cropW, cropX,
-    fps: null, colors: 256, lossy: 0, trim: false });
+    fps: null, colors: 256, trim: false });
   const duration = parseDuration(recentLogs);
   const srcFps   = parseFps(recentLogs);
 
@@ -125,15 +124,7 @@ async function processJob(
   const withTrim = duration > 3;
   if (withTrim) {
     data = await execCrop(f, { scaleW, cropW, cropX,
-      fps: null, colors: 256, lossy: 0, trim: true });
-    if (data.byteLength <= STEAM_SAFE) return { outName, data };
-  }
-
-  // Step 3a — Lossy: 10 → 70
-  for (let lossy = 10; lossy <= 70; lossy += 10) {
-    if (Date.now() - startTime > TIMEOUT_MS) throw new Error('İşlem zaman aşımına uğradı (45s)');
-    data = await execCrop(f, { scaleW, cropW, cropX,
-      fps: null, colors: 256, lossy, trim: withTrim });
+      fps: null, colors: 256, trim: true });
     if (data.byteLength <= STEAM_SAFE) return { outName, data };
   }
 
@@ -141,7 +132,7 @@ async function processJob(
   for (let fps = Math.floor(srcFps) - 2; fps >= 13; fps -= 2) {
     if (Date.now() - startTime > TIMEOUT_MS) throw new Error('İşlem zaman aşımına uğradı (45s)');
     data = await execCrop(f, { scaleW, cropW, cropX,
-      fps, colors: 256, lossy: 70, trim: withTrim });
+      fps, colors: 256, trim: withTrim });
     if (data.byteLength <= STEAM_SAFE) return { outName, data };
   }
 
@@ -149,7 +140,7 @@ async function processJob(
   for (let colors = 240; colors >= 160; colors -= 16) {
     if (Date.now() - startTime > TIMEOUT_MS) throw new Error('İşlem zaman aşımına uğradı (45s)');
     data = await execCrop(f, { scaleW, cropW, cropX,
-      fps: 13, colors, lossy: 70, trim: withTrim });
+      fps: 13, colors, trim: withTrim });
     if (data.byteLength <= STEAM_SAFE) return { outName, data };
   }
 
