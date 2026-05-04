@@ -5,6 +5,7 @@ self.document = self.document || { currentScript: null };
 self.window   = self.window   || self;
 self.exports  = self.exports  || {};
 self.module   = self.module   || { exports: self.exports };
+self.require  = self.require  || function() { return {}; };
 
 importScripts('/ffmpeg/ffmpeg.js', '/ffmpeg/ffmpeg-util.js');
 
