@@ -149,43 +149,50 @@ async function processJob(
 
 // ─── public API ──────────────────────────────────────────────────────────────
 // Returns { 'main.gif': Blob, 'side.gif': Blob } or { 'featured_main.gif': Blob }
-export async function processGif(
+export function processGif(
   file: File,
   mode: 'classic' | 'featured',
   onProgress?: (p: number) => void
 ): Promise<Record<string, Blob>> {
-  await initFFmpeg();
-  const f = ffmpeg!;
+  return new Promise(async (resolve, reject) => {
+    const worker = new Worker(
+      new URL('../workers/gif-worker.ts', import.meta.url)
+    );
 
-  const progressHandler = ({ progress }: { progress: number }) => {
-    onProgress?.(Math.round(progress * 100));
-  };
-  f.on('progress', progressHandler);
-
-  try {
-    await f.writeFile(IN_NAME, new Uint8Array(await file.arrayBuffer()));
-
-    const jobs: Job[] = mode === 'featured'
-      ? [{ scaleW: 630, cropW: null, cropX: null, outName: 'featured_main.gif' }]
-      : [
-          { scaleW: 612, cropW: 506, cropX: 0,   outName: 'main.gif' },
-          { scaleW: 612, cropW: 100, cropX: 512,  outName: 'side.gif' },
-        ];
-
-    const startTime = Date.now();
-    const results: Record<string, Blob> = {};
-
-    for (const job of jobs) {
-      const { outName, data } = await processJob(f, job, startTime);
-      results[outName] = new Blob([new Uint8Array(data)], { type: 'image/gif' });
+    function finish(fn: () => void): void {
+      worker.terminate();
+      fn();
     }
 
-    return results;
+    worker.onmessage = (e: MessageEvent) => {
+      const msg = e.data;
+      switch (msg.type) {
+        case 'progress':
+          onProgress?.(msg.value);
+          break;
 
-  } finally {
-    f.off('progress', progressHandler);
-    // Garantili temizlik: her iki dosyayı da sessizce sil
-    try { await f.deleteFile(IN_NAME); } catch { /* ok */ }
-    try { await f.deleteFile(OUT_NAME); } catch { /* ok */ }
-  }
+        case 'result':
+        case 'warning': {
+          if (msg.type === 'warning') console.warn('[GIF Worker]', msg.msg);
+          const blobs: Record<string, Blob> = {};
+          for (const [name, buf] of Object.entries(msg.files as Record<string, ArrayBuffer>)) {
+            blobs[name] = new Blob([buf], { type: 'image/gif' });
+          }
+          finish(() => resolve(blobs));
+          break;
+        }
+
+        case 'error':
+          finish(() => reject(new Error(msg.msg)));
+          break;
+      }
+    };
+
+    worker.onerror = (e: ErrorEvent) => {
+      finish(() => reject(new Error(`GIF Worker hatası: ${e.message}`)));
+    };
+
+    const buffer = await file.arrayBuffer();
+    worker.postMessage({ type: 'process', mode, buffer, inputSize: file.size }, [buffer]);
+  });
 }
