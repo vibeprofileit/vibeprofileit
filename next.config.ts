@@ -33,6 +33,19 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        source: '/ffmpeg/:path*',
+        headers: [
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+        ],
+      },
     ];
   },
 };

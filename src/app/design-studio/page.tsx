@@ -10,6 +10,7 @@ import { motion } from "framer-motion";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import type { SteamProfileData, SteamFriend } from "../api/steam/profile/route";
+import { processGif } from "@/lib/media-processor";
 const MAX_FILE_SIZE      = 15 * 1024 * 1024; // 15 MB
 const ELITE_BYPASS_BYTES = 5_138_022;        // 4.9 MB — static görsel sıkıştırma eşiği
 
@@ -497,12 +498,18 @@ export default function UploadPage() {
                            effectiveBgFile.name.toLowerCase().endsWith(".gif");
         const isFeatured = showcaseMode === "featured";
 
-        // TODO: Faz 2 — FFmpeg.wasm worker entegrasyonu (GIF crop + bypass + smart loop)
         if (isGif) {
-          alert("GIF processing is being upgraded. Please use a static image for now.");
-          setIsProcessing(false);
-          setProgress(0);
-          return;
+          setProgress(20);
+          const mode = isFeatured ? "featured" : "classic";
+          const gifResults = await processGif(
+            effectiveBgFile,
+            mode,
+            (p) => setProgress(20 + Math.round(p * 0.65))
+          );
+          for (const [name, blob] of Object.entries(gifResults)) {
+            zip.file(name, blob);
+          }
+          setProgress(85);
 
         // ── Static image path: existing Canvas API logic ──────────────────────
         } else {
