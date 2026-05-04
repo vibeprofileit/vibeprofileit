@@ -165,17 +165,54 @@ export async function runGifPipeline(
   const mainCrop = crops.find(c => c.name === 'main.gif')!;
   const sideCrop = crops.find(c => c.name === 'side.gif')!;
 
-  const [mainRes, sideRes] = await Promise.all([
-    optimize(mainCrop.buffer, 'main.gif', startTime, 'classic'),
-    optimize(sideCrop.buffer, 'side.gif', startTime, 'classic'),
+  // Classic optimize — başarısız olursa featured fallback'e düşer
+  let classicOk: { main: ArrayBuffer; side: ArrayBuffer; warn: boolean } | null = null;
+
+  try {
+    const [mainRes, sideRes] = await Promise.all([
+      optimize(mainCrop.buffer, 'main.gif', startTime, 'classic'),
+      optimize(sideCrop.buffer, 'side.gif', startTime, 'classic'),
+    ]);
+    classicOk = {
+      main: mainRes.buffer,
+      side: sideRes.buffer,
+      warn: !!(mainRes.warning || sideRes.warning),
+    };
+  } catch { /* classic başarısız — featured fallback denenecek */ }
+
+  if (classicOk) {
+    onProgress?.(100);
+    if (classicOk.warn) onWarning?.();
+    return {
+      'main.gif': new Blob([classicOk.main], { type: 'image/gif' }),
+      'side.gif': new Blob([classicOk.side], { type: 'image/gif' }),
+    };
+  }
+
+  // ── Featured fallback — pipeline tek kez çalışır, sonuç cache'lenir ────
+  let featuredBuf: ArrayBuffer | null = null;
+
+  const [featCrop] = await cropGif(buffer, 'featured');
+  const { buffer: featOut, warning: featWarn } = await optimize(
+    featCrop.buffer, 'featured_main.gif', startTime, 'featured',
+  );
+  if (featWarn) onWarning?.();
+  featuredBuf = featOut;
+
+  // Featured output (630px) üzerinden classic koordinatları: mainX=12, sideX=518
+  const fH = (new Uint8Array(featuredBuf))[8] | ((new Uint8Array(featuredBuf))[9] << 8);
+  const [mainFb, sideFb] = await Promise.all([
+    gRun(featuredBuf, `--crop 12,0+506x${fH} input.gif -o /out/main.gif`),
+    gRun(featuredBuf, `--crop 518,0+100x${fH} input.gif -o /out/side.gif`),
   ]);
 
+  if (mainFb.byteLength > LIMIT || sideFb.byteLength > LIMIT) {
+    throw new Error('Classic fallback sonrası Steam limiti aşıldı.');
+  }
+
   onProgress?.(100);
-
-  if (mainRes.warning || sideRes.warning) onWarning?.();
-
   return {
-    'main.gif': new Blob([mainRes.buffer], { type: 'image/gif' }),
-    'side.gif': new Blob([sideRes.buffer], { type: 'image/gif' }),
+    'main.gif': new Blob([mainFb], { type: 'image/gif' }),
+    'side.gif': new Blob([sideFb], { type: 'image/gif' }),
   };
 }
