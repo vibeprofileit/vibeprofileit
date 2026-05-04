@@ -3,8 +3,10 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { toBlobURL } from '@ffmpeg/util';
 
-const STEAM_SAFE = Math.floor(4.95 * 1024 * 1024); // 4.95 MB
+const STEAM_SAFE = Math.floor(4.95 * 1024 * 1024);
 const TIMEOUT_MS = 45_000;
+const IN_NAME    = 'input.gif';   // sanal FS'de sabit giriş ismi
+const OUT_NAME   = 'output.gif';  // sanal FS'de sabit çıkış ismi
 
 let ffmpeg: FFmpeg | null = null;
 let initPromise: Promise<void> | null = null;
@@ -40,7 +42,6 @@ function buildFilter(
   parts.push(`scale=${scaleW}:-1:flags=lanczos`);
   if (cropW !== null) parts.push(`crop=${cropW}:ih:${cropX}:0`);
   const chain = parts.join(',');
-  // [out] etiketi zorunlu: -filter_complex ile kullanılıyor
   return (
     `${chain},split[s0][s1]` +
     `;[s0]palettegen=max_colors=${colors}:stats_mode=diff[p]` +
@@ -69,7 +70,6 @@ function parseFps(logs: string[]): number {
 
 // ─── single FFmpeg pass ──────────────────────────────────────────────────────
 interface CropParams {
-  inName: string; outName: string;
   scaleW: number; cropW: number | null; cropX: number | null;
   fps: number | null; colors: number; lossy: number; trim: boolean;
 }
@@ -77,22 +77,30 @@ interface CropParams {
 async function execCrop(f: FFmpeg, p: CropParams): Promise<Uint8Array> {
   recentLogs = [];
   const filter = buildFilter(p.scaleW, p.cropW, p.cropX, p.fps, p.colors, p.lossy);
-  const args = ['-i', p.inName];
+  const args = ['-i', IN_NAME];
   if (p.trim) args.push('-t', '3');
-  // -filter_complex + -map [out]: split/palettegen/paletteuse filtergraph için zorunlu
-  args.push('-filter_complex', filter, '-map', '[out]', p.outName);
+  args.push('-filter_complex', filter, '-map', '[out]', OUT_NAME);
 
   try {
     await f.exec(args);
   } catch {
-    throw new Error('FFmpeg exec failed: ' + recentLogs.slice(-2).join(' | '));
+    throw new Error('FFmpeg exec failed: ' + recentLogs.slice(-5).join(' | '));
   }
 
-  const data = await f.readFile(p.outName) as Uint8Array;
+  // Güvenli okuma: try/catch + finally ile dosyayı her durumda temizle
+  const data = await (async () => {
+    try {
+      return await f.readFile(OUT_NAME) as Uint8Array;
+    } catch {
+      throw new Error('FFmpeg output not found. Logs: ' + recentLogs.slice(-5).join(' | '));
+    } finally {
+      try { await f.deleteFile(OUT_NAME); } catch { /* ok */ }
+    }
+  })();
+
   if (!data || data.byteLength === 0) {
-    throw new Error(`FFmpeg empty output: ${p.outName}`);
+    throw new Error('FFmpeg empty output. Logs: ' + recentLogs.slice(-5).join(' | '));
   }
-  try { await f.deleteFile(p.outName); } catch { /* ok */ }
   return data;
 }
 
@@ -100,47 +108,47 @@ async function execCrop(f: FFmpeg, p: CropParams): Promise<Uint8Array> {
 interface Job { scaleW: number; cropW: number | null; cropX: number | null; outName: string; }
 
 async function processJob(
-  f: FFmpeg, inName: string, job: Job, startTime: number
+  f: FFmpeg, job: Job, startTime: number
 ): Promise<{ outName: string; data: Uint8Array }> {
   const { scaleW, cropW, cropX, outName } = job;
 
   // Step 1 — Crop, max quality, no trim
-  let data = await execCrop(f, { inName, outName, scaleW, cropW, cropX,
+  let data = await execCrop(f, { scaleW, cropW, cropX,
     fps: null, colors: 256, lossy: 0, trim: false });
   const duration = parseDuration(recentLogs);
   const srcFps   = parseFps(recentLogs);
 
-  // Bypass check
+  // Bypass: boyut ≤ 4.95 MB → döngü açılmaz
   if (data.byteLength <= STEAM_SAFE) return { outName, data };
 
   // Step 2 — Trim (only if > 3 s)
   const withTrim = duration > 3;
   if (withTrim) {
-    data = await execCrop(f, { inName, outName, scaleW, cropW, cropX,
+    data = await execCrop(f, { scaleW, cropW, cropX,
       fps: null, colors: 256, lossy: 0, trim: true });
     if (data.byteLength <= STEAM_SAFE) return { outName, data };
   }
 
-  // Step 3a — Lossy escalation: 10 → 70
+  // Step 3a — Lossy: 10 → 70
   for (let lossy = 10; lossy <= 70; lossy += 10) {
     if (Date.now() - startTime > TIMEOUT_MS) throw new Error('İşlem zaman aşımına uğradı (45s)');
-    data = await execCrop(f, { inName, outName, scaleW, cropW, cropX,
+    data = await execCrop(f, { scaleW, cropW, cropX,
       fps: null, colors: 256, lossy, trim: withTrim });
     if (data.byteLength <= STEAM_SAFE) return { outName, data };
   }
 
-  // Step 3b — FPS reduction: srcFps → 13
+  // Step 3b — FPS: srcFps → 13
   for (let fps = Math.floor(srcFps) - 2; fps >= 13; fps -= 2) {
     if (Date.now() - startTime > TIMEOUT_MS) throw new Error('İşlem zaman aşımına uğradı (45s)');
-    data = await execCrop(f, { inName, outName, scaleW, cropW, cropX,
+    data = await execCrop(f, { scaleW, cropW, cropX,
       fps, colors: 256, lossy: 70, trim: withTrim });
     if (data.byteLength <= STEAM_SAFE) return { outName, data };
   }
 
-  // Step 3c — Color reduction: 240 → 160
+  // Step 3c — Colors: 240 → 160
   for (let colors = 240; colors >= 160; colors -= 16) {
     if (Date.now() - startTime > TIMEOUT_MS) throw new Error('İşlem zaman aşımına uğradı (45s)');
-    data = await execCrop(f, { inName, outName, scaleW, cropW, cropX,
+    data = await execCrop(f, { scaleW, cropW, cropX,
       fps: 13, colors, lossy: 70, trim: withTrim });
     if (data.byteLength <= STEAM_SAFE) return { outName, data };
   }
@@ -164,28 +172,29 @@ export async function processGif(
   f.on('progress', progressHandler);
 
   try {
-    const inName = 'input.gif';
-    await f.writeFile(inName, new Uint8Array(await file.arrayBuffer()));
+    await f.writeFile(IN_NAME, new Uint8Array(await file.arrayBuffer()));
 
     const jobs: Job[] = mode === 'featured'
       ? [{ scaleW: 630, cropW: null, cropX: null, outName: 'featured_main.gif' }]
       : [
-          { scaleW: 612, cropW: 506, cropX: 0,   outName: 'main.gif'  },
-          { scaleW: 612, cropW: 100, cropX: 512,  outName: 'side.gif'  },
+          { scaleW: 612, cropW: 506, cropX: 0,   outName: 'main.gif' },
+          { scaleW: 612, cropW: 100, cropX: 512,  outName: 'side.gif' },
         ];
 
     const startTime = Date.now();
     const results: Record<string, Blob> = {};
 
     for (const job of jobs) {
-      const { outName, data } = await processJob(f, inName, job, startTime);
+      const { outName, data } = await processJob(f, job, startTime);
       results[outName] = new Blob([new Uint8Array(data)], { type: 'image/gif' });
     }
 
-    try { await f.deleteFile(inName); } catch { /* ok */ }
     return results;
 
   } finally {
     f.off('progress', progressHandler);
+    // Garantili temizlik: her iki dosyayı da sessizce sil
+    try { await f.deleteFile(IN_NAME); } catch { /* ok */ }
+    try { await f.deleteFile(OUT_NAME); } catch { /* ok */ }
   }
 }
