@@ -51,7 +51,7 @@ async function hardOptimize(
 
   function buildCmd(targetFps: number, maxColors: number, lossy: number): string {
     let cmd = `--optimize=3 --lossy=${lossy}`;
-    if (paletteSize > maxColors) cmd += ` --colors ${maxColors}`;
+    if (paletteSize === 0 || paletteSize > maxColors) cmd += ` --colors ${maxColors}`;
 
     const needsFps = fps > targetFps;
 
