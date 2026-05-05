@@ -33,44 +33,45 @@ function findTrimIndex(buffer: ArrayBuffer): number {
   return Math.max(0, idx - 1);
 }
 
-// ── Single-pass hard optimize ─────────────────────────────────────────────────
+// ── Double-pass hard optimize ─────────────────────────────────────────────────
 
 async function hardOptimize(buf: ArrayBuffer, outName: string): Promise<ArrayBuffer> {
   const { frameCount, totalDuration } = parseGifInfo(buf);
   const fps = totalDuration > 0 ? frameCount / (totalDuration / 1000) : 0;
 
-  // Palette size: GIF header byte 10, bits 0-2 = size exponent (if GCT flag set)
   const d = new Uint8Array(buf);
   const paletteSize = (d[10] & 0x80) ? 2 ** ((d[10] & 0x07) + 1) : 0;
 
-  // Build command dynamically — only add flags when needed
-  let cmd = '--optimize=3 --lossy=70';
-  if (paletteSize > 180) cmd += ' --colors 180';
+  function buildCmd(targetFps: number, maxColors: number, lossy: number): string {
+    let cmd = `--optimize=3 --lossy=${lossy}`;
+    if (paletteSize > maxColors) cmd += ` --colors ${maxColors}`;
 
-  const needsTrim = totalDuration > 3000;
-  const needsFps  = fps > 15;
+    const needsTrim = totalDuration > 3000;
+    const needsFps  = fps > targetFps;
 
-  if (needsTrim || needsFps) {
-    const maxIdx = needsTrim ? findTrimIndex(buf) : frameCount - 1;
-    const skip   = needsFps ? Math.max(1, Math.round(fps / 15)) : 1;
-
-    const frames = Array.from(
-      { length: Math.ceil((maxIdx + 1) / skip) },
-      (_, i) => `"#${Math.min(i * skip, maxIdx)}"`,
-    ).join(' ');
-
-    cmd += ` input.gif ${frames} -o /out/${outName}`;
-  } else {
-    cmd += ` input.gif -o /out/${outName}`;
+    if (needsTrim || needsFps) {
+      const maxIdx = needsTrim ? findTrimIndex(buf) : frameCount - 1;
+      const skip   = needsFps ? Math.max(1, Math.round(fps / targetFps)) : 1;
+      const frames = Array.from(
+        { length: Math.ceil((maxIdx + 1) / skip) },
+        (_, i) => `"#${Math.min(i * skip, maxIdx)}"`,
+      ).join(' ');
+      cmd += ` input.gif ${frames} -o /out/${outName}`;
+    } else {
+      cmd += ` input.gif -o /out/${outName}`;
+    }
+    return cmd;
   }
 
-  const result = await gRun(buf, cmd);
+  // Pass 1: fps=15, colors=180, lossy=70
+  const pass1 = await gRun(buf, buildCmd(15, 180, 70));
+  if (pass1.byteLength <= LIMIT) return pass1;
 
-  if (result.byteLength > LIMIT) {
-    throw new Error('Cannot compress this GIF under 5MB. Try a shorter GIF.');
-  }
+  // Pass 2: fps=12, colors=150, lossy=80 — orijinal buf üzerinden (kümülatif bozulma önlenir)
+  const pass2 = await gRun(buf, buildCmd(12, 150, 80));
+  if (pass2.byteLength <= LIMIT) return pass2;
 
-  return result;
+  throw new Error('Cannot compress this GIF under 5MB. Try a shorter GIF.');
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -89,7 +90,7 @@ export async function runGifPipeline(
     const buffer = await file.arrayBuffer();
     onProgress?.(10);
 
-    const crops = await cropGif(buffer, mode);
+    const crops = await cropGif(buffer, mode, file.size > LIMIT);
     onProgress?.(40);
 
     const entries = await Promise.all(

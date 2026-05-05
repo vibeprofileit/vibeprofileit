@@ -11,6 +11,7 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import type { SteamProfileData, SteamFriend } from "../api/steam/profile/route";
 import { runGifPipeline as processGif } from "@/lib/gif-pipeline";
+import { stampWatermark } from "@/lib/watermark";
 const MAX_FILE_SIZE      = 15 * 1024 * 1024; // 15 MB
 const ELITE_BYPASS_BYTES = 5_138_022;        // 4.9 MB — static görsel sıkıştırma eşiği
 
@@ -539,6 +540,7 @@ export default function UploadPage() {
             featuredCanvas.getContext("2d")!
               .drawImage(bgImg, 0, 0, srcW, srcH, 0, 0, targetW, targetH);
             setProgress(70);
+            await stampWatermark(featuredCanvas);
             if (isElite) {
               zip.file("featured_main.png", await canvasToBlob(featuredCanvas));
             } else {
@@ -561,6 +563,7 @@ export default function UploadPage() {
 
             const mainCrop = cropCanvas(masterCanvas, 0,   506);
             const sideCrop = cropCanvas(masterCanvas, 512, 100);
+            await Promise.all([stampWatermark(mainCrop), stampWatermark(sideCrop)]);
 
             if (isElite) {
               zip.file("main.png", await canvasToBlob(mainCrop));
