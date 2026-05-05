@@ -38,7 +38,7 @@ function buildFpsCmd(frameCount: number, skip: number, outName: string): string 
     { length: Math.ceil(frameCount / skip) },
     (_, i) => `"#${i * skip}"`
   ).join(' ');
-  return `input.gif ${frames} -o /out/${outName}`;
+  return `--optimize=3 input.gif ${frames} -o /out/${outName}`;
 }
 
 // ── Core optimization pipeline ───────────────────────────────────────────────
@@ -69,7 +69,7 @@ async function optimize(
     const { totalDuration } = parseGifInfo(cur);
     if (totalDuration > 3000) {
       const idx = findTrimIndex(cur);
-      const trimmed = await gRun(cur, `input.gif "#0-#${idx}" -o /out/${outName}`);
+      const trimmed = await gRun(cur, `--optimize=3 input.gif "#0-#${idx}" -o /out/${outName}`);
       cur = trimmed;
       if (tryBest(cur)) { onProgress?.(20); return { buffer: best! }; }
     }
@@ -95,7 +95,7 @@ async function optimize(
     const d = new Uint8Array(cur);
     const paletteSize = (d[10] & 0x80) ? 2 ** ((d[10] & 0x07) + 1) : 256;
     if (paletteSize > 160) {
-      const colored = await gRun(cur, `--colors 160 input.gif -o /out/${outName}`);
+      const colored = await gRun(cur, `--optimize=3 --colors 160 input.gif -o /out/${outName}`);
       cur = colored;
       tryBest(cur);
     }
@@ -107,7 +107,7 @@ async function optimize(
   if (!timedOut() && cur.byteLength > LIMIT) {
     for (const lossy of lossySteps) {
       if (timedOut()) break;
-      tryBest(await gRun(cur, `--lossy=${lossy} input.gif -o /out/${outName}`));
+      tryBest(await gRun(cur, `--optimize=3 --lossy=${lossy} input.gif -o /out/${outName}`));
     }
   }
   onProgress?.(100);

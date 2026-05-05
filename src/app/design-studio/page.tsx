@@ -10,7 +10,7 @@ import { motion } from "framer-motion";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import type { SteamProfileData, SteamFriend } from "../api/steam/profile/route";
-import { processGif } from "@/lib/media-processor";
+import { runGifPipeline as processGif } from "@/lib/gif-pipeline";
 const MAX_FILE_SIZE      = 15 * 1024 * 1024; // 15 MB
 const ELITE_BYPASS_BYTES = 5_138_022;        // 4.9 MB — static görsel sıkıştırma eşiği
 
