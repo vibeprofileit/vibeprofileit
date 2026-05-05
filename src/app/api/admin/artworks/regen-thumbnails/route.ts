@@ -11,7 +11,6 @@ export async function POST(request: NextRequest) {
     where: {
       mediaType: { equals: "animated", mode: "insensitive" },
       coverUrl: null,
-      sourceUrl: { not: null },
     },
     select: { id: true, sourceUrl: true },
     orderBy: { createdAt: "asc" },
@@ -43,7 +42,6 @@ export async function POST(request: NextRequest) {
     where: {
       mediaType: { equals: "animated", mode: "insensitive" },
       coverUrl: null,
-      sourceUrl: { not: null },
     },
   });
 
