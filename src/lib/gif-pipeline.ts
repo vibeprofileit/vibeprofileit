@@ -39,6 +39,7 @@ async function hardOptimize(
   buf: ArrayBuffer,
   outName: string,
   onWarning?: () => void,
+  onProgress?: (p: number) => void,
 ): Promise<ArrayBuffer> {
   const { frameCount, totalDuration } = parseGifInfo(buf);
   const fps = totalDuration > 0 ? frameCount / (totalDuration / 1000) : 0;
@@ -69,12 +70,15 @@ async function hardOptimize(
   }
 
   // Pass 1: fps=15, colors=180, lossy=70
+  onProgress?.(50);
   const pass1 = await gRun(buf, buildCmd(15, 180, 70));
   if (pass1.byteLength <= LIMIT) return pass1;
 
   // Pass 2: fps=12, colors=150, lossy=80 — original buf (no cumulative loss)
   onWarning?.();
+  onProgress?.(80);
   const pass2 = await gRun(buf, buildCmd(12, 150, 80));
+  onProgress?.(95);
   if (pass2.byteLength <= LIMIT) return pass2;
 
   throw new Error('GIF is too big. Please try a shorter GIF.');
@@ -92,26 +96,22 @@ export async function runGifPipeline(
     return Promise.reject(new Error('File is too big. Max size is 12MB.'));
   }
 
-  try {
-    const buffer = await file.arrayBuffer();
-    onProgress?.(10);
+  const buffer = await file.arrayBuffer();
+  onProgress?.(10);
 
-    const crops = await cropGif(buffer, mode);
-    onProgress?.(40);
+  const crops = await cropGif(buffer, mode);
+  onProgress?.(40);
 
-    const entries = await Promise.all(
-      crops.map(async ({ name, buffer: cropBuf }) => {
-        if (cropBuf.byteLength <= LIMIT) {
-          return [name, new Blob([cropBuf], { type: 'image/gif' })] as const;
-        }
-        const optimized = await hardOptimize(cropBuf, name, onWarning);
-        return [name, new Blob([optimized], { type: 'image/gif' })] as const;
-      }),
-    );
+  const entries = await Promise.all(
+    crops.map(async ({ name, buffer: cropBuf }) => {
+      if (cropBuf.byteLength <= LIMIT) {
+        return [name, new Blob([cropBuf], { type: 'image/gif' })] as const;
+      }
+      const optimized = await hardOptimize(cropBuf, name, onWarning, onProgress);
+      return [name, new Blob([optimized], { type: 'image/gif' })] as const;
+    }),
+  );
 
-    onProgress?.(100);
-    return Object.fromEntries(entries);
-  } catch (err) {
-    throw err;
-  }
+  onProgress?.(100);
+  return Object.fromEntries(entries);
 }

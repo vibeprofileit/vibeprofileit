@@ -187,7 +187,6 @@ export default function UploadPage() {
   const [showcaseMode, setShowcaseMode] = useState<'classic' | 'featured' | null>(null);
   const [gifWarning, setGifWarning] = useState(false);
   const [btnHovered, setBtnHovered] = useState(false);
-  const [eliteActive, setEliteActive] = useState(false);
 
   const dynBox: React.CSSProperties = {
     ...sBox,
@@ -340,8 +339,8 @@ export default function UploadPage() {
       if (inputEl) inputEl.value = "";
       return false;
     }
-    if (dims.height < 500) {
-      alert("Image must be at least 500px tall.");
+    if (dims.height < 800) {
+      alert("Image must be at least 800px tall.");
       if (inputEl) inputEl.value = "";
       return false;
     }
@@ -529,7 +528,6 @@ export default function UploadPage() {
           const srcW    = bgImg.naturalWidth;
           const srcH    = bgImg.naturalHeight;
           const isElite = effectiveBgFile.size < ELITE_BYPASS_BYTES;
-          setEliteActive(isElite);
 
           if (isFeatured) {
             const targetW        = 630;
@@ -593,7 +591,6 @@ export default function UploadPage() {
     } finally {
       setIsProcessing(false);
       setProgress(0);
-      setEliteActive(false);
     }
   };
 
@@ -638,10 +635,7 @@ export default function UploadPage() {
             <span style={{ fontSize: 18, lineHeight: 1, marginTop: 1, flexShrink: 0 }}>⚠</span>
             <div>
               <p className="text-sm font-bold" style={{ color: "#fca5a5", marginBottom: 2 }}>
-                GIF could not be fully optimized.
-              </p>
-              <p className="text-sm" style={{ color: "rgba(252,165,165,0.75)", lineHeight: 1.5 }}>
-                Processing timed out before reaching the best quality. The closest result under Steam{"'"}s 5 MB limit was used.
+                Quality adjusted to fit Steam limits.
               </p>
             </div>
             <button

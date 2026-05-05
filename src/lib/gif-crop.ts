@@ -15,7 +15,7 @@ async function runCrop(buf: ArrayBuffer, cmd: string): Promise<ArrayBuffer> {
     input: [{ file: buf, name: 'input.gif' }],
     command: [cmd],
   });
-  if (!files?.length) throw new Error('gifsicle crop çıktı üretmedi');
+  if (!files?.length) throw new Error('Gifsicle crop produced no output.');
   return files[0].arrayBuffer();
 }
 
@@ -26,7 +26,7 @@ export async function cropGif(
   const { width, height } = readDimensions(buffer);
 
   if (width < 600) throw new Error(`GIF width must be at least 600px (current: ${width}px)`);
-  if (height < 900) throw new Error(`GIF height must be at least 900px (current: ${height}px)`);
+  if (height < 800) throw new Error(`GIF height must be at least 800px (current: ${height}px)`);
 
   if (mode === 'featured') {
     const x = Math.floor((width - 630) / 2);
