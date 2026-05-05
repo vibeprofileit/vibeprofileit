@@ -134,7 +134,7 @@ function FileUploadForm({ onAdded }: { onAdded: () => void }) {
 
   const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/gif"]);
   const ALLOWED_EXTS = new Set([".jpg", ".jpeg", ".png", ".gif"]);
-  const MIN_W = 506;
+  const MIN_W = 630;
   const MIN_H = 800;
 
   const handleUpload = async () => {
@@ -154,7 +154,7 @@ function FileUploadForm({ onAdded }: { onAdded: () => void }) {
       }
       const { width, height } = await measureImage(file);
       if (width < MIN_W || height < MIN_H) {
-        rejected.push({ name: file.name, ok: false, msg: `Steam vitrini için minimum 506x1000 çözünürlük gereklidir (mevcut: ${width}×${height})` });
+        rejected.push({ name: file.name, ok: false, msg: `Minimum resolution ${MIN_W}x${MIN_H} required for Steam (Current: ${width}x${height})` });
         continue;
       }
       valid.push(file);

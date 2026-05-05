@@ -334,8 +334,9 @@ export default function UploadPage() {
       if (inputEl) inputEl.value = "";
       return false;
     }
-    if (dims.width < 600) {
-      alert("Image must be at least 600px wide.");
+    const minWidth = 630;
+    if (dims.width < minWidth) {
+      alert('Image must be at least 630px wide for high-quality Steam alignment.');
       if (inputEl) inputEl.value = "";
       return false;
     }
