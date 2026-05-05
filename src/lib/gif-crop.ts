@@ -33,7 +33,7 @@ export async function cropGif(
 ): Promise<CropOutput[]> {
   const { width, height } = readDimensions(buffer);
 
-  if (width < 600) throw new Error(`GIF width must be at least 600px (current: ${width}px)`);
+  if (width < 630) throw new Error(`GIF width must be at least 630px (current: ${width}px)`);
   if (height < 800) throw new Error(`GIF height must be at least 800px (current: ${height}px)`);
 
   if (mode === 'featured') {

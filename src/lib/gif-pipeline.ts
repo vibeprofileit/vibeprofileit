@@ -33,6 +33,21 @@ function findTrimIndex(buffer: ArrayBuffer): number {
   return Math.max(0, idx - 1);
 }
 
+// GCE delay byte'larını doğrudan buffer'a yaz (gifsicle --delay çalışmıyor)
+function patchDelays(buf: ArrayBuffer, delayCs: number): ArrayBuffer {
+  const arr = new Uint8Array(buf.slice(0));
+  const lo = delayCs & 0xFF;
+  const hi = (delayCs >> 8) & 0xFF;
+  for (let i = 0; i < arr.length - 7; i++) {
+    if (arr[i] === 0x21 && arr[i + 1] === 0xF9 && arr[i + 2] === 0x04) {
+      arr[i + 4] = lo;
+      arr[i + 5] = hi;
+      i += 7;
+    }
+  }
+  return arr.buffer;
+}
+
 // ── Double-pass hard optimize ─────────────────────────────────────────────────
 
 async function hardOptimize(
@@ -50,14 +65,14 @@ async function hardOptimize(
   const needsTrim = totalDuration > 3000;
   const trimIndex = needsTrim ? findTrimIndex(buf) : frameCount - 1;
 
-  function buildCmd(targetFps: number, maxColors: number, lossy: number): string {
+  function buildCmd(targetFps: number, maxColors: number, lossy: number): { cmd: string; skip: number } {
     let cmd = `--optimize=3 --lossy=${lossy}`;
     if (paletteSize === 0 || paletteSize > maxColors) cmd += ` --colors ${maxColors}`;
 
     const needsFps = fps > targetFps;
+    const skip     = needsFps ? Math.max(1, Math.round(fps / targetFps)) : 1;
 
     if (needsTrim || needsFps) {
-      const skip   = needsFps ? Math.max(1, Math.round(fps / targetFps)) : 1;
       const frames = Array.from(
         { length: Math.ceil((trimIndex + 1) / skip) },
         (_, i) => `#${Math.min(i * skip, trimIndex)}`,
@@ -66,18 +81,28 @@ async function hardOptimize(
     } else {
       cmd += ` input.gif -o /out/${outName}`;
     }
-    return cmd;
+    return { cmd, skip };
   }
 
   // Pass 1: fps=15, colors=180, lossy=70
   onProgress?.(50);
-  const pass1 = await gRun(buf, buildCmd(15, 180, 70));
+  const { cmd: cmd1, skip: skip1 } = buildCmd(15, 180, 70);
+  let pass1 = await gRun(buf, cmd1);
+  if (skip1 > 1) {
+    const newDelayCs = Math.max(1, Math.round(totalDuration / frameCount * skip1 / 10));
+    pass1 = patchDelays(pass1, newDelayCs);
+  }
   if (pass1.byteLength <= LIMIT) return pass1;
 
   // Pass 2: fps=12, colors=150, lossy=80 — original buf (no cumulative loss)
   onWarning?.();
   onProgress?.(80);
-  const pass2 = await gRun(buf, buildCmd(12, 150, 80));
+  const { cmd: cmd2, skip: skip2 } = buildCmd(12, 150, 80);
+  let pass2 = await gRun(buf, cmd2);
+  if (skip2 > 1) {
+    const newDelayCs = Math.max(1, Math.round(totalDuration / frameCount * skip2 / 10));
+    pass2 = patchDelays(pass2, newDelayCs);
+  }
   onProgress?.(95);
   if (pass2.byteLength <= LIMIT) return pass2;
 
