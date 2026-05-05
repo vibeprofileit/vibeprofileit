@@ -12,7 +12,7 @@ async function gRun(buf: ArrayBuffer, cmd: string): Promise<ArrayBuffer> {
     input: [{ file: buf, name: 'input.gif' }],
     command: [cmd],
   });
-  if (!out?.length) throw new Error('Processing failed. Please try again.');
+  if (!out?.length) throw new Error(`Processing failed. Command: [${cmd}]`);
   return out[0].arrayBuffer();
 }
 
@@ -60,7 +60,7 @@ async function hardOptimize(
       const skip   = needsFps ? Math.max(1, Math.round(fps / targetFps)) : 1;
       const frames = Array.from(
         { length: Math.ceil((trimIndex + 1) / skip) },
-        (_, i) => `"#${Math.min(i * skip, trimIndex)}"`,
+        (_, i) => `#${Math.min(i * skip, trimIndex)}`,
       ).join(' ');
       cmd += ` input.gif ${frames} -o /out/${outName}`;
     } else {
