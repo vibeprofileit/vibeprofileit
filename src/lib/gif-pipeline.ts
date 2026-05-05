@@ -65,6 +65,17 @@ async function hardOptimize(
   const needsTrim = totalDuration > 3000;
   const trimIndex = needsTrim ? findTrimIndex(buf) : frameCount - 1;
 
+  console.log('[hardOptimize-Entry]', {
+    outName,
+    frameCount,
+    totalDuration,
+    fps: +fps.toFixed(2),
+    needsTrim,
+    trimIndex,
+    inputBytes: buf.byteLength,
+    calculatedDelay: Math.round(1000 / (fps || 1)),
+  });
+
   function buildCmd(targetFps: number, maxColors: number, lossy: number): { cmd: string; skip: number } {
     let cmd = `--optimize=3 --lossy=${lossy}`;
     if (paletteSize === 0 || paletteSize > maxColors) cmd += ` --colors ${maxColors}`;
@@ -81,6 +92,10 @@ async function hardOptimize(
     } else {
       cmd += ` input.gif -o /out/${outName}`;
     }
+
+    const newDelayCs = skip > 1 ? Math.max(1, Math.round(totalDuration / frameCount * skip / 10)) : null;
+    console.log('[hardOptimize-buildCmd]', { targetFps, lossy, skip, newDelayCs, cmd });
+
     return { cmd, skip };
   }
 
@@ -88,9 +103,11 @@ async function hardOptimize(
   onProgress?.(50);
   const { cmd: cmd1, skip: skip1 } = buildCmd(15, 180, 70);
   let pass1 = await gRun(buf, cmd1);
+  console.log('[hardOptimize-pass1]', { skip: skip1, outputBytes: pass1.byteLength, underLimit: pass1.byteLength <= LIMIT });
   if (skip1 > 1) {
     const newDelayCs = Math.max(1, Math.round(totalDuration / frameCount * skip1 / 10));
     pass1 = patchDelays(pass1, newDelayCs);
+    console.log('[hardOptimize-patchDelays-pass1]', { newDelayCs, patchedBytes: pass1.byteLength });
   }
   if (pass1.byteLength <= LIMIT) return pass1;
 
@@ -99,9 +116,11 @@ async function hardOptimize(
   onProgress?.(80);
   const { cmd: cmd2, skip: skip2 } = buildCmd(12, 150, 80);
   let pass2 = await gRun(buf, cmd2);
+  console.log('[hardOptimize-pass2]', { skip: skip2, outputBytes: pass2.byteLength, underLimit: pass2.byteLength <= LIMIT });
   if (skip2 > 1) {
     const newDelayCs = Math.max(1, Math.round(totalDuration / frameCount * skip2 / 10));
     pass2 = patchDelays(pass2, newDelayCs);
+    console.log('[hardOptimize-patchDelays-pass2]', { newDelayCs, patchedBytes: pass2.byteLength });
   }
   onProgress?.(95);
   if (pass2.byteLength <= LIMIT) return pass2;
@@ -130,6 +149,7 @@ export async function runGifPipeline(
   const entries = await Promise.all(
     crops.map(async ({ name, buffer: cropBuf }) => {
       if (cropBuf.byteLength <= LIMIT) {
+        console.log('[runGifPipeline-fastPath]', { name, bytes: cropBuf.byteLength });
         return [name, new Blob([cropBuf], { type: 'image/gif' })] as const;
       }
       const optimized = await hardOptimize(cropBuf, name, onWarning, onProgress);
