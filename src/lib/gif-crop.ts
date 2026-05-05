@@ -11,11 +11,19 @@ function readDimensions(buf: ArrayBuffer): { width: number; height: number } {
 }
 
 async function runCrop(buf: ArrayBuffer, cmd: string): Promise<ArrayBuffer> {
-  const files = await gifsicle.run({
-    input: [{ file: buf, name: 'input.gif' }],
-    command: [cmd],
-  });
-  if (!files?.length) throw new Error('Gifsicle crop produced no output.');
+  let files;
+  try {
+    files = await gifsicle.run({
+      input: [{ file: buf, name: 'input.gif' }],
+      command: [cmd],
+    });
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(`Crop failed [${cmd}]: ${detail}`);
+  }
+  if (!files?.length) {
+    throw new Error(`Crop produced no output [${cmd}]`);
+  }
   return files[0].arrayBuffer();
 }
 
@@ -29,21 +37,28 @@ export async function cropGif(
   if (height < 800) throw new Error(`GIF height must be at least 800px (current: ${height}px)`);
 
   if (mode === 'featured') {
-    const x = Math.floor((width - 630) / 2);
+    const x     = Math.max(0, Math.floor((width - 630) / 2));
+    const cropW = Math.min(630, width - x);
     const result = await runCrop(
       buffer,
-      `--crop ${x},0+630x${height} input.gif -o /out/featured_main.gif`,
+      `--unoptimize --optimize=3 --crop ${x},0+${cropW}x${height} input.gif -o /out/featured_main.gif`,
     );
     return [{ name: 'featured_main.gif', buffer: result }];
   }
 
   // Classic: main ve side orijinal input'tan ayrı ayrı crop edilir
-  const mainX = Math.floor((width - 606) / 2);
+  const mainX = Math.max(0, Math.floor((width - 606) / 2));
   const sideX = mainX + 506;
+  const mainW = Math.min(506, width - mainX);
+  const sideW = Math.min(100, width - sideX);
+
+  if (sideW <= 0) {
+    throw new Error(`GIF is too narrow for classic crop (${width}px wide).`);
+  }
 
   const [mainBuf, sideBuf] = await Promise.all([
-    runCrop(buffer, `--crop ${mainX},0+506x${height} input.gif -o /out/main.gif`),
-    runCrop(buffer, `--crop ${sideX},0+100x${height} input.gif -o /out/side.gif`),
+    runCrop(buffer, `--unoptimize --optimize=3 --crop ${mainX},0+${mainW}x${height} input.gif -o /out/main.gif`),
+    runCrop(buffer, `--unoptimize --optimize=3 --crop ${sideX},0+${sideW}x${height} input.gif -o /out/side.gif`),
   ]);
 
   return [
