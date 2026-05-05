@@ -41,7 +41,7 @@ export async function cropGif(
     const cropW = Math.min(630, width - x);
     const result = await runCrop(
       buffer,
-      `--unoptimize --crop ${x},0+${cropW}x${height} input.gif -o /out/featured_main.gif`,
+      `--crop ${x},0+${cropW}x${height} input.gif -o /out/featured_main.gif`,
     );
     return [{ name: 'featured_main.gif', buffer: result }];
   }
@@ -57,8 +57,8 @@ export async function cropGif(
   }
 
   const [mainBuf, sideBuf] = await Promise.all([
-    runCrop(buffer, `--unoptimize --crop ${mainX},0+${mainW}x${height} input.gif -o /out/main.gif`),
-    runCrop(buffer, `--unoptimize --crop ${sideX},0+${sideW}x${height} input.gif -o /out/side.gif`),
+    runCrop(buffer, `--crop ${mainX},0+${mainW}x${height} input.gif -o /out/main.gif`),
+    runCrop(buffer, `--crop ${sideX},0+${sideW}x${height} input.gif -o /out/side.gif`),
   ]);
 
   return [
