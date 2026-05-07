@@ -37,7 +37,7 @@ const routes = [
   },
   {
     id: "ai-studio",
-    href: "/AI-studio",
+    href: "/ai-studio",
     icon: Sparkles,
     title: "AI Studio",
     subtitle: "Imagine, describe, create",
