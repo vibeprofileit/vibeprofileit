@@ -201,21 +201,27 @@ export default function UploadPage() {
     border:               '1px solid rgba(255,255,255,' + (panelOpacity * 0.10) + ')',
   };
 
-  // ── Galeriden gelen URL parametrelerini isle ─────────────────
+  // ── Galeriden / Studio'dan gelen URL parametrelerini isle ──────
   useEffect(() => {
     const template = searchParams.get("template");
     const imageUrl = searchParams.get("imageUrl");
+    const source   = searchParams.get("source");
 
-    // template=featured ise sablon otomatik secilir
     if (template === "featured") {
       setShowcaseMode("featured");
     }
 
-    // imageUrl parametresi varsa arka plan olarak yukle
-    // (Su an galeri mock data kullanildigindan bos geliyor;
-    //  gercek gorsel URL'leri eklenince otomatik calisir)
     if (imageUrl) {
       setBgUrl(imageUrl);
+    }
+
+    // AI Studio bridge: sessionStorage'daki 1260×1600 görseli arka plan yap
+    if (source === "studio") {
+      const stored = sessionStorage.getItem("studio_generated_image");
+      if (stored) {
+        setBgUrl(stored);
+        sessionStorage.removeItem("studio_generated_image");
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
