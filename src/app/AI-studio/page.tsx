@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import Header from "@/components/Header";
 
 const STYLES = ["Cyberpunk", "Anime", "Dark Fantasy", "Sci-Fi", "Pixel Art"];
 
@@ -32,7 +33,7 @@ function PurpleVoidBackground() {
       opacity: number; hue: number;
     };
 
-    const particles: Particle[] = Array.from({ length: 90 }, () => ({
+    const particles: Particle[] = Array.from({ length: 130 }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
       size: Math.random() * 2.5 + 0.4,
@@ -95,6 +96,58 @@ function PurpleVoidBackground() {
       className="fixed inset-0 pointer-events-none"
       style={{ zIndex: 0 }}
     />
+  );
+}
+
+// ─── Floating word cloud layer ────────────────────────────────────────────────
+const FLOAT_WORDS = ["Anime", "Cyberpunk", "Elite Design", "Masterpiece", "Pro Generation", "Custom Design", "Dark Fantasy"];
+const WORD_CONFIGS = [
+  { top: "12%", left: "8%",  size: 13, dur: 28, delay: 0,   angle: 6,   glow: "rgba(188,19,254,0.7)"  },
+  { top: "28%", left: "75%", size: 11, dur: 34, delay: 5,   angle: -5,  glow: "rgba(100,200,255,0.6)" },
+  { top: "52%", left: "5%",  size: 14, dur: 40, delay: 10,  angle: 3,   glow: "rgba(188,19,254,0.7)"  },
+  { top: "70%", left: "80%", size: 12, dur: 32, delay: 3,   angle: -8,  glow: "rgba(100,200,255,0.6)" },
+  { top: "85%", left: "38%", size: 11, dur: 38, delay: 8,   angle: 5,   glow: "rgba(188,19,254,0.7)"  },
+  { top: "40%", left: "58%", size: 12, dur: 36, delay: 14,  angle: -3,  glow: "rgba(100,200,255,0.6)" },
+  { top: "65%", left: "20%", size: 13, dur: 42, delay: 6,   angle: 7,   glow: "rgba(188,19,254,0.7)"  },
+];
+
+function FloatingWords() {
+  return (
+    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
+      {FLOAT_WORDS.map((word, i) => {
+        const cfg = WORD_CONFIGS[i];
+        return (
+          <span
+            key={word}
+            style={{
+              position: "absolute",
+              top: cfg.top, left: cfg.left,
+              fontSize: cfg.size,
+              fontWeight: 700,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              fontFamily: "monospace",
+              color: "rgba(220,140,255,0.38)",
+              textShadow: `0 0 10px ${cfg.glow}, 0 0 22px ${cfg.glow}`,
+              transform: `rotate(${cfg.angle}deg)`,
+              animation: `floatDrift ${cfg.dur}s ${cfg.delay}s ease-in-out infinite alternate`,
+              whiteSpace: "nowrap",
+              userSelect: "none",
+            }}
+          >
+            {word}
+          </span>
+        );
+      })}
+      <style>{`
+        @keyframes floatDrift {
+          0%   { transform: translateY(0px)   translateX(0px);   }
+          33%  { transform: translateY(-18px) translateX(8px);   }
+          66%  { transform: translateY(-8px)  translateX(-10px); }
+          100% { transform: translateY(-24px) translateX(4px);   }
+        }
+      `}</style>
+    </div>
   );
 }
 
@@ -169,24 +222,11 @@ export default function StudioPage() {
   return (
     <div
       className="relative min-h-screen overflow-x-hidden"
-      style={{ background: "#020617" }}
+      style={{ background: "#050505" }}
     >
+      <Header />
       <PurpleVoidBackground />
-
-      {/* Ambient radial glows */}
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }}>
-        <div style={{
-          position: "absolute", top: "-15%", left: "50%",
-          transform: "translateX(-50%)",
-          width: 700, height: 700, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(110,30,200,0.13) 0%, transparent 70%)",
-        }} />
-        <div style={{
-          position: "absolute", bottom: "5%", right: "15%",
-          width: 450, height: 450, borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(160,50,255,0.07) 0%, transparent 70%)",
-        }} />
-      </div>
+      <FloatingWords />
 
       {/* Content */}
       <div
@@ -267,10 +307,10 @@ export default function StudioPage() {
             width: "100%", maxWidth: 660,
             background: "rgba(12,4,26,0.65)",
             backdropFilter: "blur(28px)",
-            border: "1px solid rgba(160,60,255,0.14)",
+            border: "1px solid rgba(188,19,254,0.28)",
             borderRadius: 20,
             padding: "36px 36px 32px",
-            boxShadow: "0 0 70px rgba(100,30,200,0.09), inset 0 1px 0 rgba(255,255,255,0.04)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)",
           }}
         >
           {/* Prompt */}
