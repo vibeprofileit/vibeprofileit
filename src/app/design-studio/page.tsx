@@ -915,18 +915,25 @@ export default function UploadPage() {
         <div
           className="relative mx-auto overflow-hidden"
           style={{
-            maxWidth:           1920,
-            minHeight:          1000,
-            border:             "1px solid #2a475e",
-            backgroundImage:    bgIsImage
-              ? 'url(' + profileBackground + ')'
-              : "none",
-            backgroundColor:    "transparent",
-            backgroundSize:     "cover",
-            backgroundPosition: "top center",
-            backgroundRepeat:   "no-repeat",
+            maxWidth:  1920,
+            minHeight: 1000,
+            border:    "1px solid #2a475e",
           }}
         >
+          {/* ── Background Layer — absolute, z-0, showcase yüksekliğinden bağımsız ── */}
+          {bgIsImage && (
+            <div
+              style={{
+                position:           "absolute",
+                inset:              0,
+                zIndex:             0,
+                backgroundImage:    'url(' + profileBackground + ')',
+                backgroundSize:     "100% auto",
+                backgroundPosition: "top center",
+                backgroundRepeat:   "no-repeat",
+              }}
+            />
+          )}
           {/* ── Preview Access Overlay ── */}
           {!overlayDismissed && (
             <div
@@ -1007,7 +1014,7 @@ export default function UploadPage() {
               playsInline
               crossOrigin="anonymous"
               className="absolute inset-0 w-full h-full object-cover"
-              style={{ zIndex: 0 }}
+              style={{ zIndex: 1 }}
             >
               <source src={profileBackground!} type={bgMime} />
             </video>
