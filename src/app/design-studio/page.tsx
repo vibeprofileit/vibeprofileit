@@ -935,27 +935,44 @@ export default function UploadPage() {
 
         {/* 1920px canvas — bordered, centered, wallpaper lives here */}
         <div
+          ref={outerRef}
           className="relative mx-auto overflow-hidden"
           style={{
-            maxWidth:  1920,
-            minHeight: 1000,
-            border:    "1px solid #2a475e",
+            maxWidth: 1920,
+            border:   "1px solid #2a475e",
+            height:   scaledHeight,
           }}
         >
-          {/* ── Background Layer — absolute, z-0, showcase yüksekliğinden bağımsız ── */}
-          {bgIsImage && (
-            <div
-              style={{
-                position:           "absolute",
-                inset:              0,
-                zIndex:             0,
-                backgroundImage:    'url(' + profileBackground + ')',
-                backgroundSize:     "100% auto",
-                backgroundPosition: "top center",
-                backgroundRepeat:   "no-repeat",
-              }}
-            />
-          )}
+          {/* MasterWrapper — 1920px sabit canvas, CSS transform: scale ile preview'a indirgenir */}
+          <div
+            ref={masterRef}
+            style={{
+              position:        "absolute",
+              top:             0,
+              left:            0,
+              width:           1920,
+              transformOrigin: "top left",
+              transform:       `scale(${scaleFactor})`,
+            }}
+          >
+            {/* ── Background Layer — z-0, top:0'a sabit, vitrin büyüse de etkilenmez ── */}
+            {bgIsImage && (
+              <div
+                style={{
+                  position:           "absolute",
+                  top:                0,
+                  left:               0,
+                  width:              1920,
+                  height:             "100%",
+                  zIndex:             0,
+                  backgroundImage:    'url(' + profileBackground + ')',
+                  backgroundSize:     "1920px auto",
+                  backgroundPosition: "top left",
+                  backgroundRepeat:   "no-repeat",
+                  pointerEvents:      "none",
+                }}
+              />
+            )}
           {/* ── Preview Access Overlay ── */}
           {!overlayDismissed && (
             <div
@@ -1276,6 +1293,7 @@ export default function UploadPage() {
             </div>
           </div>
         </div>
+          </div>
       </div>
     </div>
 
