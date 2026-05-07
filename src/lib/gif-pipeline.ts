@@ -1,9 +1,9 @@
 import gifsicle from 'gifsicle-wasm-browser';
-import { parseGifInfo } from './gif-parser';
+import { parseGifInfo, extractGifDelays } from './gif-parser';
 import { cropGif } from './gif-crop';
 
 const LIMIT         = Math.floor(4.95 * 1024 * 1024);
-const MAX_FILE_SIZE = 12 * 1024 * 1024;
+const MAX_FILE_SIZE = 15 * 1024 * 1024;
 
 // ── gifsicle wrapper ──────────────────────────────────────────────────────────
 
@@ -19,18 +19,13 @@ async function gRun(buf: ArrayBuffer, cmd: string): Promise<ArrayBuffer> {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function findTrimIndex(buffer: ArrayBuffer): number {
-  const d = new Uint8Array(buffer);
-  let ms = 0, idx = 0;
-  for (let i = 0; i < d.length - 7; i++) {
-    if (d[i] === 0x21 && d[i + 1] === 0xF9 && d[i + 2] === 0x04) {
-      const raw = d[i + 4] | (d[i + 5] << 8);
-      ms += (raw === 0 ? 1 : raw) * 10;
-      if (ms >= 3000) return idx;
-      idx++;
-      i += 7;
-    }
+  const delays = extractGifDelays(buffer);
+  let ms = 0;
+  for (let i = 0; i < delays.length; i++) {
+    ms += delays[i] * 10;
+    if (ms >= 3000) return i;
   }
-  return Math.max(0, idx - 1);
+  return Math.max(0, delays.length - 1);
 }
 
 // GCE delay byte'larını doğrudan buffer'a yaz (gifsicle --delay çalışmıyor)
@@ -38,13 +33,42 @@ function patchDelays(buf: ArrayBuffer, delayCs: number): ArrayBuffer {
   const arr = new Uint8Array(buf.slice(0));
   const lo = delayCs & 0xFF;
   const hi = (delayCs >> 8) & 0xFF;
-  for (let i = 0; i < arr.length - 7; i++) {
-    if (arr[i] === 0x21 && arr[i + 1] === 0xF9 && arr[i + 2] === 0x04) {
-      arr[i + 4] = lo;
-      arr[i + 5] = hi;
-      i += 7;
+
+  const gctFlag = (arr[10] & 0x80) !== 0;
+  const gctSize = gctFlag ? 3 * (2 ** ((arr[10] & 0x07) + 1)) : 0;
+  let i = 13 + gctSize;
+
+  while (i < arr.length) {
+    const b = arr[i];
+    if (b === 0x3B) break;
+    if (b === 0x21) {
+      const label = arr[i + 1];
+      i += 2;
+      if (label === 0xF9) {
+        const sz = arr[i++];
+        arr[i + 1] = lo;
+        arr[i + 2] = hi;
+        i += sz;
+        i++;
+      } else {
+        let sz = arr[i++];
+        while (sz > 0 && i < arr.length) { i += sz; sz = arr[i++]; }
+      }
+      continue;
     }
+    if (b === 0x2C) {
+      i++;
+      const lctFlag = (arr[i + 8] & 0x80) !== 0;
+      const lctSize = lctFlag ? 3 * (2 ** ((arr[i + 8] & 0x07) + 1)) : 0;
+      i += 9 + lctSize;
+      i++;
+      let sz = arr[i++];
+      while (sz > 0 && i < arr.length) { i += sz; sz = arr[i++]; }
+      continue;
+    }
+    break;
   }
+
   return arr.buffer;
 }
 
@@ -125,7 +149,7 @@ async function hardOptimize(
   onProgress?.(95);
   if (pass2.byteLength <= LIMIT) return pass2;
 
-  throw new Error('GIF is too big. Please try a shorter GIF.');
+  throw new Error("This GIF is too high-quality for Steam's 5 MB limit — try a shorter clip or a lower-resolution source.");
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
