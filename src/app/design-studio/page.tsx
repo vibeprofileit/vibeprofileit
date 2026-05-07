@@ -646,7 +646,7 @@ function UploadPageInner() {
 
         <div className="mb-6">
           <h1 className="text-4xl font-black mb-1" style={{
-            backgroundImage: "linear-gradient(to right, #a855f7, #ffffff)",
+            backgroundImage: "linear-gradient(to right, #2563eb, #06b6d4)",
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
             WebkitTextFillColor: "transparent",

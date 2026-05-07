@@ -926,13 +926,26 @@ export default function GalleryPage() {
         className="relative z-10 pt-28 pb-20 px-4 md:px-8"
         style={{ maxWidth: "1800px", margin: "0 auto", width: "95%" }}
       >
+        <div style={{ width: "100%", maxWidth: 1400 }}>
+          <Link href="/"
+            className="inline-block mb-8 text-lg font-semibold text-white hover:text-white/70 transition-colors">
+            ← Back to Home
+          </Link>
+        </div>
+
         <div className="text-center mb-10">
           <motion.h1
             initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-5xl md:text-6xl font-black tracking-tight mb-3 text-white"
-            style={{ textShadow: "0 0 10px rgba(188,19,254,0.6), 0 0 30px rgba(188,19,254,0.25)" }}
+            className="text-5xl md:text-6xl font-black tracking-tight mb-3"
+            style={{
+              backgroundImage: "linear-gradient(to right, #7c3aed, #a855f7)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              color: "transparent",
+            }}
           >
             Elite Gallery
           </motion.h1>
