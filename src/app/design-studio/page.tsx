@@ -188,6 +188,11 @@ export default function UploadPage() {
   const [gifWarning, setGifWarning] = useState(false);
   const [btnHovered, setBtnHovered] = useState(false);
 
+  const outerRef  = useRef<HTMLDivElement>(null);
+  const masterRef = useRef<HTMLDivElement>(null);
+  const [scaleFactor,  setScaleFactor]  = useState(1);
+  const [scaledHeight, setScaledHeight] = useState(1000);
+
   const dynBox: React.CSSProperties = {
     ...sBox,
     background:           'rgba(23,26,33,' + panelOpacity + ')',
@@ -594,6 +599,23 @@ export default function UploadPage() {
       setProgress(0);
     }
   };
+
+  // ── MasterWrapper: container genişliği / 1920 = scale katsayısı ─────────────
+  useEffect(() => {
+    const outer  = outerRef.current;
+    const master = masterRef.current;
+    if (!outer || !master) return;
+    const update = () => {
+      const factor = Math.min(outer.offsetWidth / 1920, 1);
+      setScaleFactor(factor);
+      setScaledHeight(Math.round(master.scrollHeight * factor));
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(outer);
+    ro.observe(master);
+    return () => ro.disconnect();
+  }, []);
 
   const pbLower   = profileBackground ? profileBackground.toLowerCase() : '';
   const bgIsVideo = !!profileBackground && (pbLower.indexOf('.mp4') !== -1 || pbLower.indexOf('.webm') !== -1);
