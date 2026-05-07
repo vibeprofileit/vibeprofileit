@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import NextImage from "next/image";
@@ -166,7 +166,7 @@ const sTitle: React.CSSProperties = {
 };
 
 // ─── Main Page ────────────────────────────────────────────────
-export default function UploadPage() {
+function UploadPageInner() {
   const { data: session, status } = useSession();
   const searchParams = useSearchParams();
 
@@ -215,8 +215,8 @@ export default function UploadPage() {
       setBgUrl(imageUrl);
     }
 
-    // AI Studio bridge: sessionStorage'daki 1260×1600 görseli arka plan yap
-    if (source === "studio") {
+    // ai-studio bridge: sessionStorage'daki 1260×1600 görseli arka plan yap
+    if (source === "ai-studio") {
       const stored = sessionStorage.getItem("studio_generated_image");
       if (stored) {
         setBgUrl(stored);
@@ -1308,5 +1308,13 @@ export default function UploadPage() {
         © 2026 vibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
       </footer>
   </div>
+  );
+}
+
+export default function UploadPage() {
+  return (
+    <Suspense>
+      <UploadPageInner />
+    </Suspense>
   );
 }
