@@ -39,7 +39,7 @@ const routes = [
     id: "ai-studio",
     href: "/ai-studio",
     icon: Sparkles,
-    title: "ai-studio",
+    title: "AI Studio",
     subtitle: "Imagine, describe, create",
     description:
       "Write a prompt and let AI generate your Steam profile in seconds. Unlimited iterations, unique results.",
