@@ -149,17 +149,6 @@ export default function Home() {
                 className="vg-nebula vg-shimmer relative overflow-hidden flex items-center gap-2 justify-center px-8 py-3.5 rounded-full font-semibold text-white transition-all duration-300"
                 style={{
                   border: "1px solid rgba(188,19,254,0.45)",
-                  boxShadow: "0 0 18px rgba(188,19,254,0.15), inset 0 1px 0 rgba(255,255,255,0.07)",
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 35px rgba(188,19,254,0.40), inset 0 1px 0 rgba(255,255,255,0.1)";
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(188,19,254,0.75)";
-                  (e.currentTarget as HTMLAnchorElement).style.filter = "brightness(1.25)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 0 18px rgba(188,19,254,0.15), inset 0 1px 0 rgba(255,255,255,0.07)";
-                  (e.currentTarget as HTMLAnchorElement).style.borderColor = "rgba(188,19,254,0.45)";
-                  (e.currentTarget as HTMLAnchorElement).style.filter = "none";
                 }}
               >
                 View Gallery

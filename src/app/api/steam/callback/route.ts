@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
   })
 
   // profiles tablosunu senkronize et (token_balance korunur, sadece isim/avatar güncellenir)
-  await prisma.profiles.upsert({
+  const profile = await prisma.profiles.upsert({
     where:  { user_id: user.id },
     create: {
       user_id:      user.id,
@@ -77,6 +77,7 @@ export async function GET(req: NextRequest) {
       display_name: player.personaname as string,
       avatar_url:   player.avatarfull  as string,
     },
+    select: { is_admin: true },
   })
 
   // ─── 6. NEXTAUTH JWT OLUŞTUR ─────────────────────────────────────────────────
@@ -90,6 +91,7 @@ export async function GET(req: NextRequest) {
       steamId,
       personaName: player.personaname as string,
       avatarFull:  player.avatarfull  as string,
+      isAdmin:     profile.is_admin,
     },
     secret: process.env.NEXTAUTH_SECRET!,
   })

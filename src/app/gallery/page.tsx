@@ -207,19 +207,21 @@ function ImageModal({
                 </div>
               </div>
 
-              {/* Smart Stats */}
-              <div className="flex gap-3">
-                {[
-                  { icon: <Eye size={18} style={{ color: "#fff" }} />,   val: totalViews, label: "Views", glow: "rgba(188,19,254,0.7)" },
-                  { icon: <Heart size={18} style={{ color: "#fff" }} />, val: totalLikes, label: "Likes", glow: "rgba(255,77,141,0.6)"  },
-                ].map(({ icon, val, label, glow }) => (
-                  <div key={label} className="flex-1 flex flex-col items-center justify-center py-3 rounded-xl gap-1" style={{ background: "rgba(10,10,10,0.95)", border: "1px solid rgba(188,19,254,0.2)" }}>
-                    {icon}
-                    <div className="font-bold text-xl leading-tight" style={{ color: "#fff", textShadow: `0 0 10px ${glow}` }}>{val}</div>
-                    <div className="text-white/60 text-[10px] uppercase tracking-wider font-semibold">{label}</div>
-                  </div>
-                ))}
-              </div>
+              {/* Smart Stats — premium'da gösterme */}
+              {!item.isPremium && (
+                <div className="flex gap-3">
+                  {[
+                    { icon: <Eye size={18} style={{ color: "#fff" }} />,   val: totalViews, label: "Views", glow: "rgba(188,19,254,0.7)" },
+                    { icon: <Heart size={18} style={{ color: "#fff" }} />, val: totalLikes, label: "Likes", glow: "rgba(255,77,141,0.6)"  },
+                  ].map(({ icon, val, label, glow }) => (
+                    <div key={label} className="flex-1 flex flex-col items-center justify-center py-3 rounded-xl gap-1" style={{ background: "rgba(10,10,10,0.95)", border: "1px solid rgba(188,19,254,0.2)" }}>
+                      {icon}
+                      <div className="font-bold text-xl leading-tight" style={{ color: "#fff", textShadow: `0 0 10px ${glow}` }}>{val}</div>
+                      <div className="text-white/60 text-[10px] uppercase tracking-wider font-semibold">{label}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {/* Metadata */}
               <div className="rounded-xl p-4 flex flex-col gap-3" style={{ background: "rgba(10,10,10,0.8)", border: "1px solid rgba(188,19,254,0.15)" }}>
@@ -235,10 +237,10 @@ function ImageModal({
                 ))}
               </div>
 
-              <div className="h-[180px]" />
+              {!item.isPremium && <div className="h-[180px]" />}
 
               {/* Butonlar */}
-              <div className="flex flex-col gap-2 mt-[220px] pb-6">
+              <div className={`flex flex-col gap-2 ${item.isPremium ? "mt-auto" : "mt-[220px]"} pb-6`}>
                 <Link
                   href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}${item.isPremium ? "&isPremium=true" : ""}`}
                   target="_blank" rel="noopener noreferrer"
@@ -272,8 +274,8 @@ function ImageModal({
           {/* Stacking context ayıracı — main content ile related arasında z-sınırı */}
           <div className="relative z-[70]" style={{ height: 0, pointerEvents: "none" }} />
 
-          {/* Related Vibes */}
-          {related.length > 0 && (
+          {/* Related Vibes — premium'da gösterme */}
+          {related.length > 0 && !item.isPremium && (
             <div className="relative z-[70] px-6 py-5 mt-auto" style={{ borderTop: "1px solid rgba(188,19,254,0.15)", background: "rgba(5,5,5,0.8)" }}>
               <h3 className="text-white text-xs font-bold uppercase tracking-widest mb-4 pl-1">Related Vibes</h3>
               <div className="grid grid-cols-4 gap-3 isolate pointer-events-auto" style={{ paddingBottom: "8px", overflow: "visible" }}>
@@ -552,6 +554,7 @@ function GalleryCard({
   onView: (item: GalleryItem) => void;
 }) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [hovered,       setHovered]       = useState(false);
   const [studioHovered, setStudioHovered] = useState(false);
   const [viewHovered,   setViewHovered]   = useState(false);
@@ -658,7 +661,7 @@ function GalleryCard({
       whileHover={!item.isAdult ? { scale: 1.02, transition: { duration: 0.2 } } : {}}
       onClick={() => {
         if (item.isAdult) return;
-        if (item.isPremium) { router.push("/pricing"); return; }
+        if (item.isPremium && !session?.user?.isAdmin) { router.push("/pricing"); return; }
         onView(item);
       }}
     >

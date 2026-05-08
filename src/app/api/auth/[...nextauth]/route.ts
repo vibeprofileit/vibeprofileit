@@ -32,6 +32,7 @@ export const authOptions: NextAuthOptions = {
         session.user.steamId     = token.steamId     as string | undefined
         session.user.personaName = token.personaName as string | undefined
         session.user.avatarFull  = token.avatarFull  as string | undefined
+        session.user.isAdmin     = token.isAdmin     as boolean | undefined
         session.user.name        = (token.personaName as string) ?? session.user.name
         session.user.image       = (token.avatarFull  as string) ?? session.user.image
       }
