@@ -22,7 +22,7 @@ const FLUX_TRIGGERS = [
   "knight", "armor", "sci-fi", "dark", "epic",
 ];
 
-const MODEL_FLUX   = "fal-ai/flux-pro/v1.1-ultra";
+const MODEL_FLUX   = "fal-ai/flux-pro/v1.1";
 const MODEL_KOLORS = "fal-ai/kolors";
 
 const FLUX_SYSTEM_PROMPT =
