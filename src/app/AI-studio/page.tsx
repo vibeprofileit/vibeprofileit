@@ -224,6 +224,8 @@ export default function StudioPage() {
         }).then(async (res) => {
           if (!res.ok) {
             const data = await res.json().catch(() => ({ error: "Generation failed." }));
+            if (res.status === 401) { window.location.href = "/api/steam/login"; throw new Error(""); }
+            if (res.status === 402) { window.location.href = "/pricing"; throw new Error(""); }
             throw new Error((data as { error?: string }).error ?? "Generation failed.");
           }
           return res.blob();

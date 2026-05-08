@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fal } from "@fal-ai/client";
 import sharp from "sharp";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 
 fal.config({ credentials: process.env.FAL_API_KEY });
 
@@ -154,7 +157,27 @@ async function processForSteam(
 // POST handler
 // ---------------------------------------------------------------------------
 
+const AI_COST = 15;
+
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.userId) {
+    return NextResponse.json({ error: "Login required to use AI Studio." }, { status: 401 });
+  }
+
+  const profile = await prisma.profiles.findUnique({
+    where:  { user_id: session.user.userId },
+    select: { token_balance: true },
+  });
+
+  const balance = profile?.token_balance ?? 0;
+  if (balance < AI_COST) {
+    return NextResponse.json(
+      { error: "Not enough tokens. You need 15 tokens to generate.", balance },
+      { status: 402 }
+    );
+  }
+
   const ip = getClientIp(request);
   if (!checkRateLimit(ip)) {
     return NextResponse.json(
@@ -209,6 +232,12 @@ export async function POST(request: NextRequest) {
       { status: 502 }
     );
   }
+
+  // Deduct tokens after successful generation
+  await prisma.profiles.update({
+    where: { user_id: session.user.userId },
+    data:  { token_balance: { decrement: AI_COST } },
+  });
 
   return new NextResponse(new Uint8Array(result.buffer), {
     status: 200,
