@@ -6,7 +6,38 @@ import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import Link from "next/link";
 
-const STYLES = ["Cyberpunk", "Anime", "Dark Fantasy", "Sci-Fi", "Pixel Art"];
+const ELITE_STYLES = [
+  {
+    label: "Anime",
+    icon: "🎌",
+    category: "anime",
+    powerPrompt:
+      "high-end illustration, vibrant colors, sharp lineart, cinematic shading, expressive eyes, masterpiece quality, stunning visual, detailed background, professional art style",
+  },
+  {
+    label: "Cyberpunk",
+    icon: "⚡",
+    category: "cyberpunk",
+    powerPrompt:
+      "neon lighting, rainy futuristic streets, high-tech mechanical details, glowing accents, cinematic atmosphere, sharp focus, chrome textures, deep shadows, urban dystopia",
+  },
+  {
+    label: "Dark Fantasy",
+    icon: "🌑",
+    category: "darkfantasy",
+    powerPrompt:
+      "gothic architecture, eerie atmosphere, dramatic shadows, mystical energy, intricate armor, medieval aesthetic, misty landscape, ancient ruins, dark color palette",
+  },
+  {
+    label: "Space/Sci-Fi",
+    icon: "🚀",
+    category: "scifi",
+    powerPrompt:
+      "interstellar nebula, cosmic dust, futuristic spacecraft, planetary rings, volumetric lighting, epic scale, high-tech interior, cold aesthetic, astronomical details",
+  },
+] as const;
+
+type EliteStyle = typeof ELITE_STYLES[number];
 
 // ─── Particle canvas — Vortex-capable ────────────────────────────────────────
 function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } }) {
@@ -143,7 +174,8 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
 export default function StudioPage() {
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
-  const [selectedStyle, setSelectedStyle] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<EliteStyle | null>(null);
+  const [validationError, setValidationError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -154,12 +186,25 @@ export default function StudioPage() {
   const vortexRef = useRef(false);
 
   const handleVisualize = useCallback(async () => {
-    if (!prompt.trim() || isGenerating) return;
+    if (isGenerating) return;
+
+    const wordCount = prompt.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount < 2) {
+      setValidationError("Elite vision requires at least 2 words. Describe your masterpiece.");
+      setTimeout(() => setValidationError(""), 3000);
+      return;
+    }
+
+    setValidationError("");
     setIsGenerating(true);
     setGeneratedImage(null);
     setPreviewMode(false);
     vortexRef.current = true;
     setGenerateStatus("Analyzing your vision...");
+
+    const finalPrompt = selectedCategory
+      ? `${selectedCategory.powerPrompt}, ${prompt.trim()}`
+      : prompt.trim();
 
     const statusTimers = [
       setTimeout(() => setGenerateStatus("Computing elite textures..."), 3000),
@@ -173,8 +218,8 @@ export default function StudioPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            prompt,
-            category: selectedStyle?.toLowerCase().replace(/\s+/g, ""),
+            prompt: finalPrompt,
+            category: selectedCategory?.category ?? null,
           }),
         }).then(async (res) => {
           if (!res.ok) {
@@ -194,14 +239,14 @@ export default function StudioPage() {
       setIsGenerating(false);
       setIsModalOpen(true);
       setPrompt("");
-      setSelectedStyle(null);
+      setSelectedCategory(null);
     } catch (err) {
       statusTimers.forEach(clearTimeout);
       vortexRef.current = false;
       setIsGenerating(false);
       setGenerateStatus(err instanceof Error ? err.message : "Generation failed. Please try again.");
     }
-  }, [prompt, selectedStyle, isGenerating]);
+  }, [prompt, selectedCategory, isGenerating]);
 
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
@@ -329,21 +374,43 @@ export default function StudioPage() {
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Describe your vision..."
             rows={3}
+            disabled={isGenerating}
             onFocus={(e) => { e.target.style.borderColor = "rgba(220,38,38,0.55)"; }}
             onBlur={(e) => { e.target.style.borderColor = "rgba(220,38,38,0.20)"; }}
             style={{
               width: "100%", boxSizing: "border-box",
               background: "rgba(255,255,255,0.025)",
-              border: "1px solid rgba(220,38,38,0.20)",
+              border: `1px solid ${validationError ? "rgba(220,38,38,0.70)" : "rgba(220,38,38,0.20)"}`,
               borderRadius: 12, padding: "15px 16px",
               color: "#fff", fontSize: 15, resize: "none",
               outline: "none", fontFamily: "inherit",
-              lineHeight: 1.65, marginBottom: 24,
+              lineHeight: 1.65, marginBottom: validationError ? 8 : 24,
               transition: "border-color 0.25s",
+              opacity: isGenerating ? 0.5 : 1,
+              cursor: isGenerating ? "not-allowed" : "text",
             }}
           />
 
-          {/* Style pills */}
+          {/* Validation error */}
+          <AnimatePresence>
+            {validationError && (
+              <motion.p
+                key="val-error"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                style={{
+                  fontSize: 12, color: "#f87171",
+                  marginBottom: 16, paddingLeft: 4,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                {validationError}
+              </motion.p>
+            )}
+          </AnimatePresence>
+
+          {/* Style Matrix — The Elite 4 */}
           <div style={{ marginBottom: 28 }}>
             <div style={{
               fontSize: 10, color: "rgba(220,100,60,0.60)",
@@ -353,27 +420,40 @@ export default function StudioPage() {
               STYLE MATRIX
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {STYLES.map((s) => {
-                const active = selectedStyle === s;
+              {ELITE_STYLES.map((s) => {
+                const active = selectedCategory?.category === s.category;
                 return (
                   <button
-                    key={s}
-                    onClick={() => setSelectedStyle((p) => (p === s ? null : s))}
+                    key={s.category}
+                    disabled={isGenerating}
+                    onClick={() => setSelectedCategory((p) => p?.category === s.category ? null : s)}
                     style={{
-                      padding: "7px 17px", borderRadius: 20, cursor: "pointer",
+                      padding: "7px 18px", borderRadius: 20, cursor: isGenerating ? "not-allowed" : "pointer",
                       border: active
-                        ? "1px solid rgba(220,38,38,0.70)"
+                        ? "1px solid rgba(220,38,38,0.75)"
                         : "1px solid rgba(220,38,38,0.20)",
                       background: active
-                        ? "rgba(160,25,25,0.32)"
+                        ? "rgba(160,25,25,0.38)"
                         : "rgba(255,255,255,0.02)",
                       color: active ? "#fca5a5" : "rgba(220,130,80,0.65)",
                       fontSize: 13, fontFamily: "inherit",
-                      boxShadow: active ? "0 0 14px rgba(220,38,38,0.22)" : "none",
-                      transition: "all 0.22s",
+                      boxShadow: active
+                        ? "0 0 18px rgba(220,38,38,0.35), 0 0 36px rgba(220,38,38,0.12)"
+                        : "none",
+                      transform: active ? "scale(1.05)" : "scale(1)",
+                      opacity: isGenerating ? 0.4 : active ? 1 : 0.6,
+                      transition: "all 0.2s ease",
+                      display: "flex", alignItems: "center", gap: 6,
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active && !isGenerating) e.currentTarget.style.opacity = "1";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active && !isGenerating) e.currentTarget.style.opacity = "0.6";
                     }}
                   >
-                    {s}
+                    <span>{s.icon}</span>
+                    {s.label}
                   </button>
                 );
               })}
@@ -383,27 +463,30 @@ export default function StudioPage() {
           {/* Visualize button */}
           <button
             onClick={handleVisualize}
-            disabled={!prompt.trim() || isGenerating}
+            disabled={isGenerating}
             style={{
               width: "100%", padding: "15px 20px", borderRadius: 12,
               border: "1px solid rgba(220,38,38,0.40)",
-              background: !prompt.trim() || isGenerating
-                ? "rgba(80,10,10,0.20)"
-                : "rgba(160,20,20,0.40)",
-              color: !prompt.trim() || isGenerating
-                ? "rgba(220,130,80,0.40)"
-                : "#fecaca",
-              fontSize: 15, fontWeight: 600, letterSpacing: "0.6px",
-              cursor: !prompt.trim() || isGenerating ? "not-allowed" : "pointer",
-              boxShadow: "none",
+              background: isGenerating ? "rgba(80,10,10,0.20)" : "rgba(160,20,20,0.40)",
+              color: isGenerating ? "rgba(220,130,80,0.40)" : "#fecaca",
+              fontSize: 15, fontWeight: 700, letterSpacing: "1.5px",
+              textTransform: "uppercase",
+              cursor: isGenerating ? "not-allowed" : "pointer",
+              boxShadow: isGenerating ? "none" : "0 0 0 rgba(220,38,38,0)",
               transition: "all 0.28s", fontFamily: "inherit",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+            }}
+            onMouseEnter={(e) => {
+              if (!isGenerating) e.currentTarget.style.boxShadow = "0 0 20px rgba(220,38,38,0.40)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = "none";
             }}
           >
             {isGenerating ? (
               <>
                 <SpinIcon />
-                Channeling the void…
+                Generating...
               </>
             ) : (
               "Visualize"
