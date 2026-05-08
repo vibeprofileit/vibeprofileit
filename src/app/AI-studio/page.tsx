@@ -31,7 +31,7 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
       opacity: number; hue: number;
     };
 
-    const particles: Particle[] = Array.from({ length: 130 }, () => {
+    const particles: Particle[] = Array.from({ length: 200 }, () => {
       const bspX = (Math.random() - 0.5) * 0.35;
       const bspY = (Math.random() - 0.5) * 0.35;
       return {
@@ -146,62 +146,6 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
   );
 }
 
-// ─── Floating word cloud layer ────────────────────────────────────────────────
-const FLOAT_WORDS = [
-  "Anime", "Cyberpunk", "Elite Design", "Masterpiece",
-  "Pro Generation", "Custom Design", "Dark Fantasy", "VibeProfileit",
-];
-const GLOW = "rgba(220,38,38,0.75)";
-const WORD_CONFIGS = [
-  { top: "12%", left: "8%",  size: 13, dur: 28, delay: 0,  angle: 6,  glow: GLOW },
-  { top: "28%", left: "75%", size: 11, dur: 34, delay: 5,  angle: -5, glow: GLOW },
-  { top: "52%", left: "5%",  size: 14, dur: 40, delay: 10, angle: 3,  glow: GLOW },
-  { top: "70%", left: "80%", size: 12, dur: 32, delay: 3,  angle: -8, glow: GLOW },
-  { top: "85%", left: "55%", size: 11, dur: 38, delay: 8,  angle: 5,  glow: GLOW },
-  { top: "40%", left: "58%", size: 12, dur: 36, delay: 14, angle: -3, glow: GLOW },
-  { top: "65%", left: "20%", size: 13, dur: 42, delay: 6,  angle: 7,  glow: GLOW },
-  { top: "75%", left: "35%", size: 12, dur: 44, delay: 11, angle: -4, glow: GLOW },
-];
-
-function FloatingWords() {
-  return (
-    <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 1 }}>
-      {FLOAT_WORDS.map((word, i) => {
-        const cfg = WORD_CONFIGS[i];
-        return (
-          <span
-            key={word}
-            style={{
-              position: "absolute",
-              top: cfg.top, left: cfg.left,
-              fontSize: cfg.size,
-              fontWeight: 700,
-              letterSpacing: "0.18em",
-              textTransform: "uppercase",
-              fontFamily: "monospace",
-              color: "rgba(255,160,100,0.40)",
-              textShadow: `0 0 10px ${cfg.glow}, 0 0 22px ${cfg.glow}`,
-              transform: `rotate(${cfg.angle}deg)`,
-              animation: `floatDrift ${cfg.dur}s ${cfg.delay}s ease-in-out infinite alternate`,
-              whiteSpace: "nowrap",
-              userSelect: "none",
-            }}
-          >
-            {word}
-          </span>
-        );
-      })}
-      <style>{`
-        @keyframes floatDrift {
-          0%   { transform: translateY(0px)   translateX(0px);   }
-          33%  { transform: translateY(-32px) translateX(14px);  }
-          66%  { transform: translateY(-14px) translateX(-18px); }
-          100% { transform: translateY(-42px) translateX(8px);   }
-        }
-      `}</style>
-    </div>
-  );
-}
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function StudioPage() {
@@ -292,7 +236,6 @@ export default function StudioPage() {
     <div className="relative min-h-screen overflow-x-hidden" style={{ background: "#050505" }}>
       <Header />
       <CrimsonVoidBackground vortexRef={vortexRef} />
-      <FloatingWords />
 
       {/* Content */}
       <div
