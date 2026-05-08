@@ -37,13 +37,13 @@ const PLANS = [
     name:    "Pro",
     price:   "6.99",
     tokens:  110,
-    badge:   { label: "Best Value", icon: <Sparkles size={11} />, bg: "linear-gradient(to right,#dc2626,#ea580c)" },
+    badge:   { label: "Best Value", icon: <Sparkles size={11} />, bg: "linear-gradient(to right,#d97706,#f59e0b)" },
     perks:   ["11 premium photos or", "7 AI generations", "Tokens never expire"],
-    btnGradient: "linear-gradient(to right, #dc2626, #ea580c)",
-    cardBg:      "linear-gradient(135deg, rgba(220,38,38,0.12), rgba(234,88,12,0.07))",
-    cardBorder:  "rgba(239,68,68,0.4)",
-    tokenColor:  "#fb923c",
-    checkColor:  "#f97316",
+    btnGradient: "linear-gradient(to right, #d97706, #f59e0b)",
+    cardBg:      "linear-gradient(135deg, rgba(217,119,6,0.15), rgba(245,158,11,0.05))",
+    cardBorder:  "rgba(251,191,36,0.55)",
+    tokenColor:  "#fbbf24",
+    checkColor:  "#f59e0b",
   },
 ];
 
@@ -199,20 +199,8 @@ export default function PricingPage() {
           {/* Lemon Squeezy */}
           <div className="flex items-center gap-2 px-4 py-2 rounded-xl"
             style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            {/* Lemon Squeezy logo SVG */}
-            <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Lemon body */}
-              <ellipse cx="16" cy="18" rx="11" ry="12" fill="#FFD230" />
-              {/* Lemon tip left */}
-              <ellipse cx="5.5" cy="18" rx="2.5" ry="2" fill="#FFD230" />
-              {/* Lemon tip right */}
-              <ellipse cx="26.5" cy="18" rx="2.5" ry="2" fill="#FFD230" />
-              {/* Stem */}
-              <path d="M16 6 C16 6 14 3 17 2 C19 1.5 20 3 18 5 C17 6 16 6 16 6Z" fill="#4CAF50" />
-              {/* Leaf */}
-              <path d="M16 6 C18 4 22 3 21 6 C20 8 17 7 16 6Z" fill="#66BB6A" />
-              {/* Shine */}
-              <ellipse cx="12" cy="14" rx="2.5" ry="3.5" fill="rgba(255,255,255,0.25)" transform="rotate(-20 12 14)" />
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 21 28" width="18" height="24">
+              <path fill="#FFC233" fillRule="evenodd" d="m6.92882 17.1856 7.51128 3.4727c.931.4306 1.5881 1.1533 1.943 1.9823.8976 2.0993-.3292 4.2463-2.255 5.0185-1.9262.7718-3.979.2751-4.91242-1.908l-3.26891-7.6645c-.25331-.5941.38303-1.1779.98205-.901Zm.45024-2.248 7.75364-2.931c2.5769-.9741 5.3918.869 5.3538 3.547-.0006.035-.0012.0699-.0021.1052-.0557 2.6078-2.7923 4.3606-5.3126 3.438l-7.7854-2.8495c-.62104-.2272-.62563-1.076-.00734-1.3097Zm-.43407-1.0152 7.62211-3.2387c2.5328-1.07634 3.1756-4.30675 1.1919-6.17327a9.026257 9.026257 0 0 0-.0783-.07315c-1.9449-1.80521-5.1599-1.16961-6.26712 1.20811L5.99323 12.9915c-.2729.5858.34387 1.1891.95176.9309Zm-1.9615-1.2798 2.77116-7.59845c.34357-.94215.27993-1.90295-.07526-2.73195C6.77994.21378 4.34409-.463579 2.41853.309741.493284 1.08336-.594621 2.84029.340622 5.02253L3.63095 12.6787c.25515.5933 1.13166.5699 1.35254-.0361Z" clipRule="evenodd"/>
             </svg>
             <span className="text-xs font-semibold text-white/30">Powered by</span>
             <span className="text-xs font-black text-white/50 tracking-tight">Lemon Squeezy</span>
