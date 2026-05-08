@@ -1,14 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { encode } from "next-auth/jwt"
+import { prisma } from "@/lib/prisma"
 
 export async function GET(req: NextRequest) {
   // ─── 1. HAM QUERY STRING ────────────────────────────────────────────────────
-  // req.url'den doğrudan alıyoruz — NextAuth'un parse/re-encode zincirini
-  // tamamen bypass eder, Steam'in gönderdiği encoding bozulmadan kalır.
   const incomingUrl = new URL(req.url)
   const verifyParams = new URLSearchParams(incomingUrl.search)
-
-  // openid.mode'u check_authentication yap, diğer tüm parametreler dokunulmaz
   verifyParams.set("openid.mode", "check_authentication")
 
   // ─── 2. STEAM'E DOĞRULAMA İSTEĞİ ───────────────────────────────────────────
@@ -48,38 +45,68 @@ export async function GET(req: NextRequest) {
     )
   }
 
-  // ─── 5. NEXTAUTH JWT OLUŞTUR ─────────────────────────────────────────────────
-  // NextAuth'un kendi encode fonksiyonuyla token üretiyoruz; useSession() ve
-  // getServerSession() doğrudan bu cookie'yi okur.
+  // ─── 5. KULLANICI DB'YE KAYDET ──────────────────────────────────────────────
+  // users tablosuna yaz (iç UUID oluşur)
+  const user = await prisma.user.upsert({
+    where:  { steamId },
+    create: {
+      steamId,
+      email:  `${steamId}@steam.placeholder`,
+      name:   player.personaname as string,
+      avatar: player.avatarfull  as string,
+    },
+    update: {
+      name:   player.personaname as string,
+      avatar: player.avatarfull  as string,
+    },
+    select: { id: true },
+  })
+
+  // profiles tablosunu senkronize et (token_balance korunur, sadece isim/avatar güncellenir)
+  await prisma.profiles.upsert({
+    where:  { user_id: user.id },
+    create: {
+      user_id:      user.id,
+      steam_id:     steamId,
+      display_name: player.personaname as string,
+      avatar_url:   player.avatarfull  as string,
+      token_balance: 0,
+    },
+    update: {
+      steam_id:     steamId,
+      display_name: player.personaname as string,
+      avatar_url:   player.avatarfull  as string,
+    },
+  })
+
+  // ─── 6. NEXTAUTH JWT OLUŞTUR ─────────────────────────────────────────────────
   const jwt = await encode({
     token: {
-      sub: steamId,
-      name: player.personaname as string,
-      email: `${steamId}@steam.placeholder`,
-      picture: player.avatarfull as string,
+      sub:         steamId,
+      name:        player.personaname as string,
+      email:       `${steamId}@steam.placeholder`,
+      picture:     player.avatarfull  as string,
+      userId:      user.id,
       steamId,
       personaName: player.personaname as string,
-      avatarFull: player.avatarfull as string,
+      avatarFull:  player.avatarfull  as string,
     },
     secret: process.env.NEXTAUTH_SECRET!,
   })
 
-  // ─── 6. SESSION COOKIE ──────────────────────────────────────────────────────
-  // Production'da __Secure- prefix zorunlu (HTTPS + Secure flag gerektirir).
+  // ─── 7. SESSION COOKIE ──────────────────────────────────────────────────────
   const isProd = process.env.NODE_ENV === "production"
   const cookieName = isProd
     ? "__Secure-next-auth.session-token"
     : "next-auth.session-token"
 
-  const response = NextResponse.redirect(
-    new URL("/", incomingUrl.origin)
-  )
+  const response = NextResponse.redirect(new URL("/", incomingUrl.origin))
   response.cookies.set(cookieName, jwt, {
     httpOnly: true,
-    secure: isProd,
+    secure:   isProd,
     sameSite: "lax",
-    path: "/",
-    maxAge: 30 * 24 * 60 * 60, // 30 gün
+    path:     "/",
+    maxAge:   30 * 24 * 60 * 60,
   })
 
   return response

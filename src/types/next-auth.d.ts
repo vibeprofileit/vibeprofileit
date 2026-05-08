@@ -3,17 +3,19 @@ import type { DefaultSession } from "next-auth"
 declare module "next-auth" {
   interface Session {
     user: {
-      steamId?: string
+      userId?:      string
+      steamId?:     string
       personaName?: string
-      avatarFull?: string
+      avatarFull?:  string
     } & DefaultSession["user"]
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    steamId?: string
+    userId?:      string
+    steamId?:     string
     personaName?: string
-    avatarFull?: string
+    avatarFull?:  string
   }
 }

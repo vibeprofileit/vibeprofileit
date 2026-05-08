@@ -7,29 +7,133 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─── YENİ: Kullanıcı tablosu (Steam ile giriş yapanlar) ──────────────────────
+model User {
+  id        String   @id @default(uuid())
+  steamId   String   @unique @map("steam_id")
+  email     String   @unique
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// ─── Supabase'de zaten var olan tablolar (db pull ile alındı) ─────────────────
+
+model Artwork {
+  id         String        @id @default(uuid())
+  sourceUrl  String
+  r2Key      String?
+  width      Int
+  height     Int
+  sizeBytes  Int
+  format     String
+  theme      String?
+  color      String?
+  vibe       String?
+  status     ArtworkStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  isFeatured Boolean       @default(false)
+  mediaType  String        @default("STATIC")
+  isNSFW     Boolean       @default(false)
+  coverUrl   String?
+  isPremium  Boolean       @default(false)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model assets {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String
+  r2_key      String
+  r2_url      String
+  prompt      String?
+  model_used  String?
+  category    String?
+  mime_type   String?
+  file_size   Int?
+  is_premium  Boolean       @default(false)
+  created_at  DateTime      @default(now()) @db.Timestamptz(6)
+  token_usage token_usage[]
+
+  @@index([created_at(sort: Desc)], map: "idx_assets_created_at")
+  @@index([user_id], map: "idx_assets_user_id")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model likes {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String
+  artwork_id String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_id, artwork_id])
+  @@index([artwork_id], map: "idx_likes_artwork_id")
+  @@index([user_id], map: "idx_likes_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model profiles {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String   @unique
+  steam_id      String?
+  display_name  String?
+  avatar_url    String?
+  token_balance Int      @default(0)
+  is_admin      Boolean  @default(false)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id], map: "idx_profiles_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model purchases {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String
+  asset_id     String
+  tokens_spent Int
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@unique([user_id, asset_id])
+  @@index([asset_id], map: "idx_purchases_asset_id")
+  @@index([user_id], map: "idx_purchases_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model token_usage {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String
+  asset_id        String?  @db.Uuid
+  model_used      String?
+  tokens_consumed Int      @default(1)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  assets          assets?  @relation(fields: [asset_id], references: [id], onUpdate: NoAction)
+
+  @@index([user_id], map: "idx_token_usage_user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model transactions {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String
+  amount         Decimal  @db.Decimal(10, 2)
+  token_count    Int
+  payment_method String?
+  status         String   @default("pending")
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id], map: "idx_transactions_user_id")
+}
+
 enum ArtworkStatus {
   PENDING
   APPROVED
   REJECTED
-}
-
-model Artwork {
-  id        String        @id @default(uuid())
-  sourceUrl String
-  r2Key     String?
-  width     Int
-  height    Int
-  sizeBytes Int
-  format    String
-  theme     String?
-  color     String?
-  vibe      String?
-  mediaType   String        @default("STATIC")
-  status      ArtworkStatus @default(PENDING)
-  isFeatured  Boolean       @default(false)
-  isNSFW      Boolean       @default(false)
-  isPremium   Boolean       @default(false)
-  coverUrl    String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
 }

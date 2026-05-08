@@ -28,7 +28,8 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.steamId    = token.steamId    as string | undefined
+        session.user.userId      = token.userId      as string | undefined
+        session.user.steamId     = token.steamId     as string | undefined
         session.user.personaName = token.personaName as string | undefined
         session.user.avatarFull  = token.avatarFull  as string | undefined
         session.user.name        = (token.personaName as string) ?? session.user.name
