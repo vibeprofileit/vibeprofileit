@@ -199,8 +199,11 @@ function LikeCard({ item, index, onView }: { item: GalleryItem; index: number; o
   const router = useRouter();
   const [hovered, setHovered] = useState(false);
   const [studioHovered, setStudioHovered] = useState(false);
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
+  const cardRef   = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [inView,          setInView]          = useState(false);
+  const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
+  const [canvasFailed,    setCanvasFailed]    = useState(false);
 
   const aspectRatio = item.width > 0 && item.height > 0 ? `${item.width}/${item.height}` : "9/16";
 
@@ -214,6 +217,28 @@ function LikeCard({ item, index, onView }: { item: GalleryItem; index: number; o
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
+
+  // coverUrl yoksa canvas ile ilk kareyi çiz
+  useEffect(() => {
+    if (!inView || !item.isAnimated || item.coverUrl || !item.src || thumbnailLoaded || canvasFailed) return;
+    let cancelled = false;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      if (cancelled) return;
+      const canvas = canvasRef.current;
+      if (!canvas) { setCanvasFailed(true); return; }
+      canvas.width  = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { setCanvasFailed(true); return; }
+      try { ctx.drawImage(img, 0, 0); setThumbnailLoaded(true); }
+      catch { setCanvasFailed(true); }
+    };
+    img.onerror = () => { if (!cancelled) setCanvasFailed(true); };
+    img.src = item.src;
+    return () => { cancelled = true; };
+  }, [inView, item.isAnimated, item.coverUrl, item.src, thumbnailLoaded, canvasFailed]);
 
   return (
     <motion.div
@@ -235,12 +260,39 @@ function LikeCard({ item, index, onView }: { item: GalleryItem; index: number; o
 
       {inView && item.src && (
         item.isAnimated ? (
-          <img
-            src={hovered ? item.src : (item.coverUrl ?? item.src)}
-            alt={item.theme}
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ filter: hovered ? "brightness(0.8)" : "none", transition: "filter 0.2s" }}
-          />
+          <>
+            {/* Statik katman: coverUrl varsa WebP, yoksa canvas ilk karesi */}
+            {!hovered && (
+              item.coverUrl ? (
+                <img
+                  src={item.coverUrl}
+                  alt={item.theme}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <>
+                  <canvas
+                    ref={canvasRef}
+                    className="absolute inset-0 w-full h-full"
+                    style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.3s" }}
+                  />
+                  {/* Canvas yüklenene kadar veya başarısız olursa GIF göster — tarayıcı ilk kareyi basar */}
+                  {(!thumbnailLoaded || canvasFailed) && (
+                    <img src={item.src} alt={item.theme} className="absolute inset-0 w-full h-full object-cover" />
+                  )}
+                </>
+              )
+            )}
+            {/* Hover: animasyonlu GIF */}
+            {hovered && (
+              <img
+                src={item.src}
+                alt={item.theme}
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{ filter: "brightness(0.8)" }}
+              />
+            )}
+          </>
         ) : (
           <ProtectedImage
             src={item.src}

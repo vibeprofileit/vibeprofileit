@@ -249,14 +249,22 @@ function ImageModal({
                 >
                   <Download size={15} /> Customize & Download
                 </Link>
-                <button
-                  className="flex items-center justify-center gap-2 py-2 rounded-xl text-[12px] font-medium transition-all duration-200"
-                  style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#00ff88"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,255,136,0.4)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 12px rgba(0,255,136,0.15)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.5)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
-                >
-                  <Heart size={13} /> Like
-                </button>
+                {!item.isPremium && (
+                  <button
+                    onClick={toggleLike}
+                    disabled={likeLoading}
+                    className="flex items-center justify-center gap-2 py-2 rounded-xl text-[12px] font-medium transition-all duration-200"
+                    style={{
+                      background: liked ? "rgba(255,77,141,0.15)" : "transparent",
+                      border: liked ? "1px solid rgba(255,77,141,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                      color: liked ? "#ff4d8d" : "rgba(255,255,255,0.5)",
+                      opacity: likeLoading ? 0.6 : 1,
+                    }}
+                  >
+                    <Heart size={13} fill={liked ? "#ff4d8d" : "none"} />
+                    {liked ? "Liked" : "Like"}
+                  </button>
+                )}
               </div>
             </div>
           </div>
