@@ -20,10 +20,12 @@ const FLUX_TRIGGERS = [
 ];
 
 // Verified via docs.siliconflow.cn (2026-05-08):
-//   FLUX → black-forest-labs/FLUX-1.1-pro-Ultra (up to 4 MP / 2K)
-//   Pony → Kwai-Kolors/Kolors (anime-capable; no dedicated Pony model on SiliconFlow)
-const MODEL_FLUX = "black-forest-labs/FLUX-1.1-pro-Ultra";
-const MODEL_PONY = "Kwai-Kolors/Kolors";
+//   FLUX primary  → black-forest-labs/FLUX-1.1-pro-Ultra (up to 4 MP / 2K)
+//   FLUX fallback → black-forest-labs/FLUX.1-pro  (if primary returns 400 "Model does not exist")
+//   Pony          → Kwai-Kolors/Kolors (anime-capable; no dedicated Pony model on SiliconFlow)
+const MODEL_FLUX         = "black-forest-labs/FLUX-1.1-pro-Ultra";
+const MODEL_FLUX_FALLBACK = "black-forest-labs/FLUX.1-pro";
+const MODEL_PONY         = "Kwai-Kolors/Kolors";
 
 const FLUX_SYSTEM_PROMPT =
   "vertical portrait composition, tall format, cinematic lighting, " +
@@ -136,22 +138,80 @@ async function callSiliconFlow(
 }
 
 // ---------------------------------------------------------------------------
-// Sharp post-processing: resize to exact 9:16 (768×1376), convert to WebP
+// Generation with model + size fallback
+//   Order: [primary model, flux-fallback?] × [768x1376, 720x1280]
+//   400 on first size → skip remaining sizes for that model (try next model)
+//   Timeout → throw immediately (caller returns 504)
 // ---------------------------------------------------------------------------
 
-async function processToWebP(imageUrl: string): Promise<Buffer> {
-  const imgRes = await fetch(imageUrl, {
-    signal: AbortSignal.timeout(20_000),
-  });
+async function generateImageUrl(
+  model: string,
+  modelFallback: string | null,
+  prompt: string,
+  negativePrompt: string
+): Promise<string> {
+  const models = [model, ...(modelFallback ? [modelFallback] : [])];
+  const sizes  = ["768x1376", "720x1280"] as const;
+
+  for (const tryModel of models) {
+    for (const size of sizes) {
+      try {
+        const data = await callSiliconFlow(tryModel, prompt, negativePrompt, size);
+        const url = data?.images?.[0]?.url;
+        if (url) return url;
+        throw new Error("No image URL in SiliconFlow response");
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "TimeoutError") throw err;
+
+        const httpStatus = (err as { status?: number }).status;
+        // 400 likely means model/param rejected — skip size loop, try next model
+        if (httpStatus === 400) break;
+
+        const isLastModel = tryModel === models[models.length - 1];
+        const isLastSize  = size === sizes[sizes.length - 1];
+        if (isLastModel && isLastSize) throw err;
+      }
+    }
+  }
+
+  throw new Error("All generation attempts exhausted");
+}
+
+// ---------------------------------------------------------------------------
+// Sharp post-processing: resize to 9:16 (768×1376), Steam-compatible output
+//   Strategy: PNG first (lossless). If > 4.9 MB, fall back to JPEG q95→q80→q65
+//   Steam hard limit: 5 MB. We target 4.9 MB to stay safely under.
+// ---------------------------------------------------------------------------
+
+const STEAM_SAFE_BYTES = 4.9 * 1024 * 1024;
+
+async function processForSteam(
+  imageUrl: string
+): Promise<{ buffer: Buffer; mimeType: "image/png" | "image/jpeg" }> {
+  const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(20_000) });
   if (!imgRes.ok) {
     throw new Error(`Failed to fetch generated image: ${imgRes.status}`);
   }
-  const buffer = Buffer.from(await imgRes.arrayBuffer());
+  const srcBuffer = Buffer.from(await imgRes.arrayBuffer());
+  const resized = sharp(srcBuffer).resize(768, 1376, { fit: "cover", position: "centre" });
 
-  return sharp(buffer)
-    .resize(768, 1376, { fit: "cover", position: "centre" })
-    .webp({ quality: 88, effort: 4 })
-    .toBuffer();
+  // Try PNG (lossless)
+  const png = await resized.clone().png({ compressionLevel: 8 }).toBuffer();
+  if (png.length <= STEAM_SAFE_BYTES) {
+    return { buffer: png, mimeType: "image/png" };
+  }
+
+  // Fall back to JPEG — reduce quality until under limit
+  for (const quality of [95, 85, 75, 65]) {
+    const jpg = await resized.clone().jpeg({ quality, mozjpeg: true }).toBuffer();
+    if (jpg.length <= STEAM_SAFE_BYTES) {
+      return { buffer: jpg, mimeType: "image/jpeg" };
+    }
+  }
+
+  // Last resort: JPEG q55 (should always be under 4.9 MB at 768×1376)
+  const fallback = await resized.clone().jpeg({ quality: 55, mozjpeg: true }).toBuffer();
+  return { buffer: fallback, mimeType: "image/jpeg" };
 }
 
 // ---------------------------------------------------------------------------
@@ -186,54 +246,34 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const modelKey = selectModel(userPrompt, body.category);
-  const model = modelKey === "pony" ? MODEL_PONY : MODEL_FLUX;
+  const modelKey     = selectModel(userPrompt, body.category);
+  const model        = modelKey === "pony" ? MODEL_PONY : MODEL_FLUX;
+  const modelFallback = modelKey === "flux" ? MODEL_FLUX_FALLBACK : null;
   const systemPrompt = modelKey === "pony" ? PONY_SYSTEM_PROMPT : FLUX_SYSTEM_PROMPT;
   const negativePrompt = modelKey === "pony" ? PONY_NEGATIVE_PROMPT : FLUX_NEGATIVE_PROMPT;
-  const finalPrompt = `${userPrompt}, ${systemPrompt}`;
+  const finalPrompt  = `${userPrompt}, ${systemPrompt}`;
 
-  // Try 768×1376 (9:16) first, fallback to 720×1280 (also 9:16)
-  let imageUrl: string | null = null;
-
+  let imageUrl: string;
   try {
-    const data = await callSiliconFlow(model, finalPrompt, negativePrompt, "768x1376");
-    imageUrl = data?.images?.[0]?.url ?? null;
-  } catch (firstErr: unknown) {
-    if (firstErr instanceof Error && firstErr.name === "TimeoutError") {
+    imageUrl = await generateImageUrl(model, modelFallback, finalPrompt, negativePrompt);
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "TimeoutError") {
       return NextResponse.json(
         { error: "Image generation timed out. Please try again." },
         { status: 504 }
       );
     }
-    try {
-      const data = await callSiliconFlow(model, finalPrompt, negativePrompt, "720x1280");
-      imageUrl = data?.images?.[0]?.url ?? null;
-    } catch (secondErr: unknown) {
-      if (secondErr instanceof Error && secondErr.name === "TimeoutError") {
-        return NextResponse.json(
-          { error: "Image generation timed out. Please try again." },
-          { status: 504 }
-        );
-      }
-      console.error("[POST /api/generate]", secondErr);
-      return NextResponse.json(
-        { error: "Image generation failed after retries. Please try again later." },
-        { status: 502 }
-      );
-    }
-  }
-
-  if (!imageUrl) {
+    console.error("[POST /api/generate]", err);
     return NextResponse.json(
-      { error: "No image was returned from the generation service." },
+      { error: "Image generation failed after retries. Please try again later." },
       { status: 502 }
     );
   }
 
-  // Process with Sharp → WebP, exact 9:16 at 768×1376
-  let webpBuffer: Buffer;
+  // Process with Sharp → PNG/JPEG, exact 9:16 at 768×1376, Steam ≤ 4.9 MB
+  let result: { buffer: Buffer; mimeType: "image/png" | "image/jpeg" };
   try {
-    webpBuffer = await processToWebP(imageUrl);
+    result = await processForSteam(imageUrl);
   } catch (err) {
     console.error("[POST /api/generate] sharp processing failed", err);
     return NextResponse.json(
@@ -242,10 +282,10 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return new NextResponse(webpBuffer, {
+  return new NextResponse(result.buffer, {
     status: 200,
     headers: {
-      "Content-Type": "image/webp",
+      "Content-Type": result.mimeType,
       "Cache-Control": "no-store",
       "X-Model": modelKey,
     },

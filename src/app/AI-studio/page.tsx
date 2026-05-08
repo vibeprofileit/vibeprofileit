@@ -257,7 +257,7 @@ export default function StudioPage() {
     if (!generatedImage) return;
     const link = document.createElement("a");
     link.href = generatedImage;
-    link.download = "vibeprofileit_ai.webp";
+    link.download = "vibeprofileit_ai";
     link.click();
     sessionStorage.setItem("studio_generated_image", generatedImage);
     router.push("/design-studio?source=ai-studio");
