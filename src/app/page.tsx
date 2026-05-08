@@ -136,7 +136,7 @@ export default function Home() {
                 href="/design-studio"
                 className="relative overflow-hidden flex items-center justify-center px-8 py-3.5 rounded-full font-bold text-white transition-all duration-300"
                 style={{
-                  background: "linear-gradient(to right, #3b82f6, #7c3aed, #8b5cf6)",
+                  background: "linear-gradient(to right, #2563eb, #06b6d4)",
                 }}
               >
                 Get Started

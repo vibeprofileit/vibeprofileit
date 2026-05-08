@@ -241,9 +241,20 @@ export default function PricingPage() {
           </div>
 
           {/* Policy text */}
-          <p className="text-sm text-white/35 text-center max-w-xs leading-relaxed">
-            All sales are final. Tokens are credited instantly and never expire.
-          </p>
+          <div className="text-center" style={{ maxWidth: 500 }}>
+            <p className="text-sm text-white/30 leading-relaxed">
+              All sales are final. Tokens are credited instantly and never expire.
+            </p>
+            <div className="my-3" style={{ height: "1px", background: "rgba(255,255,255,0.06)" }} />
+            <p className="text-sm text-white/45 leading-relaxed">
+              However, if you experience a technical issue or were charged but didn&apos;t receive your tokens,
+              contact us via the{" "}
+              <span className="font-semibold" style={{ color: "#a78bfa" }}>
+                Help &amp; Feedback
+              </span>{" "}
+              button.
+            </p>
+          </div>
         </div>
       </motion.div>
 
