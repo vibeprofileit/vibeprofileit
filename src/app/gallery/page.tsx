@@ -548,10 +548,12 @@ function GalleryCard({
   item,
   index,
   onView,
+  ownedIds,
 }: {
   item: GalleryItem;
   index: number;
   onView: (item: GalleryItem) => void;
+  ownedIds: Set<string>;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -661,7 +663,7 @@ function GalleryCard({
       whileHover={!item.isAdult ? { scale: 1.02, transition: { duration: 0.2 } } : {}}
       onClick={() => {
         if (item.isAdult) return;
-        if (item.isPremium && !session?.user?.isAdmin) { router.push("/pricing"); return; }
+        if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) { router.push("/pricing"); return; }
         onView(item);
       }}
     >
@@ -885,6 +887,7 @@ function GalleryCard({
 // ─── GalleryPage ───────────────────────────────────────────────────────────────
 
 export default function GalleryPage() {
+  const { data: session } = useSession();
   const [search,         setSearch]         = useState("");
   const [debouncedSearch,setDebouncedSearch] = useState("");
   const [activeCategory, setActiveCategory]  = useState("");
@@ -895,6 +898,7 @@ export default function GalleryPage() {
   const [cols,          setCols]          = useState(4);
   const [selectedItem,  setSelectedItem]  = useState<GalleryItem | null>(null);
   const [items,         setItems]         = useState<GalleryItem[]>([]);
+  const [ownedIds,      setOwnedIds]      = useState<Set<string>>(new Set());
 
   const loadingMoreRef  = useRef(false);
   const hasMoreRef      = useRef(true);
@@ -934,6 +938,15 @@ export default function GalleryPage() {
       setLoadingMore(false);
     }
   }, [buildParams]);
+
+  // Kullanıcının sahip olduğu premium ID'leri çek (tek seferlik)
+  useEffect(() => {
+    if (!session?.user?.userId) return;
+    fetch("/api/account/premiums")
+      .then(r => r.json())
+      .then(d => setOwnedIds(new Set<string>(d.ids ?? [])))
+      .catch(() => {});
+  }, [session?.user?.userId]);
 
   // Kategori veya arama değişince sıfırla + yeniden çek
   useEffect(() => {
@@ -1178,11 +1191,12 @@ export default function GalleryPage() {
                   <div key={ci} className="flex flex-col gap-3" style={{ flex: 1 }}>
                     {col.map((item, i) => 
                       // 997. satırda key kısmına index (i) değerini de ekliyoruz:
-<GalleryCard 
-  key={`${item.id}-${ci}-${i}`} 
-  item={item} 
-  index={ci * 5 + i} 
+<GalleryCard
+  key={`${item.id}-${ci}-${i}`}
+  item={item}
+  index={ci * 5 + i}
   onView={setSelectedItem}
+  ownedIds={ownedIds}
 />
                     )}
                   </div>
