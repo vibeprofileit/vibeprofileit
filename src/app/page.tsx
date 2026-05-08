@@ -113,6 +113,11 @@ export default function Home() {
               background-size: 250% 250%;
               animation: nebulaShift 5s ease infinite;
             }
+            .ai-nebula {
+              background: linear-gradient(120deg, rgba(225,29,72,0.18) 0%, rgba(249,115,22,0.22) 40%, rgba(220,38,38,0.14) 70%, rgba(225,29,72,0.18) 100%);
+              background-size: 250% 250%;
+              animation: nebulaShift 5s ease infinite;
+            }
             .vg-shimmer::after {
               content: '';
               position: absolute;
@@ -139,7 +144,7 @@ export default function Home() {
                   background: "linear-gradient(to right, #2563eb, #06b6d4)",
                 }}
               >
-                Get Started
+                Design Tool
               </Link>
             </motion.div>
 
@@ -153,6 +158,19 @@ export default function Home() {
               >
                 View Gallery
                 <span className="gs-arrow" style={{ color: "rgba(188,19,254,0.85)" }}><ChevronRight size={16} /></span>
+              </Link>
+            </motion.div>
+
+            <motion.div whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 320, damping: 22 }}>
+              <Link
+                href="/ai-studio"
+                className="ai-nebula vg-shimmer relative overflow-hidden flex items-center gap-2 justify-center px-11 py-3.5 rounded-full font-semibold text-white transition-all duration-300"
+                style={{
+                  border: "1px solid rgba(225,29,72,0.45)",
+                }}
+              >
+                AI Studio
+                <span className="gs-arrow" style={{ color: "rgba(249,115,22,0.85)" }}><ChevronRight size={16} /></span>
               </Link>
             </motion.div>
           </div>

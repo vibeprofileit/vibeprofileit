@@ -8,14 +8,15 @@ import { Heart, Coins, Star, LogOut } from "lucide-react"
 import TokenIcon from "@/components/TokenIcon"
 
 const MENU_ITEMS = [
-  { icon: <Heart size={14} />, label: "Likes",       href: "/account/likes",    suffix: null },
-  { icon: <Coins size={14} />, label: "Tokens",      href: "/account/tokens",   suffix: <TokenIcon size={14} /> },
-  { icon: <Star  size={14} />, label: "My Premiums", href: "/account/premiums", suffix: null },
+  { icon: <Heart size={14} />, label: "Likes",       href: "/account/likes"    },
+  { icon: <Coins size={14} />, label: "Tokens",      href: "/account/tokens"   },
+  { icon: <Star  size={14} />, label: "My Premiums", href: "/account/premiums" },
 ]
 
 export default function Header() {
   const { data: session, status } = useSession()
   const [open, setOpen] = useState(false)
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -25,6 +26,14 @@ export default function Header() {
     document.addEventListener("mousedown", handle)
     return () => document.removeEventListener("mousedown", handle)
   }, [])
+
+  useEffect(() => {
+    if (!session?.user) return
+    fetch("/api/user/me")
+      .then(r => r.json())
+      .then(d => setTokenBalance(d.tokenBalance ?? 0))
+      .catch(() => {})
+  }, [session?.user])
 
   const avatar = session?.user?.avatarFull ?? session?.user?.image
 
@@ -97,7 +106,7 @@ export default function Header() {
                 </div>
 
                 <div className="py-1 border-b border-white/5">
-                  {MENU_ITEMS.map(({ icon, label, href, suffix }) => (
+                  {MENU_ITEMS.map(({ icon, label, href }) => (
                     <Link
                       key={label}
                       href={href}
@@ -106,7 +115,14 @@ export default function Header() {
                     >
                       <span className="text-white/40">{icon}</span>
                       <span className="font-medium flex-1">{label}</span>
-                      {suffix && <span className="opacity-80">{suffix}</span>}
+                      {label === "Tokens" && (
+                        <span className="flex items-center gap-1">
+                          <TokenIcon size={13} />
+                          <span className="text-xs font-black" style={{ color: "#fbbf24" }}>
+                            {tokenBalance ?? "—"}
+                          </span>
+                        </span>
+                      )}
                     </Link>
                   ))}
                 </div>
