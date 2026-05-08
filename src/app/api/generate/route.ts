@@ -19,13 +19,11 @@ const FLUX_TRIGGERS = [
   "knight", "armor", "sci-fi", "dark", "epic",
 ];
 
-// Verified via docs.siliconflow.cn (2026-05-08):
-//   FLUX primary  → black-forest-labs/FLUX-1.1-pro-Ultra (up to 4 MP / 2K)
-//   FLUX fallback → black-forest-labs/FLUX.1-pro  (if primary returns 400 "Model does not exist")
-//   Pony          → Kwai-Kolors/Kolors (anime-capable; no dedicated Pony model on SiliconFlow)
-const MODEL_FLUX         = "black-forest-labs/FLUX-1.1-pro-Ultra";
-const MODEL_FLUX_FALLBACK = "black-forest-labs/FLUX.1-pro";
-const MODEL_PONY         = "Kwai-Kolors/Kolors";
+// Active models (2026-05-08):
+//   FLUX   → black-forest-labs/FLUX.1-pro  (main quality engine)
+//   Kolors → Kwai-Kolors/Kolors            (anime / illustration)
+const MODEL_FLUX   = "black-forest-labs/FLUX.1-pro";
+const MODEL_KOLORS = "Kwai-Kolors/Kolors";
 
 const FLUX_SYSTEM_PROMPT =
   "vertical portrait composition, tall format, cinematic lighting, " +
@@ -138,43 +136,32 @@ async function callSiliconFlow(
 }
 
 // ---------------------------------------------------------------------------
-// Generation with model + size fallback
-//   Order: [primary model, flux-fallback?] × [768x1376, 720x1280]
-//   400 on first size → skip remaining sizes for that model (try next model)
-//   Timeout → throw immediately (caller returns 504)
+// Generation — size fallback only (768x1376 → 720x1280)
+//   No model fallback: errors surface immediately so we can diagnose them.
+//   Timeout → throw (caller returns 504)
 // ---------------------------------------------------------------------------
 
 async function generateImageUrl(
   model: string,
-  modelFallback: string | null,
   prompt: string,
   negativePrompt: string
 ): Promise<string> {
-  const models = [model, ...(modelFallback ? [modelFallback] : [])];
-  const sizes  = ["768x1376", "720x1280"] as const;
+  const sizes = ["768x1376", "720x1280"] as const;
 
-  for (const tryModel of models) {
-    for (const size of sizes) {
-      try {
-        const data = await callSiliconFlow(tryModel, prompt, negativePrompt, size);
-        const url = data?.images?.[0]?.url;
-        if (url) return url;
-        throw new Error("No image URL in SiliconFlow response");
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name === "TimeoutError") throw err;
-
-        const httpStatus = (err as { status?: number }).status;
-        // 400 likely means model/param rejected — skip size loop, try next model
-        if (httpStatus === 400) break;
-
-        const isLastModel = tryModel === models[models.length - 1];
-        const isLastSize  = size === sizes[sizes.length - 1];
-        if (isLastModel && isLastSize) throw err;
-      }
+  let lastErr: unknown;
+  for (const size of sizes) {
+    try {
+      const data = await callSiliconFlow(model, prompt, negativePrompt, size);
+      const url = data?.images?.[0]?.url;
+      if (url) return url;
+      throw new Error("No image URL in SiliconFlow response");
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === "TimeoutError") throw err;
+      lastErr = err;
     }
   }
 
-  throw new Error("All generation attempts exhausted");
+  throw lastErr;
 }
 
 // ---------------------------------------------------------------------------
@@ -247,15 +234,14 @@ export async function POST(request: NextRequest) {
   }
 
   const modelKey     = selectModel(userPrompt, body.category);
-  const model        = modelKey === "pony" ? MODEL_PONY : MODEL_FLUX;
-  const modelFallback = modelKey === "flux" ? MODEL_FLUX_FALLBACK : null;
+  const model        = modelKey === "pony" ? MODEL_KOLORS : MODEL_FLUX;
   const systemPrompt = modelKey === "pony" ? PONY_SYSTEM_PROMPT : FLUX_SYSTEM_PROMPT;
   const negativePrompt = modelKey === "pony" ? PONY_NEGATIVE_PROMPT : FLUX_NEGATIVE_PROMPT;
   const finalPrompt  = `${userPrompt}, ${systemPrompt}`;
 
   let imageUrl: string;
   try {
-    imageUrl = await generateImageUrl(model, modelFallback, finalPrompt, negativePrompt);
+    imageUrl = await generateImageUrl(model, finalPrompt, negativePrompt);
   } catch (err: unknown) {
     if (err instanceof Error && err.name === "TimeoutError") {
       return NextResponse.json(
