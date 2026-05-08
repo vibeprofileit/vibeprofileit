@@ -5,11 +5,12 @@ import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Heart, Coins, Star, LogOut } from "lucide-react"
+import TokenIcon from "@/components/TokenIcon"
 
 const MENU_ITEMS = [
-  { icon: <Heart size={14} />, label: "Likes",    href: "/account/likes"    },
-  { icon: <Coins size={14} />, label: "Tokens",      href: "/account/tokens"   },
-  { icon: <Star  size={14} />, label: "My Premiums", href: "/account/premiums" },
+  { icon: <Heart size={14} />, label: "Likes",       href: "/account/likes",    suffix: null },
+  { icon: <Coins size={14} />, label: "Tokens",      href: "/account/tokens",   suffix: <TokenIcon size={14} /> },
+  { icon: <Star  size={14} />, label: "My Premiums", href: "/account/premiums", suffix: null },
 ]
 
 export default function Header() {
@@ -96,7 +97,7 @@ export default function Header() {
                 </div>
 
                 <div className="py-1 border-b border-white/5">
-                  {MENU_ITEMS.map(({ icon, label, href }) => (
+                  {MENU_ITEMS.map(({ icon, label, href, suffix }) => (
                     <Link
                       key={label}
                       href={href}
@@ -104,7 +105,8 @@ export default function Header() {
                       className="flex items-center gap-2.5 px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors"
                     >
                       <span className="text-white/40">{icon}</span>
-                      <span className="font-medium">{label}</span>
+                      <span className="font-medium flex-1">{label}</span>
+                      {suffix && <span className="opacity-80">{suffix}</span>}
                     </Link>
                   ))}
                 </div>

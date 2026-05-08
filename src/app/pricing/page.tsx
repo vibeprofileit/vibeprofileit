@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import { useSession } from "next-auth/react";
 import { Check, Zap, Image, Sparkles } from "lucide-react";
+import TokenIcon from "@/components/TokenIcon";
 
 const PLANS = [
   {
@@ -148,6 +149,7 @@ export default function PricingPage() {
 
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl mb-8 w-fit"
                 style={{ background: `${plan.cardBorder}33`, border: `1px solid ${plan.cardBorder}` }}>
+                <TokenIcon size={16} />
                 <span className="text-2xl font-black" style={{ color: plan.tokenColor }}>{plan.tokens}</span>
                 <span className="text-sm font-semibold text-white/50">tokens</span>
               </div>
