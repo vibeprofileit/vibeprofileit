@@ -565,6 +565,35 @@ function GalleryCard({
     return () => { cancelled = true; };
   }, [inView, item.isAnimated, item.src, thumbnailLoaded, canvasFailed]);
 
+  // Premium statik görseller canvas'a çizilir — okuma modu <img> tag'ı göremez
+  useEffect(() => {
+    if (!inView || !item.isPremium || item.isAnimated || !item.src || thumbnailLoaded || canvasFailed) return;
+    let cancelled = false;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      if (cancelled) return;
+      if (img.naturalWidth === 0) { setCanvasFailed(true); return; }
+      const canvas = canvasRef.current;
+      if (!canvas) { setCanvasFailed(true); return; }
+      canvas.width  = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { setCanvasFailed(true); return; }
+      try {
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0);
+        setThumbnailLoaded(true);
+      } catch {
+        setCanvasFailed(true);
+      }
+    };
+    img.onerror = () => { if (!cancelled) setCanvasFailed(true); };
+    img.src = item.src;
+    return () => { cancelled = true; };
+  }, [inView, item.isPremium, item.isAnimated, item.src, thumbnailLoaded, canvasFailed]);
+
   // coverUrl olan kartlarda src hover beklenmeden kontrol edilir;
   // dosya silinmişse kart hover'a gerek kalmadan anında gizlenir
   useEffect(() => {
@@ -678,6 +707,15 @@ function GalleryCard({
               </div>
             )}
           </div>
+        </>
+      ) : item.isPremium ? (
+        <>
+          {(!inView || (!thumbnailLoaded && !canvasFailed)) && <PremiumPlaceholder />}
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full"
+            style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s", transform: "translateZ(0)" }}
+          />
         </>
       ) : item.src ? (
         <ProtectedImage
@@ -1035,36 +1073,42 @@ export default function GalleryPage() {
                 <button
                   key={cat}
                   onClick={() => { if (cat === "All") { setActiveCategory(""); return; } setActiveCategory(active ? "" : cat); }}
-                  className={`flex-shrink-0 px-4 py-2 rounded-full font-medium transition-all duration-200 ${isPremCat ? "text-yellow-300" : "text-white"}`}
-                  style={{
+                  className="flex-shrink-0 px-4 py-2 rounded-full transition-all duration-200"
+                  style={isPremCat ? {
                     fontSize: "15px",
-                    background: active
-                      ? (isPremCat ? "rgba(255,215,0,0.15)" : "rgba(188,19,254,0.3)")
-                      : (isPremCat ? "rgba(0,0,0,0.8)" : "rgba(46,16,101,0.5)"),
-                    border: active
-                      ? (isPremCat ? "1px solid rgba(255,215,0,0.9)" : "1px solid rgba(188,19,254,0.7)")
-                      : (isPremCat ? "1px solid rgba(255,215,0,0.35)" : "1px solid rgba(188,19,254,0.2)"),
-                    boxShadow: active
-                      ? (isPremCat ? "0 0 14px rgba(255,215,0,0.55), 0 0 28px rgba(255,215,0,0.2)" : "0 0 14px rgba(188,19,254,0.4)")
-                      : (isPremCat ? "0 0 6px rgba(255,215,0,0.15)" : "none"),
+                    background: "#f5c842",
+                    color: "#1a0a00",
+                    border: "none",
+                    fontWeight: 700,
+                  } : {
+                    fontSize: "15px",
+                    fontWeight: undefined,
+                    color: "white",
+                    background: active ? "rgba(188,19,254,0.3)" : "rgba(46,16,101,0.5)",
+                    border: active ? "1px solid rgba(188,19,254,0.7)" : "1px solid rgba(188,19,254,0.2)",
+                    boxShadow: active ? "0 0 14px rgba(188,19,254,0.4)" : "none",
                     backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
                   }}
                   onMouseEnter={(e) => {
-                    if (!active && !isPremCat) {
-                      const el = e.currentTarget as HTMLButtonElement;
+                    const el = e.currentTarget as HTMLButtonElement;
+                    if (isPremCat) {
+                      el.style.boxShadow = "0 0 12px rgba(245,200,66,0.6), 0 0 20px rgba(245,200,66,0.25)";
+                    } else if (!active) {
                       el.style.boxShadow = "0 0 12px rgba(188,19,254,0.35)";
                       el.style.border    = "1px solid rgba(188,19,254,0.45)";
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!active && !isPremCat) {
-                      const el = e.currentTarget as HTMLButtonElement;
+                    const el = e.currentTarget as HTMLButtonElement;
+                    if (isPremCat) {
+                      el.style.boxShadow = "none";
+                    } else if (!active) {
                       el.style.boxShadow = "none";
                       el.style.border    = "1px solid rgba(188,19,254,0.2)";
                     }
                   }}
                 >
-                  {cat}
+                  {isPremCat ? `★ ${cat}` : cat}
                 </button>
               );
             })}
