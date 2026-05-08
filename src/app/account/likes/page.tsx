@@ -377,7 +377,7 @@ export default function LikesPage() {
 
         {/* Başlık */}
         <div className="mb-8">
-          <h1 className="text-3xl font-black tracking-tight" style={{ color: "#ff4444" }}>
+          <h1 className="text-3xl font-black tracking-tight" style={{ color: "#FF0000" }}>
             Likes
           </h1>
           {!loading && (
