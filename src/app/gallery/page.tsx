@@ -6,6 +6,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import ProtectedImage from "@/components/ui/ProtectedImage";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Search, ExternalLink, ChevronDown, Pencil, Eye, X, Download, Heart, Lock } from "lucide-react";
 
 const CHUNK_SIZE = 24;
@@ -57,6 +58,35 @@ function ImageModal({
   allItems: GalleryItem[];
   onSelect: (item: GalleryItem) => void;
 }) {
+  const { data: session } = useSession();
+  const [liked, setLiked] = useState(false);
+  const [likeLoading, setLikeLoading] = useState(false);
+
+  useEffect(() => {
+    if (!session?.user?.userId) return;
+    fetch(`/api/likes?artworkId=${item.id}`)
+      .then(r => r.json())
+      .then(d => setLiked(d.liked))
+      .catch(() => {});
+  }, [item.id, session?.user?.userId]);
+
+  async function toggleLike() {
+    if (!session?.user?.userId) { window.location.href = "/api/steam/login"; return; }
+    if (likeLoading) return;
+    setLikeLoading(true);
+    try {
+      const r = await fetch("/api/likes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artworkId: item.id }),
+      });
+      const d = await r.json();
+      setLiked(d.liked);
+    } finally {
+      setLikeLoading(false);
+    }
+  }
+
   useEffect(() => {
     document.body.style.overflow = "hidden";
     window.history.pushState(null, "", `/gallery?id=${item.id}`);
