@@ -410,14 +410,14 @@ export default function StudioPage() {
             )}
           </AnimatePresence>
 
-          {/* Style Matrix — The Elite 4 */}
-          <div style={{ marginBottom: 28 }}>
+          {/* Related Vibes — The Elite 4 */}
+          <div style={{ marginBottom: 35 }}>
             <div style={{
               fontSize: 10, color: "rgba(220,100,60,0.60)",
               letterSpacing: "2.5px", textTransform: "uppercase",
               fontFamily: "monospace", marginBottom: 11,
             }}>
-              STYLE MATRIX
+              Related Vibes
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {ELITE_STYLES.map((s) => {
