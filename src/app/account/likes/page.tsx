@@ -258,42 +258,49 @@ function LikeCard({ item, index, onView }: { item: GalleryItem; index: number; o
     >
       <div className="absolute inset-0" style={{ background: "#050505" }} />
 
-      {inView && item.src && (
-        item.isAnimated ? (
-          <>
-            {/* Statik katman: coverUrl varsa WebP, yoksa canvas ilk karesi */}
-            {!hovered && (
-              item.coverUrl ? (
-                <img
-                  src={item.coverUrl}
-                  alt={item.theme}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
+      {item.isAnimated ? (
+        <>
+          {/* coverUrl varsa statik WebP kapak — hover'da gizle */}
+          {item.coverUrl && !hovered && (
+            <img
+              src={item.coverUrl}
+              alt={item.theme}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+
+          {/* coverUrl yoksa canvas her zaman DOM'da, sadece opacity değişir */}
+          {!item.coverUrl && (
+            <>
+              {inView && !thumbnailLoaded && !canvasFailed && (
+                <div className="absolute inset-0" style={{ background: "linear-gradient(135deg,#0a0014,#1a0035,#050505)", animation: "premiumPulse 2s ease-in-out infinite" }} />
+              )}
+              {canvasFailed ? (
+                !hovered && inView && (
+                  <img src={item.src} alt={item.theme} className="absolute inset-0 w-full h-full object-cover" />
+                )
               ) : (
-                <>
-                  <canvas
-                    ref={canvasRef}
-                    className="absolute inset-0 w-full h-full"
-                    style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.3s" }}
-                  />
-                  {/* Canvas yüklenene kadar veya başarısız olursa GIF göster — tarayıcı ilk kareyi basar */}
-                  {(!thumbnailLoaded || canvasFailed) && (
-                    <img src={item.src} alt={item.theme} className="absolute inset-0 w-full h-full object-cover" />
-                  )}
-                </>
-              )
-            )}
-            {/* Hover: animasyonlu GIF */}
-            {hovered && (
-              <img
-                src={item.src}
-                alt={item.theme}
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ filter: "brightness(0.8)" }}
-              />
-            )}
-          </>
-        ) : (
+                <canvas
+                  ref={canvasRef}
+                  className="absolute inset-0 w-full h-full"
+                  style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s" }}
+                />
+              )}
+            </>
+          )}
+
+          {/* Hover: animasyonlu GIF */}
+          {hovered && inView && (
+            <img
+              src={item.src}
+              alt={item.theme}
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ filter: "brightness(0.8)" }}
+            />
+          )}
+        </>
+      ) : (
+        inView && item.src && (
           <ProtectedImage
             src={item.src}
             alt={item.theme}
