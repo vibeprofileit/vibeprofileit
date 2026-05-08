@@ -1104,6 +1104,18 @@ export default function GalleryPage() {
     }
   }, [buildParams]);
 
+  // URL'de ?id= varsa (satın alma sonrası reload) ilgili modalı aç
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (!id || items.length === 0) return;
+    const found = items.find(i => i.id === id);
+    if (found) {
+      setSelectedItem(found);
+      window.history.replaceState(null, "", "/gallery");
+    }
+  }, [items]);
+
   // Kullanıcının sahip olduğu premium ID'leri + token balance çek
   useEffect(() => {
     if (!session?.user?.userId) return;
@@ -1210,11 +1222,8 @@ export default function GalleryPage() {
           item={purchaseItem}
           tokenBalance={tokenBalance}
           onClose={() => setPurchaseItem(null)}
-          onSuccess={(newBalance) => {
-            setOwnedIds(prev => new Set([...prev, purchaseItem.id]));
-            setTokenBalance(newBalance);
-            setPurchaseItem(null);
-            setSelectedItem(purchaseItem);
+          onSuccess={() => {
+            window.location.href = `/gallery?id=${purchaseItem.id}`;
           }}
         />
       )}
