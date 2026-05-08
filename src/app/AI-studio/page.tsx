@@ -149,6 +149,8 @@ export default function StudioPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
 
+  const [generateStatus, setGenerateStatus] = useState("");
+
   const vortexRef = useRef(false);
 
   const handleVisualize = useCallback(async () => {
@@ -157,58 +159,48 @@ export default function StudioPage() {
     setGeneratedImage(null);
     setPreviewMode(false);
     vortexRef.current = true;
+    setGenerateStatus("Analyzing your vision...");
 
-    // Min 10s vortex show — image generation + timer race, both must finish
-    const [dataUrl] = await Promise.all([
-      new Promise<string>((resolve) => {
-        const offscreen = document.createElement("canvas");
-        offscreen.width = 1260;
-        offscreen.height = 1600;
-        const ctx = offscreen.getContext("2d")!;
+    const statusTimers = [
+      setTimeout(() => setGenerateStatus("Computing elite textures..."), 3000),
+      setTimeout(() => setGenerateStatus("Finalizing cinematic lighting..."), 6000),
+      setTimeout(() => setGenerateStatus("REVEAL"), 9000),
+    ];
 
-        const bg = ctx.createLinearGradient(0, 0, 1260, 1600);
-        bg.addColorStop(0, "#200005");
-        bg.addColorStop(0.45, "#380010");
-        bg.addColorStop(1, "#120002");
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, 1260, 1600);
+    try {
+      const [blob] = await Promise.all([
+        fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt,
+            category: selectedStyle?.toLowerCase().replace(/\s+/g, ""),
+          }),
+        }).then(async (res) => {
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({ error: "Generation failed." }));
+            throw new Error((data as { error?: string }).error ?? "Generation failed.");
+          }
+          return res.blob();
+        }),
+        new Promise<void>((r) => setTimeout(r, 10_000)),
+      ]);
 
-        for (let i = 0; i < 18; i++) {
-          ctx.beginPath();
-          ctx.arc(
-            Math.random() * 1260,
-            Math.random() * 1600,
-            Math.random() * 90 + 15,
-            0, Math.PI * 2
-          );
-          ctx.fillStyle = `rgba(${200 + Math.random() * 55},${20 + Math.random() * 60},${10 + Math.random() * 20},${Math.random() * 0.25})`;
-          ctx.fill();
-        }
-
-        ctx.fillStyle = "rgba(255,180,130,0.85)";
-        ctx.font = "bold 56px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("Elite Engine", 630, 770);
-        ctx.fillStyle = "rgba(220,80,50,0.55)";
-        ctx.font = "28px monospace";
-        ctx.fillText("1260 × 1600", 630, 840);
-        if (selectedStyle) {
-          ctx.fillStyle = "rgba(249,115,22,0.4)";
-          ctx.font = "22px monospace";
-          ctx.fillText(selectedStyle.toUpperCase(), 630, 900);
-        }
-
-        resolve(offscreen.toDataURL("image/png"));
-      }),
-      new Promise<void>((r) => setTimeout(r, 10000)),
-    ]);
-
-    vortexRef.current = false;
-    setGeneratedImage(dataUrl);
-    setIsGenerating(false);
-    setIsModalOpen(true);
-    setPrompt("");
-    setSelectedStyle(null);
+      statusTimers.forEach(clearTimeout);
+      const objectUrl = URL.createObjectURL(blob as Blob);
+      vortexRef.current = false;
+      setGeneratedImage(objectUrl);
+      setGenerateStatus("REVEAL");
+      setIsGenerating(false);
+      setIsModalOpen(true);
+      setPrompt("");
+      setSelectedStyle(null);
+    } catch (err) {
+      statusTimers.forEach(clearTimeout);
+      vortexRef.current = false;
+      setIsGenerating(false);
+      setGenerateStatus(err instanceof Error ? err.message : "Generation failed. Please try again.");
+    }
   }, [prompt, selectedStyle, isGenerating]);
 
   const handleCloseModal = useCallback(() => {
@@ -220,16 +212,56 @@ export default function StudioPage() {
     if (!generatedImage) return;
     const link = document.createElement("a");
     link.href = generatedImage;
-    link.download = "elite-engine-1260x1600.png";
+    link.download = "vibeprofileit_ai.webp";
     link.click();
     sessionStorage.setItem("studio_generated_image", generatedImage);
-    router.push("/design-studio?source=studio");
+    router.push("/design-studio?source=ai-studio");
   }, [generatedImage, router]);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ background: "#050505" }}>
       <Header />
       <CrimsonVoidBackground vortexRef={vortexRef} />
+
+      {/* Generation status overlay — visible only during generation */}
+      <AnimatePresence>
+        {isGenerating && (
+          <motion.div
+            key="status-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: "fixed", inset: 0, zIndex: 5,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              pointerEvents: "none",
+            }}
+          >
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={generateStatus}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.4 }}
+                style={{
+                  fontSize: generateStatus === "REVEAL" ? 52 : 20,
+                  fontWeight: 700,
+                  color: generateStatus === "REVEAL" ? "#f87171" : "rgba(220,130,80,0.90)",
+                  letterSpacing: generateStatus === "REVEAL" ? "0.5em" : "0.08em",
+                  textShadow: generateStatus === "REVEAL"
+                    ? "0 0 40px rgba(220,38,38,0.95), 0 0 80px rgba(220,38,38,0.4)"
+                    : "none",
+                  textAlign: "center",
+                  paddingLeft: generateStatus === "REVEAL" ? "0.5em" : 0,
+                }}
+              >
+                {generateStatus}
+              </motion.p>
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Content */}
       <div
@@ -405,7 +437,7 @@ export default function StudioPage() {
                 <img
                   src={generatedImage}
                   alt="Elite Engine render"
-                  style={{ width: "100%", display: "block", aspectRatio: "1260/1600", objectFit: "cover" }}
+                  style={{ width: "100%", display: "block", aspectRatio: "9/16", objectFit: "cover" }}
                 />
               </div>
 
@@ -502,7 +534,7 @@ export default function StudioPage() {
                   display: "block",
                   maxHeight: "85vh",
                   width: "auto",
-                  aspectRatio: "1260/1600",
+                  aspectRatio: "9/16",
                 }}
               />
 

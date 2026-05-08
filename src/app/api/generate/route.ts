@@ -1,13 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// sharp v0.34.5 kurulu (Next.js 16 transitive dependency) — direkt kullanılabilir.
-// Post-processing (resize, watermark, format conversion) için aktive et:
-// import sharp from "sharp";
-// async function processImage(url: string): Promise<Buffer> {
-//   const res = await fetch(url);
-//   const buffer = Buffer.from(await res.arrayBuffer());
-//   return sharp(buffer).resize(1260, 1600, { fit: "cover" }).toBuffer();
-// }
+import sharp from "sharp";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -28,9 +20,8 @@ const FLUX_TRIGGERS = [
 ];
 
 // Verified via docs.siliconflow.cn (2026-05-08):
-//   FLUX  → black-forest-labs/FLUX-1.1-pro-Ultra  (up to 4 MP / 2K, $0.04/img)
-//   Pony  → Kwai-Kolors/Kolors  (anime-capable; no dedicated Pony model on SiliconFlow)
-//   Update these if SiliconFlow adds a Pony/PonyXL model later.
+//   FLUX → black-forest-labs/FLUX-1.1-pro-Ultra (up to 4 MP / 2K)
+//   Pony → Kwai-Kolors/Kolors (anime-capable; no dedicated Pony model on SiliconFlow)
 const MODEL_FLUX = "black-forest-labs/FLUX-1.1-pro-Ultra";
 const MODEL_PONY = "Kwai-Kolors/Kolors";
 
@@ -61,7 +52,7 @@ const PONY_NEGATIVE_PROMPT =
   "ugly, poorly drawn eyes, bad hands, missing fingers, flat";
 
 // ---------------------------------------------------------------------------
-// Rate limiter — in-memory, resets per 60 s window
+// Rate limiter — in-memory, 3 req / 60 s per IP
 // ---------------------------------------------------------------------------
 
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
@@ -71,7 +62,6 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const entry = rateLimitStore.get(ip);
-
   if (!entry || now >= entry.resetAt) {
     rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
     return true;
@@ -94,7 +84,6 @@ function getClientIp(req: NextRequest): string {
 function selectModel(prompt: string, category?: string): "flux" | "pony" {
   if (category === "anime") return "pony";
   if (category === "darkfantasy" || category === "cyberpunk") return "flux";
-
   const lower = prompt.toLowerCase();
   if (PONY_TRIGGERS.some((t) => lower.includes(t))) return "pony";
   if (FLUX_TRIGGERS.some((t) => lower.includes(t))) return "flux";
@@ -136,12 +125,33 @@ async function callSiliconFlow(
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    const err = new Error(`SiliconFlow responded with ${res.status}: ${body}`) as Error & { status: number };
+    const err = new Error(
+      `SiliconFlow responded with ${res.status}: ${body}`
+    ) as Error & { status: number };
     err.status = res.status;
     throw err;
   }
 
   return res.json() as Promise<SiliconFlowResponse>;
+}
+
+// ---------------------------------------------------------------------------
+// Sharp post-processing: resize to exact 9:16 (768×1376), convert to WebP
+// ---------------------------------------------------------------------------
+
+async function processToWebP(imageUrl: string): Promise<Buffer> {
+  const imgRes = await fetch(imageUrl, {
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!imgRes.ok) {
+    throw new Error(`Failed to fetch generated image: ${imgRes.status}`);
+  }
+  const buffer = Buffer.from(await imgRes.arrayBuffer());
+
+  return sharp(buffer)
+    .resize(768, 1376, { fit: "cover", position: "centre" })
+    .webp({ quality: 88, effort: 4 })
+    .toBuffer();
 }
 
 // ---------------------------------------------------------------------------
@@ -182,12 +192,11 @@ export async function POST(request: NextRequest) {
   const negativePrompt = modelKey === "pony" ? PONY_NEGATIVE_PROMPT : FLUX_NEGATIVE_PROMPT;
   const finalPrompt = `${userPrompt}, ${systemPrompt}`;
 
-  // Try 1260x1600; if it fails for any reason, retry with 1024x1024 (the one retry)
+  // Try 768×1376 (9:16) first, fallback to 720×1280 (also 9:16)
   let imageUrl: string | null = null;
-  let usedSize = "1260x1600";
 
   try {
-    const data = await callSiliconFlow(model, finalPrompt, negativePrompt, "1260x1600");
+    const data = await callSiliconFlow(model, finalPrompt, negativePrompt, "768x1376");
     imageUrl = data?.images?.[0]?.url ?? null;
   } catch (firstErr: unknown) {
     if (firstErr instanceof Error && firstErr.name === "TimeoutError") {
@@ -196,12 +205,9 @@ export async function POST(request: NextRequest) {
         { status: 504 }
       );
     }
-
-    // Retry with safe fallback resolution
     try {
-      const data = await callSiliconFlow(model, finalPrompt, negativePrompt, "1024x1024");
+      const data = await callSiliconFlow(model, finalPrompt, negativePrompt, "720x1280");
       imageUrl = data?.images?.[0]?.url ?? null;
-      usedSize = "1024x1024";
     } catch (secondErr: unknown) {
       if (secondErr instanceof Error && secondErr.name === "TimeoutError") {
         return NextResponse.json(
@@ -224,11 +230,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({
-    imageUrl,
-    model: modelKey,
-    prompt: finalPrompt,
-    negativePrompt,
-    imageSize: usedSize,
+  // Process with Sharp → WebP, exact 9:16 at 768×1376
+  let webpBuffer: Buffer;
+  try {
+    webpBuffer = await processToWebP(imageUrl);
+  } catch (err) {
+    console.error("[POST /api/generate] sharp processing failed", err);
+    return NextResponse.json(
+      { error: "Image processing failed. Please try again." },
+      { status: 502 }
+    );
+  }
+
+  return new NextResponse(webpBuffer, {
+    status: 200,
+    headers: {
+      "Content-Type": "image/webp",
+      "Cache-Control": "no-store",
+      "X-Model": modelKey,
+    },
   });
 }
