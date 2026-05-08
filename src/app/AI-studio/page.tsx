@@ -112,32 +112,6 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
         ctx.fill();
       }
 
-      // Merkez yazı — READY → geri sayım
-      if (vortexT > 0.15) {
-        const elapsed = Date.now() - vortexStartTime;
-        const alpha = Math.min(1, (vortexT - 0.15) / 0.35);
-        ctx.save();
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.shadowColor = "rgba(220,38,38,0.9)";
-        ctx.shadowBlur = 18;
-
-        if (elapsed < 1500) {
-          ctx.font = "bold 58px monospace";
-          ctx.fillStyle = `rgba(255,140,80,${alpha * 0.92})`;
-          ctx.fillText("READY", cx, cy);
-        } else {
-          const remaining = Math.ceil((10000 - elapsed) / 1000);
-          if (remaining > 0) {
-            ctx.font = "bold 76px monospace";
-            ctx.fillStyle = `rgba(255,100,60,${alpha * 0.88})`;
-            ctx.fillText(String(remaining), cx, cy);
-          }
-        }
-
-        ctx.restore();
-      }
-
       // Bağlantı çizgileri sadece normal modda
       if (vortexT < 0.3) {
         ctx.shadowBlur = 0;
