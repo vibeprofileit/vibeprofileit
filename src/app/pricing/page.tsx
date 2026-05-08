@@ -8,12 +8,13 @@ import TokenIcon from "@/components/TokenIcon";
 
 const PLANS = [
   {
-    id:      "starter",
-    name:    "Starter",
-    price:   "1.99",
-    tokens:  20,
-    badge:   null,
-    perks:   ["2 premium photos or", "1 AI generation", "Tokens never expire"],
+    id:        "starter",
+    name:      "Starter",
+    price:     "1.99",
+    tokens:    20,
+    variantId: process.env.NEXT_PUBLIC_LS_VARIANT_STARTER!,
+    badge:     null,
+    perks:     ["2 premium photos or", "1 AI generation", "Tokens never expire"],
     btnGradient: "linear-gradient(to right, #3b82f6, #6366f1)",
     cardBg:      "rgba(59,130,246,0.07)",
     cardBorder:  "rgba(99,102,241,0.3)",
@@ -21,12 +22,13 @@ const PLANS = [
     checkColor:  "#6366f1",
   },
   {
-    id:      "popular",
-    name:    "Popular",
-    price:   "3.99",
-    tokens:  50,
-    badge:   { label: "Most Popular", icon: <Zap size={11} />, bg: "linear-gradient(to right,#7c3aed,#a855f7)" },
-    perks:   ["5 premium photos or", "3 AI generations", "Tokens never expire"],
+    id:        "popular",
+    name:      "Popular",
+    price:     "3.99",
+    tokens:    50,
+    variantId: process.env.NEXT_PUBLIC_LS_VARIANT_POPULAR!,
+    badge:     { label: "Most Popular", icon: <Zap size={11} />, bg: "linear-gradient(to right,#7c3aed,#a855f7)" },
+    perks:     ["5 premium photos or", "3 AI generations", "Tokens never expire"],
     btnGradient: "linear-gradient(to right, #7c3aed, #a855f7)",
     cardBg:      "rgba(124,58,237,0.12)",
     cardBorder:  "rgba(124,58,237,0.55)",
@@ -34,12 +36,13 @@ const PLANS = [
     checkColor:  "#a855f7",
   },
   {
-    id:      "pro",
-    name:    "Pro",
-    price:   "6.99",
-    tokens:  110,
-    badge:   { label: "Best Value", icon: <Sparkles size={11} />, bg: "linear-gradient(to right,#d97706,#f59e0b)" },
-    perks:   ["11 premium photos or", "7 AI generations", "Tokens never expire"],
+    id:        "pro",
+    name:      "Pro",
+    price:     "6.99",
+    tokens:    110,
+    variantId: process.env.NEXT_PUBLIC_LS_VARIANT_PRO!,
+    badge:     { label: "Best Value", icon: <Sparkles size={11} />, bg: "linear-gradient(to right,#d97706,#f59e0b)" },
+    perks:     ["11 premium photos or", "7 AI generations", "Tokens never expire"],
     btnGradient: "linear-gradient(to right, #d97706, #f59e0b)",
     cardBg:      "linear-gradient(135deg, rgba(217,119,6,0.15), rgba(245,158,11,0.05))",
     cardBorder:  "rgba(251,191,36,0.55)",
@@ -53,9 +56,8 @@ export default function PricingPage() {
 
   function handleBuy(plan: typeof PLANS[0]) {
     if (!session?.user) { window.location.href = "/api/steam/login"; return; }
-    // TODO: Lemon Squeezy checkout URL'ini buraya ekle
-    // Örnek: window.location.href = `https://vibeprofileit.lemonsqueezy.com/checkout/buy/${plan.lsVariantId}?checkout[custom][userId]=${session.user.userId}`
-    alert(`${plan.name} paketi yakında aktif olacak.`);
+    const url = `https://vibeprofileit.lemonsqueezy.com/checkout/buy/${plan.variantId}?checkout[custom][userId]=${session.user.userId}`;
+    window.location.href = url;
   }
 
   return (

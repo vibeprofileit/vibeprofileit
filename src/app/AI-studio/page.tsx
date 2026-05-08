@@ -489,7 +489,7 @@ export default function StudioPage() {
                 Generating...
               </>
             ) : (
-              "Visualize"
+              "Visualize for 15 Tokens"
             )}
           </button>
         </motion.div>
