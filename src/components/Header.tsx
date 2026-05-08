@@ -10,7 +10,7 @@ import TokenIcon from "@/components/TokenIcon"
 const MENU_ITEMS = [
   { icon: <Heart size={14} />, label: "Likes",       href: "/account/likes"    },
   { icon: <Coins size={14} />, label: "Tokens",      href: "/account/tokens"   },
-  { icon: <Star  size={14} />, label: "My Premiums", href: "/account/premiums" },
+  { icon: <Star  size={14} />, label: "My Premium", href: "/account/premiums" },
 ]
 
 export default function Header() {

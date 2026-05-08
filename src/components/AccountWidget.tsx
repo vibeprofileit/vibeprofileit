@@ -54,7 +54,7 @@ export default function AccountWidget() {
     },
     {
       icon: <Star size={15} />,
-      label: "My Premiums",
+      label: "My Premium",
       value: stats?.premiumsCount ?? "—",
       color: "#FFD700",
     },
