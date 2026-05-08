@@ -103,18 +103,31 @@ export default function PricingPage() {
         </motion.div>
 
         {/* Kartlar */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <style>{`
+          @keyframes proGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(251,191,36,0.2), 0 0 60px rgba(251,191,36,0.06), 0 24px 48px rgba(0,0,0,0.45); }
+            50%       { box-shadow: 0 0 38px rgba(251,191,36,0.38), 0 0 90px rgba(251,191,36,0.13), 0 24px 48px rgba(0,0,0,0.45); }
+          }
+          .pro-card { animation: proGlow 3s ease-in-out infinite; }
+        `}</style>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:items-end">
           {PLANS.map((plan, i) => (
             <motion.div
               key={plan.id}
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, y: 28, scale: 1 }}
+              animate={{
+                opacity: 1,
+                y: plan.id === "pro" ? -12 : 0,
+                scale: plan.id === "pro" ? 1.04 : 1,
+              }}
               transition={{ delay: 0.15 + i * 0.1, duration: 0.45 }}
-              className="relative rounded-2xl flex flex-col"
+              className={`relative rounded-2xl flex flex-col${plan.id === "pro" ? " pro-card" : ""}`}
               style={{
-                background:  plan.cardBg,
-                border:      `1px solid ${plan.cardBorder}`,
-                padding:     "36px 32px",
+                background: plan.cardBg,
+                border: plan.id === "pro"
+                  ? "2px solid rgba(251,191,36,0.6)"
+                  : `1px solid ${plan.cardBorder}`,
+                padding: "36px 32px",
               }}
             >
               {/* Badge */}
