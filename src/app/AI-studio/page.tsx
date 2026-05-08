@@ -19,7 +19,7 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
     if (!ctx) return;
 
     let animId: number;
-    let vortexT = 0; // 0→1 smooth ramp
+    let vortexT = 0;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -44,6 +44,11 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
       };
     });
 
+    const ANGULAR_SPEED = 0.022;
+
+    let wasVortex = false;
+    let vortexStartTime = 0;
+
     const resize = () => {
       const pW = canvas.width, pH = canvas.height;
       canvas.width = window.innerWidth;
@@ -57,42 +62,42 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
 
     const draw = () => {
       const isVortex = vortexRef.current;
+      if (isVortex && !wasVortex) vortexStartTime = Date.now();
+      wasVortex = isVortex;
       vortexT = isVortex
-        ? Math.min(1, vortexT + 0.015)
-        : Math.max(0, vortexT - 0.02);
+        ? Math.min(1, vortexT + 0.012)
+        : Math.max(0, vortexT - 0.018);
 
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
+      // Hedef halka yarıçapı — ekranın küçük kenarının %24'ü
+      const targetR = Math.min(canvas.width, canvas.height) * 0.24;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (const p of particles) {
-        let vx = p.bspX;
-        let vy = p.bspY;
+        // Normal drift konumu
+        const normalX = p.x + p.bspX;
+        const normalY = p.y + p.bspY;
 
         if (vortexT > 0) {
-          const dx = cx - p.x;
-          const dy = cy - p.y;
-          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-          const pull = 0.55 * vortexT;
-          const spin = 2.0 * vortexT;
-          // Clockwise tangential vector
-          const tx = -dy / dist;
-          const ty = dx / dist;
-          vx = vx * (1 - vortexT) + (dx / dist) * pull + tx * spin;
-          vy = vy * (1 - vortexT) + (dy / dist) * pull + ty * spin;
-        }
+          // Polar koordinat: mevcut açı + sabit ANGULAR_SPEED → hepsi senkron döner
+          const dx = p.x - cx;
+          const dy = p.y - cy;
+          const r = Math.sqrt(dx * dx + dy * dy) || 1;
+          const θ = Math.atan2(dy, dx) + ANGULAR_SPEED;
+          // Yarıçapı hedef halkaya doğru çek
+          const newR = r + (targetR - r) * 0.045;
 
-        p.x += vx;
-        p.y += vy;
+          const vortexX = cx + newR * Math.cos(θ);
+          const vortexY = cy + newR * Math.sin(θ);
 
-        if (vortexT > 0.5) {
-          // Respawn particles that reach center
-          const ddx = p.x - cx, ddy = p.y - cy;
-          if (ddx * ddx + ddy * ddy < 100) {
-            p.x = Math.random() * canvas.width;
-            p.y = Math.random() * canvas.height;
-          }
+          // Normal drift ile vortex arasında yumuşak geçiş
+          p.x = normalX * (1 - vortexT) + vortexX * vortexT;
+          p.y = normalY * (1 - vortexT) + vortexY * vortexT;
         } else {
+          p.x = normalX;
+          p.y = normalY;
           if (p.x < 0) p.x = canvas.width;
           if (p.x > canvas.width) p.x = 0;
           if (p.y < 0) p.y = canvas.height;
@@ -100,15 +105,41 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
         }
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * (1 + vortexT * 0.6), 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size * (1 + vortexT * 0.8), 0, Math.PI * 2);
         ctx.shadowColor = `hsla(${p.hue}, 90%, 60%, 0.9)`;
-        ctx.shadowBlur = 10 + vortexT * 16;
-        ctx.fillStyle = `hsla(${p.hue}, 90%, 60%, ${Math.min(1, p.opacity + vortexT * 0.35)})`;
+        ctx.shadowBlur = 10 + vortexT * 20;
+        ctx.fillStyle = `hsla(${p.hue}, 90%, 60%, ${Math.min(1, p.opacity + vortexT * 0.4)})`;
         ctx.fill();
       }
 
-      // Connection lines — skip during heavy vortex for perf
-      if (vortexT < 0.65) {
+      // Merkez yazı — READY → geri sayım
+      if (vortexT > 0.15) {
+        const elapsed = Date.now() - vortexStartTime;
+        const alpha = Math.min(1, (vortexT - 0.15) / 0.35);
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.shadowColor = "rgba(220,38,38,0.9)";
+        ctx.shadowBlur = 18;
+
+        if (elapsed < 1500) {
+          ctx.font = "bold 58px monospace";
+          ctx.fillStyle = `rgba(255,140,80,${alpha * 0.92})`;
+          ctx.fillText("READY", cx, cy);
+        } else {
+          const remaining = Math.ceil((10000 - elapsed) / 1000);
+          if (remaining > 0) {
+            ctx.font = "bold 76px monospace";
+            ctx.fillStyle = `rgba(255,100,60,${alpha * 0.88})`;
+            ctx.fillText(String(remaining), cx, cy);
+          }
+        }
+
+        ctx.restore();
+      }
+
+      // Bağlantı çizgileri sadece normal modda
+      if (vortexT < 0.3) {
         ctx.shadowBlur = 0;
         for (let i = 0; i < particles.length; i++) {
           for (let j = i + 1; j < particles.length; j++) {
@@ -285,9 +316,8 @@ export default function StudioPage() {
 
         {/* HUD Panel — dims to standby during generation */}
         <motion.div
-          initial={{ opacity: 0, y: 28 }}
-          animate={{ opacity: isGenerating ? 0.40 : 1, y: 0 }}
-          transition={{ duration: isGenerating ? 0.7 : 0.85, ease: "easeOut" }}
+          animate={{ opacity: isGenerating ? 0.40 : 1 }}
+          transition={{ duration: 0.6 }}
           style={{
             width: "100%", maxWidth: 800,
             background: "rgba(18,4,4,0.92)",
@@ -520,9 +550,9 @@ export default function StudioPage() {
 
       <style>{`
         @keyframes panelGlow {
-          0%   { box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0px rgba(220,38,38,0); }
-          50%  { box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 0 18px rgba(220,38,38,0.55), 0 0 40px rgba(220,38,38,0.20); }
-          100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 0 0px rgba(220,38,38,0); }
+          0%   { box-shadow: 0 0 0px rgba(220,38,38,0); }
+          50%  { box-shadow: 0 0 18px rgba(220,38,38,0.55); }
+          100% { box-shadow: 0 0 0px rgba(220,38,38,0); }
         }
         @keyframes void-spin {
           from { transform: rotate(0deg); }
