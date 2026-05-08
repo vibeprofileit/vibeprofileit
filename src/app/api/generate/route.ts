@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fal } from "@fal-ai/client";
 import sharp from "sharp";
+
+fal.config({ credentials: process.env.FAL_KEY });
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -19,11 +22,8 @@ const FLUX_TRIGGERS = [
   "knight", "armor", "sci-fi", "dark", "epic",
 ];
 
-// Active models (2026-05-08):
-//   FLUX   → black-forest-labs/FLUX.1-pro  (main quality engine)
-//   Kolors → Kwai-Kolors/Kolors            (anime / illustration)
-const MODEL_FLUX   = "black-forest-labs/FLUX.1-pro";
-const MODEL_KOLORS = "Kwai-Kolors/Kolors";
+const MODEL_FLUX   = "fal-ai/flux-pro/v1.1-ultra";
+const MODEL_KOLORS = "fal-ai/kolors";
 
 const FLUX_SYSTEM_PROMPT =
   "vertical portrait composition, tall format, cinematic lighting, " +
@@ -81,7 +81,7 @@ function getClientIp(req: NextRequest): string {
 // Model routing
 // ---------------------------------------------------------------------------
 
-function selectModel(prompt: string, category?: string): "flux" | "pony" {
+function selectModel(prompt: string, category?: string | null): "flux" | "pony" {
   if (category === "anime") return "pony";
   if (category === "darkfantasy" || category === "cyberpunk") return "flux";
   const lower = prompt.toLowerCase();
@@ -91,54 +91,7 @@ function selectModel(prompt: string, category?: string): "flux" | "pony" {
 }
 
 // ---------------------------------------------------------------------------
-// SiliconFlow API call
-// ---------------------------------------------------------------------------
-
-interface SiliconFlowResponse {
-  images: Array<{ url: string }>;
-}
-
-async function callSiliconFlow(
-  model: string,
-  prompt: string,
-  negativePrompt: string,
-  imageSize: string
-): Promise<SiliconFlowResponse> {
-  const apiKey = process.env.SILICONFLOW_API_KEY;
-  if (!apiKey) throw new Error("SILICONFLOW_API_KEY is not configured");
-
-  const res = await fetch("https://api.siliconflow.cn/v1/images/generations", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model,
-      prompt,
-      negative_prompt: negativePrompt,
-      image_size: imageSize,
-      batch_size: 1,
-    }),
-    signal: AbortSignal.timeout(30_000),
-  });
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    const err = new Error(
-      `SiliconFlow responded with ${res.status}: ${body}`
-    ) as Error & { status: number };
-    err.status = res.status;
-    throw err;
-  }
-
-  return res.json() as Promise<SiliconFlowResponse>;
-}
-
-// ---------------------------------------------------------------------------
-// Generation — size fallback only (768x1376 → 720x1280)
-//   No model fallback: errors surface immediately so we can diagnose them.
-//   Timeout → throw (caller returns 504)
+// fal.ai image generation
 // ---------------------------------------------------------------------------
 
 async function generateImageUrl(
@@ -146,27 +99,24 @@ async function generateImageUrl(
   prompt: string,
   negativePrompt: string
 ): Promise<string> {
-  const sizes = ["768x1376", "720x1280"] as const;
+  const result = await fal.subscribe(model, {
+    input: {
+      prompt,
+      negative_prompt: negativePrompt,
+      image_size: { width: 768, height: 1376 },
+      num_images: 1,
+    },
+  });
 
-  let lastErr: unknown;
-  for (const size of sizes) {
-    try {
-      const data = await callSiliconFlow(model, prompt, negativePrompt, size);
-      const url = data?.images?.[0]?.url;
-      if (url) return url;
-      throw new Error("No image URL in SiliconFlow response");
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name === "TimeoutError") throw err;
-      lastErr = err;
-    }
-  }
-
-  throw lastErr;
+  const images = (result.data as { images?: Array<{ url: string }> }).images;
+  const url = images?.[0]?.url;
+  if (!url) throw new Error("No image URL in fal.ai response");
+  return url;
 }
 
 // ---------------------------------------------------------------------------
 // Sharp post-processing: resize to 9:16 (768×1376), Steam-compatible output
-//   Strategy: PNG first (lossless). If > 4.9 MB, fall back to JPEG q95→q80→q65
+//   Strategy: PNG first (lossless). If > 4.9 MB, fall back to JPEG q95→q65
 //   Steam hard limit: 5 MB. We target 4.9 MB to stay safely under.
 // ---------------------------------------------------------------------------
 
@@ -182,13 +132,11 @@ async function processForSteam(
   const srcBuffer = Buffer.from(await imgRes.arrayBuffer());
   const resized = sharp(srcBuffer).resize(768, 1376, { fit: "cover", position: "centre" });
 
-  // Try PNG (lossless)
   const png = await resized.clone().png({ compressionLevel: 8 }).toBuffer();
   if (png.length <= STEAM_SAFE_BYTES) {
     return { buffer: png, mimeType: "image/png" };
   }
 
-  // Fall back to JPEG — reduce quality until under limit
   for (const quality of [95, 85, 75, 65]) {
     const jpg = await resized.clone().jpeg({ quality, mozjpeg: true }).toBuffer();
     if (jpg.length <= STEAM_SAFE_BYTES) {
@@ -196,7 +144,6 @@ async function processForSteam(
     }
   }
 
-  // Last resort: JPEG q55 (should always be under 4.9 MB at 768×1376)
   const fallback = await resized.clone().jpeg({ quality: 55, mozjpeg: true }).toBuffer();
   return { buffer: fallback, mimeType: "image/jpeg" };
 }
@@ -214,7 +161,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let body: { prompt?: string; category?: string };
+  let body: { prompt?: string; category?: string | null };
   try {
     body = await request.json();
   } catch {
@@ -243,25 +190,18 @@ export async function POST(request: NextRequest) {
   try {
     imageUrl = await generateImageUrl(model, finalPrompt, negativePrompt);
   } catch (err: unknown) {
-    if (err instanceof Error && err.name === "TimeoutError") {
-      return NextResponse.json(
-        { error: "Image generation timed out. Please try again." },
-        { status: 504 }
-      );
-    }
-    console.error("[POST /api/generate]", err);
+    console.error("[POST /api/generate] fal.ai error:", err);
     return NextResponse.json(
-      { error: "Image generation failed after retries. Please try again later." },
+      { error: "Image generation failed. Please try again later." },
       { status: 502 }
     );
   }
 
-  // Process with Sharp → PNG/JPEG, exact 9:16 at 768×1376, Steam ≤ 4.9 MB
   let result: { buffer: Buffer; mimeType: "image/png" | "image/jpeg" };
   try {
     result = await processForSteam(imageUrl);
   } catch (err) {
-    console.error("[POST /api/generate] sharp processing failed", err);
+    console.error("[POST /api/generate] sharp processing failed:", err);
     return NextResponse.json(
       { error: "Image processing failed. Please try again." },
       { status: 502 }
