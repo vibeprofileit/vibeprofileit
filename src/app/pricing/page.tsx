@@ -172,7 +172,7 @@ export default function PricingPage() {
               {/* CTA */}
               <button
                 onClick={() => handleBuy(plan)}
-                className="w-full py-3 rounded-xl font-bold text-sm transition-all duration-200"
+                className="w-full py-3 rounded-xl font-bold text-sm transition-transform duration-200 hover:scale-105 active:scale-95"
                 style={plan.pro ? {
                   background: "linear-gradient(to right, #dc2626, #ea580c)",
                   color: "#fff",
