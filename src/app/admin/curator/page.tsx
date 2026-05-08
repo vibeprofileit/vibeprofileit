@@ -19,6 +19,7 @@ type Artwork = {
   status: string;
   isFeatured: boolean;
   isNSFW: boolean;
+  isPremium: boolean;
   createdAt: string;
 };
 
@@ -288,19 +289,21 @@ const SELECT_CLS = "bg-zinc-900 border border-zinc-700 focus:border-[#00ff99] ou
 
 // ─── Approved Modal ───────────────────────────────────────────────────────────
 function ApprovedModal({
-  artwork, onClose, onMoveToPending, onHardDelete, onToggleFeatured, onNext, onPrev,
+  artwork, onClose, onMoveToPending, onHardDelete, onToggleFeatured, onTogglePremium, onNext, onPrev,
 }: {
   artwork: Artwork;
   onClose: () => void;
   onMoveToPending: (id: string) => Promise<void>;
   onHardDelete: (id: string) => Promise<void>;
   onToggleFeatured: (id: string, current: boolean) => Promise<void>;
+  onTogglePremium: (id: string, current: boolean) => Promise<void>;
   onNext: () => void;
   onPrev: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [starring, setStarring] = useState(false);
+  const [premiuming, setPremiuming] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -355,6 +358,10 @@ function ApprovedModal({
           <button onClick={async () => { setStarring(true); await onToggleFeatured(artwork.id, artwork.isFeatured); setStarring(false); }} disabled={starring}
             className={`flex-1 py-3 rounded-xl font-bold text-sm active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${artwork.isFeatured ? "bg-yellow-400 text-black hover:bg-yellow-300" : "bg-zinc-700 text-white hover:bg-zinc-600"}`}>
             {starring ? "..." : artwork.isFeatured ? "★  Featured" : "☆  Feature"}
+          </button>
+          <button onClick={async () => { setPremiuming(true); await onTogglePremium(artwork.id, artwork.isPremium); setPremiuming(false); }} disabled={premiuming}
+            className={`flex-1 py-3 rounded-xl font-bold text-sm active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${artwork.isPremium ? "bg-amber-500 text-black hover:bg-amber-400" : "bg-zinc-700 text-white hover:bg-zinc-600"}`}>
+            {premiuming ? "..." : artwork.isPremium ? "💎  Premium" : "💎  Premium Yap"}
           </button>
           <button onClick={async () => { setLoading(true); await onMoveToPending(artwork.id); setLoading(false); onClose(); }} disabled={loading}
             className="flex-1 py-3 rounded-xl font-bold text-sm bg-zinc-600 hover:bg-zinc-500 text-white active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
@@ -440,6 +447,7 @@ function GridThumb({ art, onClick }: { art: Artwork; index: number; onClick: () 
         <img src={url} alt="artwork" loading="lazy" decoding="async"
           style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", top: 0, left: 0 }} />
         {art.isFeatured && <span className="absolute top-1 left-1 text-yellow-400 text-sm leading-none select-none">★</span>}
+        {art.isPremium && <span className="absolute top-1 right-1 text-amber-400 text-xs leading-none select-none font-bold">💎</span>}
       </div>
     );
   }
@@ -458,6 +466,7 @@ function GridThumb({ art, onClick }: { art: Artwork; index: number; onClick: () 
       <img ref={imgRef} alt="artwork"
         style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", top: 0, left: 0, opacity: isHovered ? 1 : 0, transition: "opacity 0.2s ease" }} />
       {art.isFeatured && <span className="absolute top-1 left-1 text-yellow-400 text-sm leading-none select-none">★</span>}
+      {art.isPremium && <span className="absolute top-1 right-1 text-amber-400 text-xs leading-none select-none font-bold">💎</span>}
     </div>
   );
 }
@@ -500,6 +509,17 @@ function ApprovedTab({
     setSelected((prev) => prev?.id === id ? { ...prev, isFeatured: newFeatured } : prev);
   };
 
+  const togglePremium = async (id: string, current: boolean) => {
+    const newPremium = !current;
+    const res = await fetch("/api/admin/artworks", {
+      method: "PATCH", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, togglePremium: newPremium }),
+    });
+    if (!res.ok) { console.error("[togglePremium] API hatası:", await res.text()); return; }
+    setArtworks((prev) => prev.map((a) => a.id === id ? { ...a, isPremium: newPremium } : a));
+    setSelected((prev) => prev?.id === id ? { ...prev, isPremium: newPremium } : prev);
+  };
+
   const filtered = artworks.filter((a) => {
     if (mediaFilter === "NSFW") return a.isNSFW;
     if (mediaFilter === "ALL") return true;
@@ -537,7 +557,7 @@ function ApprovedTab({
         const handlePrev = () => { if (filtered.length) setSelected(filtered[(idx - 1 + filtered.length) % filtered.length]); };
         return (
           <ApprovedModal artwork={selected} onClose={() => setSelected(null)}
-            onMoveToPending={moveToPending} onHardDelete={hardDelete} onToggleFeatured={toggleFeatured}
+            onMoveToPending={moveToPending} onHardDelete={hardDelete} onToggleFeatured={toggleFeatured} onTogglePremium={togglePremium}
             onNext={handleNext} onPrev={handlePrev} />
         );
       })()}
@@ -591,7 +611,7 @@ export default function CuratorPage() {
   const [approvedArtworks, setApprovedArtworks] = useState<Artwork[]>([]);
   const [approvedLoading, setApprovedLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [tags, setTags] = useState({ theme: "", color: "", vibe: "", mediaType: "ANIMATED", isFeatured: false, isNSFW: false });
+  const [tags, setTags] = useState({ theme: "", color: "", vibe: "", mediaType: "ANIMATED", isFeatured: false, isNSFW: false, isPremium: false });
 
   const current = queue[0] ?? null;
 
@@ -621,7 +641,7 @@ export default function CuratorPage() {
 
   useEffect(() => {
     if (current) {
-      setTags({ theme: current.theme ?? "", color: current.color ?? "", vibe: current.vibe ?? "", mediaType: "ANIMATED", isFeatured: current.isFeatured ?? false, isNSFW: current.isNSFW ?? false });
+      setTags({ theme: current.theme ?? "", color: current.color ?? "", vibe: current.vibe ?? "", mediaType: "ANIMATED", isFeatured: current.isFeatured ?? false, isNSFW: current.isNSFW ?? false, isPremium: current.isPremium ?? false });
     }
   }, [current]);
 
@@ -747,6 +767,15 @@ export default function CuratorPage() {
                   ${tags.isNSFW ? "bg-red-700 text-white hover:bg-red-600 border border-red-500" : "bg-zinc-900 text-zinc-500 hover:text-zinc-300 border border-zinc-700"}`}
               >
                 {tags.isNSFW ? "🔞  +18 / NSFW (Approve'da kaydedilecek)" : "🔞  +18 / NSFW olarak işaretle"}
+              </button>
+
+              {/* Premium toggle */}
+              <button
+                onClick={() => setTags((t) => ({ ...t, isPremium: !t.isPremium }))}
+                className={`w-full py-2 rounded-lg text-sm font-semibold transition-all
+                  ${tags.isPremium ? "bg-amber-500 text-black hover:bg-amber-400 border border-amber-400" : "bg-zinc-900 text-zinc-500 hover:text-zinc-300 border border-zinc-700"}`}
+              >
+                {tags.isPremium ? "💎  Premium (Approve'da kaydedilecek)" : "💎  Premium olarak işaretle"}
               </button>
 
               <div className="flex gap-2 w-full">

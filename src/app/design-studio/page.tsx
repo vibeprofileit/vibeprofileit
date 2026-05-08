@@ -187,6 +187,7 @@ function UploadPageInner() {
   const [showcaseMode, setShowcaseMode] = useState<'classic' | 'featured' | null>(null);
   const [gifWarning, setGifWarning] = useState(false);
   const [btnHovered, setBtnHovered] = useState(false);
+  const [isPremiumImage, setIsPremiumImage] = useState(false);
 
   const outerRef  = useRef<HTMLDivElement>(null);
   const masterRef = useRef<HTMLDivElement>(null);
@@ -203,9 +204,10 @@ function UploadPageInner() {
 
   // ── Galeriden / Studio'dan gelen URL parametrelerini isle ──────
   useEffect(() => {
-    const template = searchParams.get("template");
-    const imageUrl = searchParams.get("imageUrl");
-    const source   = searchParams.get("source");
+    const template  = searchParams.get("template");
+    const imageUrl  = searchParams.get("imageUrl");
+    const source    = searchParams.get("source");
+    if (searchParams.get("isPremium") === "true") setIsPremiumImage(true);
 
     if (template === "featured") {
       setShowcaseMode("featured");
@@ -550,7 +552,7 @@ function UploadPageInner() {
             featuredCanvas.getContext("2d")!
               .drawImage(bgImg, 0, 0, srcW, srcH, 0, 0, targetW, targetH);
             setProgress(70);
-            await stampWatermark(featuredCanvas);
+            if (!isPremiumImage) await stampWatermark(featuredCanvas);
             if (isElite) {
               zip.file("featured_main.png", await canvasToBlob(featuredCanvas));
             } else {
@@ -573,7 +575,7 @@ function UploadPageInner() {
 
             const mainCrop = cropCanvas(masterCanvas, 0,   506);
             const sideCrop = cropCanvas(masterCanvas, 512, 100);
-            await Promise.all([stampWatermark(mainCrop), stampWatermark(sideCrop)]);
+            if (!isPremiumImage) await Promise.all([stampWatermark(mainCrop), stampWatermark(sideCrop)]);
 
             if (isElite) {
               zip.file("main.png", await canvasToBlob(mainCrop));

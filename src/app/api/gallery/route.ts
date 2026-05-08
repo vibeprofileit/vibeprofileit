@@ -63,11 +63,13 @@ export async function GET(request: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const andClauses: any[] = [{ status: "APPROVED" }];
 
-  if (category === "Animated") {
+  if (category === "Premium") {
+    andClauses.push({ isPremium: true });
+  } else if (category === "Animated") {
     andClauses.push({ mediaType: { equals: "animated", mode: "insensitive" } });
   } else if (category === "Static") {
     andClauses.push({ NOT: { mediaType: { equals: "animated", mode: "insensitive" } } });
-  } else if (category === "✨ Neon") {
+  } else if (category === "Neon") {
     andClauses.push({ OR: [
       { color: { contains: "Neon", mode: "insensitive" } },
       { vibe:  { contains: "Neon", mode: "insensitive" } },

@@ -12,7 +12,7 @@ const CHUNK_SIZE = 24;
 
 const CATEGORIES = [
   "All","Anime", "Artist", "Cars", "Cartoon", "City", "Fantasy", "Gaming",
-  "Marvel", "Movie", "Nature", "Samurai", "Art", "Real", "✨ Neon", "Animated", "Static",
+  "Marvel", "Movie", "Nature", "Samurai", "Art", "Real", "Neon", "Animated", "Static", "Premium",
 ];
 
 type GalleryItem = {
@@ -210,7 +210,7 @@ function ImageModal({
               {/* Butonlar */}
               <div className="flex flex-col gap-2 mt-[220px] pb-6">
                 <Link
-                  href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}`}
+                  href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}${item.isPremium ? "&isPremium=true" : ""}`}
                   target="_blank" rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white"
                   style={{ background: "linear-gradient(135deg, rgba(188,19,254,0.85), rgba(120,0,200,0.6))", border: "1px solid rgba(188,19,254,1)", transition: "transform 0.2s ease" }}
@@ -438,7 +438,7 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
       {hov && !rel.isAdult && (
         <>
           <Link
-            href={`/design-studio?id=${rel.id}&template=featured&imageUrl=${encodeURIComponent(rel.src)}`}
+            href={`/design-studio?id=${rel.id}&template=featured&imageUrl=${encodeURIComponent(rel.src)}${rel.isPremium ? "&isPremium=true" : ""}`}
             target="_blank" rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className="absolute top-1.5 right-1.5 flex items-center gap-1 px-3 py-1.5 rounded-lg z-20"
@@ -660,12 +660,23 @@ function GalleryCard({
             />
           )}
 
-          <div
-            className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full z-10 pointer-events-none"
-            style={{ background: "rgba(8,0,20,0.85)", border: "1px solid rgba(188,19,254,0.7)", boxShadow: "0 0 8px rgba(188,19,254,0.45)" }}
-          >
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#BC13FE", boxShadow: "0 0 5px #BC13FE", display: "inline-block" }} />
-            <span style={{ color: "#BC13FE", fontSize: "8px", fontWeight: 800, letterSpacing: "0.12em" }}>LIVE</span>
+          <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
+            <div
+              className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(8,0,20,0.85)", border: "1px solid rgba(188,19,254,0.7)", boxShadow: "0 0 8px rgba(188,19,254,0.45)" }}
+            >
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#BC13FE", boxShadow: "0 0 5px #BC13FE", display: "inline-block" }} />
+              <span style={{ color: "#BC13FE", fontSize: "8px", fontWeight: 800, letterSpacing: "0.12em" }}>LIVE</span>
+            </div>
+            {item.isPremium && (
+              <div
+                className="flex items-center gap-1 px-2 py-0.5 rounded-full"
+                style={{ background: "rgba(20,15,0,0.9)", border: "1px solid rgba(255,215,0,0.8)", boxShadow: "0 0 8px rgba(255,215,0,0.5)" }}
+              >
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#FFD700", boxShadow: "0 0 5px #FFD700", display: "inline-block" }} />
+                <span style={{ color: "#FFD700", fontSize: "8px", fontWeight: 800, letterSpacing: "0.12em" }}>PREMIUM</span>
+              </div>
+            )}
           </div>
         </>
       ) : item.src ? (
@@ -676,6 +687,15 @@ function GalleryCard({
         />
       ) : (
         <PremiumPlaceholder />
+      )}
+
+      {/* PREMIUM badge — statik kartlar için (animated zaten yukarıda gösteriyor) */}
+      {item.isPremium && !item.isAnimated && (
+        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full z-10 pointer-events-none"
+          style={{ background: "rgba(20,15,0,0.9)", border: "1px solid rgba(255,215,0,0.8)", boxShadow: "0 0 8px rgba(255,215,0,0.5)" }}>
+          <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#FFD700", boxShadow: "0 0 5px #FFD700", display: "inline-block" }} />
+          <span style={{ color: "#FFD700", fontSize: "8px", fontWeight: 800, letterSpacing: "0.12em" }}>PREMIUM</span>
+        </div>
       )}
 
       {/* Hover overlay */}
@@ -707,7 +727,7 @@ function GalleryCard({
             ) : (
               <>
                 <Link
-                  href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}`}
+                  href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}${item.isPremium ? "&isPremium=true" : ""}`}
                   target="_blank" rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                   className="absolute top-2.5 right-2.5 flex items-center gap-1 px-3 py-1.5 rounded-xl"
@@ -1009,31 +1029,38 @@ export default function GalleryPage() {
           <div className="flex items-center overflow-x-auto" style={{ scrollbarWidth: "none", gap: "6px" }}>
             {CATEGORIES.map((cat) => {
               const active = cat === "All" ? activeCategory === "" : activeCategory === cat;
-              const isNeon = cat === "✨ Neon";
+              const isNeon    = cat === "Neon";
+              const isPremCat = cat === "Premium";
               return (
                 <button
                   key={cat}
                   onClick={() => { if (cat === "All") { setActiveCategory(""); return; } setActiveCategory(active ? "" : cat); }}
-                  className="flex-shrink-0 px-4 py-2 rounded-full font-medium text-white transition-all duration-200"
+                  className={`flex-shrink-0 px-4 py-2 rounded-full font-medium transition-all duration-200 ${isPremCat ? "text-yellow-300" : "text-white"}`}
                   style={{
                     fontSize: "15px",
-                    background: active ? (isNeon ? "rgba(255,210,0,0.18)" : "rgba(188,19,254,0.3)") : "rgba(46,16,101,0.5)",
-                    border: active ? (isNeon ? "1px solid rgba(255,210,0,0.8)" : "1px solid rgba(188,19,254,0.7)") : (isNeon ? "1px solid rgba(255,210,0,0.3)" : "1px solid rgba(188,19,254,0.2)"),
-                    boxShadow: active ? (isNeon ? "0 0 14px rgba(255,210,0,0.45), 0 0 28px rgba(255,180,0,0.2)" : "0 0 14px rgba(188,19,254,0.4)") : (isNeon ? "0 0 6px rgba(255,210,0,0.15)" : "none"),
+                    background: active
+                      ? (isPremCat ? "rgba(255,215,0,0.15)" : isNeon ? "rgba(255,210,0,0.18)" : "rgba(188,19,254,0.3)")
+                      : (isPremCat ? "rgba(0,0,0,0.8)" : "rgba(46,16,101,0.5)"),
+                    border: active
+                      ? (isPremCat ? "1px solid rgba(255,215,0,0.9)" : isNeon ? "1px solid rgba(255,210,0,0.8)" : "1px solid rgba(188,19,254,0.7)")
+                      : (isPremCat ? "1px solid rgba(255,215,0,0.35)" : isNeon ? "1px solid rgba(255,210,0,0.3)" : "1px solid rgba(188,19,254,0.2)"),
+                    boxShadow: active
+                      ? (isPremCat ? "0 0 14px rgba(255,215,0,0.55), 0 0 28px rgba(255,215,0,0.2)" : isNeon ? "0 0 14px rgba(255,210,0,0.45), 0 0 28px rgba(255,180,0,0.2)" : "0 0 14px rgba(188,19,254,0.4)")
+                      : (isPremCat ? "0 0 6px rgba(255,215,0,0.15)" : isNeon ? "0 0 6px rgba(255,210,0,0.15)" : "none"),
                     backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
                   }}
                   onMouseEnter={(e) => {
-                    if (!active) {
+                    if (!active && !isPremCat) {
                       const el = e.currentTarget as HTMLButtonElement;
                       el.style.boxShadow = isNeon ? "0 0 12px rgba(255,210,0,0.35)" : "0 0 12px rgba(188,19,254,0.35)";
                       el.style.border    = isNeon ? "1px solid rgba(255,210,0,0.55)" : "1px solid rgba(188,19,254,0.45)";
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (!active) {
+                    if (!active && !isPremCat) {
                       const el = e.currentTarget as HTMLButtonElement;
                       el.style.boxShadow = isNeon ? "0 0 6px rgba(255,210,0,0.15)" : "none";
-                      el.style.border    = isNeon ? "1px solid rgba(255,210,0,0.3)"  : "1px solid rgba(188,19,254,0.2)";
+                      el.style.border    = isNeon ? "1px solid rgba(255,210,0,0.3)" : "1px solid rgba(188,19,254,0.2)";
                     }
                   }}
                 >

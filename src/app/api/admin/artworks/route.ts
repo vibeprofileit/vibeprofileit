@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const { id, theme, color, vibe, mediaType, isFeatured, isNSFW, moveToPending, toggleFeatured } = await request.json();
+  const { id, theme, color, vibe, mediaType, isFeatured, isNSFW, isPremium, moveToPending, toggleFeatured, togglePremium } = await request.json();
 
   if (!id) return Response.json({ error: "id gerekli" }, { status: 400 });
 
@@ -51,6 +51,16 @@ export async function PATCH(request: NextRequest) {
       return Response.json(updated);
     } catch (err) {
       console.error("[toggleFeatured] DB hatası:", err);
+      return Response.json({ error: (err as Error).message }, { status: 500 });
+    }
+  }
+
+  if (togglePremium !== undefined) {
+    try {
+      const updated = await prisma.artwork.update({ where: { id }, data: { isPremium: togglePremium } });
+      return Response.json(updated);
+    } catch (err) {
+      console.error("[togglePremium] DB hatası:", err);
       return Response.json({ error: (err as Error).message }, { status: 500 });
     }
   }
@@ -138,6 +148,7 @@ export async function PATCH(request: NextRequest) {
         ...(mediaType !== undefined && { mediaType }),
         ...(isFeatured !== undefined && { isFeatured }),
         ...(isNSFW !== undefined && { isNSFW }),
+        ...(isPremium !== undefined && { isPremium }),
         r2Key,
         sourceUrl: finalSourceUrl,
         status: "APPROVED",
