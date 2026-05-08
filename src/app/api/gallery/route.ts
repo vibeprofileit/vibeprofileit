@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true, sourceUrl: true, coverUrl: true, width: true, height: true,
             sizeBytes: true, format: true, theme: true, color: true,
-            vibe: true, mediaType: true, isFeatured: true, isNSFW: true, createdAt: true,
+            vibe: true, mediaType: true, isFeatured: true, isNSFW: true, isPremium: true, createdAt: true,
           },
         })
       : [];
@@ -131,6 +131,7 @@ export async function GET(request: NextRequest) {
       isAnimated: a.mediaType?.toLowerCase() === "animated",
       isAdult:    a.isNSFW,
       isFeatured: a.isFeatured,
+      isPremium:  a.isPremium,
       createdAt:  a.createdAt.toISOString(),
       realViews:  0,
       realLikes:  0,

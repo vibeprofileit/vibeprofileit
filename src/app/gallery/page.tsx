@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Header from "@/components/Header";
 import ProtectedImage from "@/components/ui/ProtectedImage";
-import { Search, ExternalLink, ChevronDown, Pencil, Eye, X, Download, Heart } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Search, ExternalLink, ChevronDown, Pencil, Eye, X, Download, Heart, Lock } from "lucide-react";
 
 const CHUNK_SIZE = 24;
 
@@ -30,6 +31,7 @@ type GalleryItem = {
   isAnimated: boolean;
   isAdult: boolean;
   isFeatured: boolean;
+  isPremium: boolean;
   createdAt: string;
 };
 
@@ -511,6 +513,7 @@ function GalleryCard({
   index: number;
   onView: (item: GalleryItem) => void;
 }) {
+  const router = useRouter();
   const [hovered,       setHovered]       = useState(false);
   const [studioHovered, setStudioHovered] = useState(false);
   const [viewHovered,   setViewHovered]   = useState(false);
@@ -586,7 +589,11 @@ function GalleryCard({
       onMouseEnter={() => { if (!item.isAdult) setHovered(true); }}
       onMouseLeave={() => { if (!item.isAdult) { setHovered(false); setStudioHovered(false); setViewHovered(false); } }}
       whileHover={!item.isAdult ? { scale: 1.02, transition: { duration: 0.2 } } : {}}
-      onClick={() => { if (!item.isAdult) onView(item); }}
+      onClick={() => {
+        if (item.isAdult) return;
+        if (item.isPremium) { router.push("/pricing"); return; }
+        onView(item);
+      }}
     >
       {/* Base bg */}
       <div className="absolute inset-0" style={{ background: "#050505" }} />
@@ -685,44 +692,57 @@ function GalleryCard({
               width: "100%", height: "100%",
               borderRadius: "inherit",
               overflow: "hidden",
-              background: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.7) 100%)",
+              background: item.isPremium
+                ? "rgba(0,0,0,0.92)"
+                : "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.7) 100%)",
             }}
           >
-            <Link
-              href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}`}
-              target="_blank" rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="absolute top-2.5 right-2.5 flex items-center gap-1 px-3 py-1.5 rounded-xl"
-              style={{
-                background: "transparent", border: "2px solid #ff1cd3", zIndex: 20, position: "absolute",
-                boxShadow: studioHovered ? "0 0 15px rgba(188,19,254,0.5)" : "0 0 8px rgba(188,19,254,0.3)",
-                transform: studioHovered ? "scale(1.05)" : "scale(1)", transition: "all 0.2s ease",
-              }}
-              onMouseEnter={() => setStudioHovered(true)}
-              onMouseLeave={() => setStudioHovered(false)}
-            >
-              <Pencil size={12} color="#fff" />
-              <span className="text-white font-semibold" style={{ fontSize: "11px" }}>View in Studio</span>
-              <ExternalLink size={10} color="#fff" />
-            </Link>
+            {item.isPremium ? (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
+                <Lock size={22} color="rgba(255,215,0,0.9)" strokeWidth={2.5} />
+                <span style={{ color: "rgba(255,215,0,0.95)", fontSize: "12px", fontWeight: 800, letterSpacing: "0.08em", textAlign: "center" }}>
+                  Buy for 10 Tokens
+                </span>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute top-2.5 right-2.5 flex items-center gap-1 px-3 py-1.5 rounded-xl"
+                  style={{
+                    background: "transparent", border: "2px solid #ff1cd3", zIndex: 20, position: "absolute",
+                    boxShadow: studioHovered ? "0 0 15px rgba(188,19,254,0.5)" : "0 0 8px rgba(188,19,254,0.3)",
+                    transform: studioHovered ? "scale(1.05)" : "scale(1)", transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={() => setStudioHovered(true)}
+                  onMouseLeave={() => setStudioHovered(false)}
+                >
+                  <Pencil size={12} color="#fff" />
+                  <span className="text-white font-semibold" style={{ fontSize: "11px" }}>View in Studio</span>
+                  <ExternalLink size={10} color="#fff" />
+                </Link>
 
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <button
-                onClick={(e) => { e.stopPropagation(); onView(item); }}
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full font-semibold text-white pointer-events-auto"
-                style={{
-                  fontSize: "12px",
-                  background: "rgba(0,0,0,0.55)", border: "1px solid rgba(188,19,254,0.7)",
-                  transform: viewHovered ? "scale(1.08)" : "scale(1)",
-                  boxShadow: viewHovered ? "0 0 18px rgba(188,19,254,0.65)" : "none",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={() => setViewHovered(true)}
-                onMouseLeave={() => setViewHovered(false)}
-              >
-                <Eye size={12} /> View
-              </button>
-            </div>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onView(item); }}
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full font-semibold text-white pointer-events-auto"
+                    style={{
+                      fontSize: "12px",
+                      background: "rgba(0,0,0,0.55)", border: "1px solid rgba(188,19,254,0.7)",
+                      transform: viewHovered ? "scale(1.08)" : "scale(1)",
+                      boxShadow: viewHovered ? "0 0 18px rgba(188,19,254,0.65)" : "none",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={() => setViewHovered(true)}
+                    onMouseLeave={() => setViewHovered(false)}
+                  >
+                    <Eye size={12} /> View
+                  </button>
+                </div>
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
