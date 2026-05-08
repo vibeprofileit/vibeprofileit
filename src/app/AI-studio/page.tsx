@@ -184,6 +184,7 @@ export default function StudioPage() {
   const [previewMode, setPreviewMode] = useState(false);
 
   const [generateStatus, setGenerateStatus] = useState("");
+  const [generateError,  setGenerateError]  = useState("");
 
   const vortexRef = useRef(false);
 
@@ -198,6 +199,7 @@ export default function StudioPage() {
     }
 
     setValidationError("");
+    setGenerateError("");
     setIsGenerating(true);
     setGeneratedImage(null);
     setPreviewMode(false);
@@ -248,7 +250,9 @@ export default function StudioPage() {
       statusTimers.forEach(clearTimeout);
       vortexRef.current = false;
       setIsGenerating(false);
-      setGenerateStatus(err instanceof Error ? err.message : "Generation failed. Please try again.");
+      setGenerateStatus("");
+      const msg = err instanceof Error ? err.message : "Generation failed. Please try again.";
+      if (msg) setGenerateError(msg);
     }
   }, [prompt, selectedCategory, isGenerating]);
 
@@ -531,6 +535,15 @@ export default function StudioPage() {
               "Visualize for 15 Tokens"
             )}
           </button>
+
+          {generateError && (
+            <p style={{
+              marginTop: 14, fontSize: 13, color: "#f87171",
+              textAlign: "center", letterSpacing: "0.02em",
+            }}>
+              {generateError}
+            </p>
+          )}
         </motion.div>
 
         {/* Preview Card — shrinks in after modal close */}

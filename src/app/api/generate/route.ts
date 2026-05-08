@@ -14,47 +14,55 @@ fal.config({ credentials: process.env.FAL_API_KEY });
 const NSFW_KEYWORDS = ["nude", "nsfw", "naked", "explicit"];
 
 const PONY_TRIGGERS = [
-  "anime", "manga", "cartoon", "chibi", "waifu", "drawn", "comic",
-  "illustration", "2d", "kawaii", "ghibli", "naruto", "demon",
-  "jujutsu", "sakura", "illustrated",
+  "anime", "manga", "waifu", "drawn", "comic",
+  "illustration", "2d", "naruto", "demon", "jujutsu",
+  "illustrated", "bleach", "one piece", "attack on titan",
+  "sword art", "re zero", "hunter x hunter", "chainsaw",
 ];
 
 const FLUX_TRIGGERS = [
   "photo", "realistic", "cinematic", "portrait", "photography",
   "hyperrealistic", "fantasy", "cyberpunk", "warrior", "dragon",
-  "knight", "armor", "sci-fi", "dark", "epic",
+  "knight", "armor", "sci-fi", "epic", "fps", "rpg", "shooter",
+  "mech", "soldier", "ninja", "assassin", "sniper", "mage",
+  "wizard", "berserker", "paladin", "warlock", "gunner",
+  "mercenary", "hunter", "ranger", "samurai", "viking",
 ];
 
 const MODEL_FLUX   = "fal-ai/flux-pro/v1.1";
 const MODEL_KOLORS = "fal-ai/kolors";
 
 const FLUX_SYSTEM_PROMPT =
-  "vertical portrait composition, tall format, cinematic lighting, " +
-  "dramatic shadows, volumetric fog, deep contrast, sharp focus, " +
-  "intricate details, atmospheric depth, epic scale, " +
-  "professional digital art, rich colors, dynamic pose, " +
-  "detailed environment, masterpiece";
+  "Steam profile artwork, gaming character portrait, vertical portrait composition, " +
+  "tall format 9:16, cinematic lighting, dramatic shadows, volumetric fog, " +
+  "deep contrast, sharp focus, intricate details, atmospheric depth, " +
+  "epic scale, professional digital art, rich colors, dynamic hero pose, " +
+  "detailed armor or outfit, powerful character presence, masterpiece";
 
 const FLUX_NEGATIVE_PROMPT =
-  "blurry, watermark, text, logo, horizontal composition, " +
-  "landscape format, low quality, bad anatomy, deformed, " +
-  "ugly, oversaturated, noise, grain, washed out, " +
-  "flat lighting, extra limbs, distorted, amateur, poorly drawn";
+  "blurry, watermark, text, logo, horizontal composition, landscape format, " +
+  "low quality, bad anatomy, deformed, ugly, oversaturated, noise, grain, " +
+  "washed out, flat lighting, extra limbs, distorted, amateur, poorly drawn, " +
+  "food, cooking, kitchen, animals, pets, cat, dog, cute, kawaii, chibi, " +
+  "peaceful, slice of life, school, classroom, no character, empty scene";
 
 const KOLORS_SYSTEM_PROMPT =
-  "anime style illustration, masterpiece, best quality, " +
-  "ultra detailed, vertical portrait composition, tall format, " +
-  "vibrant saturated colors, highly detailed eyes, " +
-  "sharp clean lineart, dramatic cinematic lighting, " +
-  "dynamic action pose, detailed background, " +
-  "steam artwork, gaming aesthetic, epic atmosphere";
+  "anime gaming character illustration, masterpiece, best quality, " +
+  "ultra detailed, vertical portrait composition, tall format 9:16, " +
+  "vibrant saturated colors, highly detailed eyes, sharp clean lineart, " +
+  "dramatic cinematic lighting, dynamic battle pose, detailed background, " +
+  "Steam profile artwork, gaming aesthetic, epic atmosphere, " +
+  "powerful warrior or hero, intense expression, detailed weapon or armor";
 
 const KOLORS_NEGATIVE_PROMPT =
   "worst quality, low quality, blurry, watermark, text, " +
   "horizontal composition, landscape format, " +
   "bad anatomy, deformed, extra limbs, " +
   "poorly drawn eyes, bad hands, missing fingers, " +
-  "flat colors, dull, boring, generic";
+  "flat colors, dull, boring, generic, " +
+  "food, animals, cute, kawaii, chibi, slice of life, " +
+  "school uniform, classroom, peaceful, no action, " +
+  "western cartoon, 3d render, realistic photo";
 
 // ---------------------------------------------------------------------------
 // Rate limiter — in-memory, 3 req / 60 s per IP
@@ -86,11 +94,11 @@ function getClientIp(req: NextRequest): string {
 // Model routing
 // ---------------------------------------------------------------------------
 
-function selectModel(prompt: string, category?: string | null): "flux" | "pony" {
-  if (category === "anime") return "pony";
+function selectModel(prompt: string, category?: string | null): "flux" | "kolors" {
+  if (category === "anime") return "kolors";
   if (category === "darkfantasy" || category === "cyberpunk") return "flux";
   const lower = prompt.toLowerCase();
-  if (PONY_TRIGGERS.some((t) => lower.includes(t))) return "pony";
+  if (PONY_TRIGGERS.some((t) => lower.includes(t))) return "kolors";
   if (FLUX_TRIGGERS.some((t) => lower.includes(t))) return "flux";
   return "flux";
 }
@@ -206,9 +214,9 @@ export async function POST(request: NextRequest) {
   }
 
   const modelKey     = selectModel(userPrompt, body.category);
-  const model        = modelKey === "pony" ? MODEL_KOLORS : MODEL_FLUX;
-  const systemPrompt = modelKey === "pony" ? KOLORS_SYSTEM_PROMPT : FLUX_SYSTEM_PROMPT;
-  const negativePrompt = modelKey === "pony" ? KOLORS_NEGATIVE_PROMPT : FLUX_NEGATIVE_PROMPT;
+  const model        = modelKey === "kolors" ? MODEL_KOLORS : MODEL_FLUX;
+  const systemPrompt = modelKey === "kolors" ? KOLORS_SYSTEM_PROMPT : FLUX_SYSTEM_PROMPT;
+  const negativePrompt = modelKey === "kolors" ? KOLORS_NEGATIVE_PROMPT : FLUX_NEGATIVE_PROMPT;
   const finalPrompt  = `${userPrompt}, ${systemPrompt}`;
 
   let imageUrl: string;
@@ -244,7 +252,7 @@ export async function POST(request: NextRequest) {
     headers: {
       "Content-Type": result.mimeType,
       "Cache-Control": "no-store",
-      "X-Model": modelKey,
+      "X-Used-Model": modelKey,
     },
   });
 }

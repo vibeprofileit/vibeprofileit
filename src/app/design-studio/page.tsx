@@ -207,7 +207,7 @@ function UploadPageInner() {
     const template  = searchParams.get("template");
     const imageUrl  = searchParams.get("imageUrl");
     const source    = searchParams.get("source");
-    if (searchParams.get("isPremium") === "true") setIsPremiumImage(true);
+    if (searchParams.get("isPremium") === "true" || source === "ai-studio") setIsPremiumImage(true);
 
     if (template === "featured") {
       setShowcaseMode("featured");
