@@ -29,9 +29,10 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
       bspX: number; bspY: number;
       opacity: number; hue: number;
       textX: number; textY: number;
+      delay: number; // stagger delay ms before flying to text
     };
 
-    const particles: Particle[] = Array.from({ length: 200 }, () => {
+    const particles: Particle[] = Array.from({ length: 250 }, () => {
       const bspX = (Math.random() - 0.5) * 0.35;
       const bspY = (Math.random() - 0.5) * 0.35;
       return {
@@ -42,6 +43,7 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
         opacity: Math.random() * 0.55 + 0.1,
         hue: Math.random() * 30,
         textX: 0, textY: 0,
+        delay: 0,
       };
     });
 
@@ -59,20 +61,23 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
       off.width = canvas.width;
       off.height = canvas.height;
       const oc = off.getContext("2d")!;
-      const fs = Math.min(canvas.width * 0.16, 130);
-      oc.font = `900 ${fs}px monospace`;
-      oc.fillStyle = "#fff";
+      const fs = Math.min(canvas.width * 0.11, 160);
+      oc.clearRect(0, 0, off.width, off.height);
+      oc.fillStyle = "#ffffff";
+      oc.font = `bold ${fs}px monospace`;
       oc.textAlign = "center";
       oc.textBaseline = "middle";
-      oc.fillText("READY", canvas.width / 2, canvas.height / 2);
+      oc.fillText("READY", off.width / 2, off.height / 2);
 
-      const { data } = oc.getImageData(0, 0, canvas.width, canvas.height);
+      const { data, width, height } = oc.getImageData(0, 0, off.width, off.height);
       const pts: { x: number; y: number }[] = [];
-      const step = 5;
-      for (let y = 0; y < canvas.height; y += step)
-        for (let x = 0; x < canvas.width; x += step)
-          if (data[(y * canvas.width + x) * 4 + 3] > 128)
+      const step = 4;
+      for (let y = 0; y < height; y += step)
+        for (let x = 0; x < width; x += step)
+          if (data[(y * width + x) * 4 + 3] > 100)
             pts.push({ x, y });
+
+      if (pts.length === 0) return; // font yüklenmedi, geç
 
       // Fisher-Yates shuffle
       for (let i = pts.length - 1; i > 0; i--) {
@@ -84,6 +89,7 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
         const t = pts[i % pts.length];
         p.textX = t.x;
         p.textY = t.y;
+        p.delay = Math.random() * 700; // 0–700ms stagger
       });
     };
 
@@ -128,9 +134,12 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
           if (p.y < 0) p.y = canvas.height;
           if (p.y > canvas.height) p.y = 0;
         } else if (phase === 1) {
-          // READY formasyonu — her sim hedef harfe doğru akın eder
-          p.x += (p.textX - p.x) * 0.09;
-          p.y += (p.textY - p.y) * 0.09;
+          // Stagger: her sim kendi delay'i dolana kadar yerinde bekler
+          const elapsed = Date.now() - vortexStartTime;
+          if (elapsed > p.delay) {
+            p.x += (p.textX - p.x) * 0.06;
+            p.y += (p.textY - p.y) * 0.06;
+          }
         } else {
           // Senkronize halka — hepsi aynı açısal hızla döner
           const dx = p.x - cx;
@@ -142,12 +151,14 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
           p.y = cy + newR * Math.sin(θ);
         }
 
-        const boost = phase > 0 ? 0.5 : 0;
+        const sizeMulti = phase === 1 ? 3.8 : phase === 2 ? 1.5 : 1;
+        const blur     = phase === 1 ? 22  : phase === 2 ? 14  : 10;
+        const alpha    = phase === 1 ? 1   : Math.min(1, p.opacity + (phase === 2 ? 0.3 : 0));
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * (1 + boost * 0.6), 0, Math.PI * 2);
-        ctx.shadowColor = `hsla(${p.hue}, 90%, 60%, 0.9)`;
-        ctx.shadowBlur = phase > 0 ? 14 : 10;
-        ctx.fillStyle = `hsla(${p.hue}, 90%, 60%, ${Math.min(1, p.opacity + boost * 0.3)})`;
+        ctx.arc(p.x, p.y, p.size * sizeMulti, 0, Math.PI * 2);
+        ctx.shadowColor = `hsla(${p.hue}, 90%, 65%, 0.95)`;
+        ctx.shadowBlur = blur;
+        ctx.fillStyle = `hsla(${p.hue}, 95%, 65%, ${alpha})`;
         ctx.fill();
       }
 
@@ -329,8 +340,8 @@ export default function StudioPage() {
 
         {/* HUD Panel — dims to standby during generation */}
         <motion.div
-          animate={{ opacity: isGenerating ? 0.40 : 1 }}
-          transition={{ duration: 0.6 }}
+          animate={{ opacity: isGenerating ? 0 : 1 }}
+          transition={{ duration: 0.5 }}
           style={{
             width: "100%", maxWidth: 800,
             background: "rgba(18,4,4,0.92)",
