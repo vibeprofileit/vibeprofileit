@@ -1039,28 +1039,28 @@ export default function GalleryPage() {
                   style={{
                     fontSize: "15px",
                     background: active
-                      ? (isPremCat ? "rgba(255,215,0,0.15)" : isNeon ? "rgba(255,210,0,0.18)" : "rgba(188,19,254,0.3)")
+                      ? (isPremCat ? "rgba(255,215,0,0.15)" : "rgba(188,19,254,0.3)")
                       : (isPremCat ? "rgba(0,0,0,0.8)" : "rgba(46,16,101,0.5)"),
                     border: active
-                      ? (isPremCat ? "1px solid rgba(255,215,0,0.9)" : isNeon ? "1px solid rgba(255,210,0,0.8)" : "1px solid rgba(188,19,254,0.7)")
-                      : (isPremCat ? "1px solid rgba(255,215,0,0.35)" : isNeon ? "1px solid rgba(255,210,0,0.3)" : "1px solid rgba(188,19,254,0.2)"),
+                      ? (isPremCat ? "1px solid rgba(255,215,0,0.9)" : "1px solid rgba(188,19,254,0.7)")
+                      : (isPremCat ? "1px solid rgba(255,215,0,0.35)" : "1px solid rgba(188,19,254,0.2)"),
                     boxShadow: active
-                      ? (isPremCat ? "0 0 14px rgba(255,215,0,0.55), 0 0 28px rgba(255,215,0,0.2)" : isNeon ? "0 0 14px rgba(255,210,0,0.45), 0 0 28px rgba(255,180,0,0.2)" : "0 0 14px rgba(188,19,254,0.4)")
-                      : (isPremCat ? "0 0 6px rgba(255,215,0,0.15)" : isNeon ? "0 0 6px rgba(255,210,0,0.15)" : "none"),
+                      ? (isPremCat ? "0 0 14px rgba(255,215,0,0.55), 0 0 28px rgba(255,215,0,0.2)" : "0 0 14px rgba(188,19,254,0.4)")
+                      : (isPremCat ? "0 0 6px rgba(255,215,0,0.15)" : "none"),
                     backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
                   }}
                   onMouseEnter={(e) => {
                     if (!active && !isPremCat) {
                       const el = e.currentTarget as HTMLButtonElement;
-                      el.style.boxShadow = isNeon ? "0 0 12px rgba(255,210,0,0.35)" : "0 0 12px rgba(188,19,254,0.35)";
-                      el.style.border    = isNeon ? "1px solid rgba(255,210,0,0.55)" : "1px solid rgba(188,19,254,0.45)";
+                      el.style.boxShadow = "0 0 12px rgba(188,19,254,0.35)";
+                      el.style.border    = "1px solid rgba(188,19,254,0.45)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!active && !isPremCat) {
                       const el = e.currentTarget as HTMLButtonElement;
-                      el.style.boxShadow = isNeon ? "0 0 6px rgba(255,210,0,0.15)" : "none";
-                      el.style.border    = isNeon ? "1px solid rgba(255,210,0,0.3)" : "1px solid rgba(188,19,254,0.2)";
+                      el.style.boxShadow = "none";
+                      el.style.border    = "1px solid rgba(188,19,254,0.2)";
                     }
                   }}
                 >
