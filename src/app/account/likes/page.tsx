@@ -42,12 +42,16 @@ function ImageModal({
   onClose,
   allItems,
   onSelect,
+  onUnlike,
 }: {
   item: GalleryItem;
   onClose: () => void;
   allItems: GalleryItem[];
   onSelect: (item: GalleryItem) => void;
+  onUnlike: (id: string) => void;
 }) {
+  const [unliking, setUnliking] = useState(false);
+
   useEffect(() => {
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
@@ -57,6 +61,27 @@ function ImageModal({
       window.removeEventListener("keydown", onKey);
     };
   }, [onClose]);
+
+  async function handleUnlike() {
+    if (unliking) return;
+    setUnliking(true);
+    try {
+      const res = await fetch("/api/likes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artworkId: item.id }),
+      });
+      const data = await res.json();
+      if (!data.liked) {
+        onUnlike(item.id);
+        onClose();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setUnliking(false);
+    }
+  }
 
   const seenIds = new Set<string>();
   const related = [...allItems]
@@ -164,6 +189,20 @@ function ImageModal({
                 >
                   <Download size={15} /> Customize & Download
                 </Link>
+                <button
+                  onClick={handleUnlike}
+                  disabled={unliking}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-200"
+                  style={{
+                    background: unliking ? "rgba(239,68,68,0.1)" : "rgba(239,68,68,0.12)",
+                    border: "1px solid rgba(239,68,68,0.5)",
+                    color: "#f87171",
+                    opacity: unliking ? 0.6 : 1,
+                  }}
+                >
+                  <Heart size={15} fill="#f87171" />
+                  {unliking ? "Removing..." : "Unlike"}
+                </button>
               </div>
             </div>
           </div>
@@ -423,6 +462,10 @@ export default function LikesPage() {
           onClose={() => setSelectedItem(null)}
           allItems={items}
           onSelect={setSelectedItem}
+          onUnlike={(id) => {
+            setItems(prev => prev.filter(i => i.id !== id));
+            setSelectedItem(null);
+          }}
         />
       )}
 

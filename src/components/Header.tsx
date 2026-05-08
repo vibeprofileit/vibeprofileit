@@ -9,8 +9,8 @@ import TokenIcon from "@/components/TokenIcon"
 
 const MENU_ITEMS = [
   { icon: <Heart size={14} />, label: "Likes",       href: "/account/likes"    },
-  { icon: <Coins size={14} />, label: "My Tokens",   href: "/account/tokens"   },
-  { icon: <Star  size={14} />, label: "My Premium", href: "/account/premiums" },
+  { icon: <Star  size={14} />, label: "My Premium",  href: "/account/premiums" },
+  { icon: <Coins size={14} />, label: "My Tokens",   href: ""                  },
 ]
 
 export default function Header() {
@@ -106,25 +106,36 @@ export default function Header() {
                 </div>
 
                 <div className="py-1 border-b border-white/5">
-                  {MENU_ITEMS.map(({ icon, label, href }) => (
-                    <Link
-                      key={label}
-                      href={href}
-                      onClick={() => setOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors"
-                    >
-                      <span className="text-white/40">{icon}</span>
-                      <span className="font-medium flex-1">{label}</span>
-                      {label === "Tokens" && (
-                        <span className="flex items-center gap-1">
-                          <TokenIcon size={13} />
-                          <span className="text-xs font-black" style={{ color: "#fbbf24" }}>
-                            {tokenBalance ?? "—"}
+                  {MENU_ITEMS.map(({ icon, label, href }) => {
+                    if (!href) return (
+                      <div
+                        key={label}
+                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-white/40 cursor-default"
+                      >
+                        <span className="text-white/25">{icon}</span>
+                        <span className="font-medium flex-1">{label}</span>
+                        {label === "My Tokens" && (
+                          <span className="flex items-center gap-1">
+                            <TokenIcon size={13} />
+                            <span className="text-xs font-black" style={{ color: "#fbbf24" }}>
+                              {tokenBalance ?? "—"}
+                            </span>
                           </span>
-                        </span>
-                      )}
-                    </Link>
-                  ))}
+                        )}
+                      </div>
+                    );
+                    return (
+                      <Link
+                        key={label}
+                        href={href}
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2 text-sm text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+                      >
+                        <span className="text-white/40">{icon}</span>
+                        <span className="font-medium flex-1">{label}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
 
                 <button
