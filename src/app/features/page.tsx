@@ -37,7 +37,7 @@ const faqs = [
   {
     question: "Is it safe to use with my Steam account?",
     answer:
-      "Yes. vibeProfileit never asks for your Steam password and do not use your Trade API.We use Steam's official OpenID login, so your credentials stay completely private.",
+      "Yes. VibeProfileit never asks for your Steam password and do not use your Trade API.We use Steam's official OpenID login, so your credentials stay completely private.",
   },
   {
     question: "Do I need any design experience?",
@@ -47,10 +47,10 @@ const faqs = [
   {
     question: "Does this comply with Steam's guidelines?",
     answer:
-      "We built vibeProfileit with Steam's content policies in mind. All generated and uploaded content is checked against community guidelines before going live.",
+      "We built VibeProfileit with Steam's content policies in mind. All generated and uploaded content is checked against community guidelines before going live.",
   },
   {
-    question: "Can I use vibeProfileit designs on other platforms?",
+    question: "Can I use VibeProfileit designs on other platforms?",
     answer:
       "Our designs are specifically sized for Steam, but you can download them and use them anywhere you like.",
   },
@@ -104,7 +104,7 @@ export default function FeaturesPage() {
             WebkitTextFillColor: "transparent",
             color: "transparent",
           }}>
-            What can vibeProfileit do?
+            What can VibeProfileit do?
           </h1>
           <p className="text-white/40 text-lg max-w-xl mx-auto">
             Everything you need to make your Steam profile stand out — no friction, no fluff.
@@ -196,7 +196,7 @@ export default function FeaturesPage() {
 
       {/* Footer */}
       <footer className="border-t border-white/5 py-8 mt-12 text-center text-white/20 text-sm w-full">
-        © 2026 vibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
+        © 2026 VibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
       </footer>
     </div>
   );

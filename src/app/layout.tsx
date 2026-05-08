@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "vibeProfileit",
+  title: "VibeProfileit",
   description: "Transform your Steam profile into art with AI",
 };
 

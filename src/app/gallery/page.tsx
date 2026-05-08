@@ -170,7 +170,7 @@ function ImageModal({
                   V
                 </div>
                 <div className="min-w-0">
-                  <div className="text-white font-bold text-base leading-tight truncate">vibeProfileit</div>
+                  <div className="text-white font-bold text-base leading-tight truncate">VibeProfileit</div>
                   <div className="text-white/50 text-xs mt-0.5">Elite Selection</div>
                 </div>
               </div>
@@ -1082,7 +1082,7 @@ export default function GalleryPage() {
         className="border-t py-8 text-center text-white/20 text-sm"
         style={{ borderColor: "rgba(255,255,255,0.05)" }}
       >
-        © 2026 vibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
+        © 2026 VibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
       </footer>
     </div>
   );

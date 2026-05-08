@@ -669,7 +669,7 @@ export default function CuratorPage() {
   return (
     <main className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center py-12 px-4">
       <h1 className="text-3xl font-bold mb-2 tracking-tight">
-        <span className="text-[#00ff99]">vibeProfileit</span> Curator
+        <span className="text-[#00ff99]">VibeProfileit</span> Curator
       </h1>
 
       <div className="flex gap-1 p-1 bg-zinc-900 rounded-xl mb-8 w-full max-w-xs">

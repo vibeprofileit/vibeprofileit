@@ -242,7 +242,7 @@ export default function HowToUsePage() {
       </main>
 
       <footer className="border-t border-white/5 py-8 text-center text-white/20 text-sm">
-        © 2026 vibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
+        © 2026 VibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
       </footer>
     </div>
   );

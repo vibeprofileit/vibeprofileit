@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       html: `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0d0d12;color:#f0f0f0;border-radius:12px">
           <h2 style="margin:0 0 8px;color:#7c3aed">New Feedback Ticket</h2>
-          <p style="margin:0 0 24px;font-size:13px;color:#888">vibeProfileit — Feedback &amp; Support</p>
+          <p style="margin:0 0 24px;font-size:13px;color:#888">VibeProfileit — Feedback &amp; Support</p>
           <table style="width:100%;border-collapse:collapse">
             <tr>
               <td style="padding:10px 0;border-bottom:1px solid #222;font-size:13px;color:#888;width:100px">From</td>

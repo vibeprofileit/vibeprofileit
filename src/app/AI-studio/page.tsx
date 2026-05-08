@@ -113,7 +113,7 @@ function CrimsonVoidBackground() {
 // ─── Floating word cloud layer — Crimson/Amber glow ───────────────────────────
 const FLOAT_WORDS = [
   "Anime", "Cyberpunk", "Elite Design", "Masterpiece",
-  "Pro Generation", "Custom Design", "Dark Fantasy", "vibeProfileit",
+  "Pro Generation", "Custom Design", "Dark Fantasy", "VibeProfileit",
 ];
 const GLOW = "rgba(220,38,38,0.75)";
 const WORD_CONFIGS = [
@@ -121,7 +121,7 @@ const WORD_CONFIGS = [
   { top: "28%", left: "75%", size: 11, dur: 34, delay: 5,  angle: -5, glow: GLOW },
   { top: "52%", left: "5%",  size: 14, dur: 40, delay: 10, angle: 3,  glow: GLOW },
   { top: "70%", left: "80%", size: 12, dur: 32, delay: 3,  angle: -8, glow: GLOW },
-  { top: "85%", left: "38%", size: 11, dur: 38, delay: 8,  angle: 5,  glow: GLOW },
+  { top: "85%", left: "55%", size: 11, dur: 38, delay: 8,  angle: 5,  glow: GLOW },
   { top: "40%", left: "58%", size: 12, dur: 36, delay: 14, angle: -3, glow: GLOW },
   { top: "65%", left: "20%", size: 13, dur: 42, delay: 6,  angle: 7,  glow: GLOW },
   { top: "75%", left: "35%", size: 12, dur: 44, delay: 11, angle: -4, glow: GLOW },

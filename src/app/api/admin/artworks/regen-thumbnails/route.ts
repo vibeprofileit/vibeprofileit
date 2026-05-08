@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
   const results = await Promise.allSettled(
     gifs.map(async (gif) => {
       const res = await fetch(gif.sourceUrl, {
-        headers: { "User-Agent": "vibeProfileit-regen/1.0" },
+        headers: { "User-Agent": "VibeProfileit-regen/1.0" },
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const buffer = Buffer.from(await res.arrayBuffer());
