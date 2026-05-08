@@ -7,6 +7,7 @@ declare module "next-auth" {
       steamId?:     string
       personaName?: string
       avatarFull?:  string
+      isAdmin?:     boolean
     } & DefaultSession["user"]
   }
 }
@@ -17,5 +18,6 @@ declare module "next-auth/jwt" {
     steamId?:     string
     personaName?: string
     avatarFull?:  string
+    isAdmin?:     boolean
   }
 }
