@@ -82,7 +82,9 @@ CREATE INDEX IF NOT EXISTS idx_token_usage_asset_id  ON public.token_usage(asset
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION public.set_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
+RETURNS TRIGGER LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
@@ -100,7 +102,10 @@ CREATE OR REPLACE TRIGGER trg_profiles_updated_at
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   INSERT INTO public.profiles (user_id, display_name, avatar_url)
   VALUES (
@@ -139,7 +144,9 @@ ALTER TABLE public.token_usage   ENABLE ROW LEVEL SECURITY;
 
 -- Yardımcı fonksiyon: mevcut kullanıcının profil UUID'sini döner
 CREATE OR REPLACE FUNCTION public.current_profile_id()
-RETURNS UUID LANGUAGE sql STABLE AS $$
+RETURNS UUID LANGUAGE sql STABLE
+SET search_path = public
+AS $$
   SELECT id FROM public.profiles
   WHERE user_id = current_setting('app.current_user_id', true)
   LIMIT 1;
@@ -200,25 +207,16 @@ CREATE POLICY "token_usage: kendi satırlarını oku"
 -- anon/authenticated rollere açar — bu satırlar bunu kapatır.
 -- ============================================================
 
--- set_updated_at: sadece trigger çağırır, dışarıya kapalı
-REVOKE EXECUTE ON FUNCTION public.set_updated_at()     FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.set_updated_at()     FROM anon;
-REVOKE EXECUTE ON FUNCTION public.set_updated_at()     FROM authenticated;
+-- Tüm fonksiyonlardan PUBLIC, anon, authenticated erişimini kapat
+REVOKE EXECUTE ON FUNCTION public.set_updated_at()     FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.handle_new_user()    FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.current_profile_id() FROM PUBLIC, anon, authenticated;
 
--- handle_new_user: SECURITY DEFINER — en kritik olanı
-REVOKE EXECUTE ON FUNCTION public.handle_new_user()    FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.handle_new_user()    FROM anon;
-REVOKE EXECUTE ON FUNCTION public.handle_new_user()    FROM authenticated;
+-- Sadece service_role ve postgres kullanabilir
+GRANT EXECUTE ON FUNCTION public.set_updated_at()      TO service_role, postgres;
+GRANT EXECUTE ON FUNCTION public.handle_new_user()     TO service_role, postgres;
+GRANT EXECUTE ON FUNCTION public.current_profile_id()  TO service_role, postgres;
 
--- current_profile_id: RLS policy'leri çalıştırır,
--- authenticated rolünün okuyabilmesi gerekir ama anon/PUBLIC kapalı
-REVOKE EXECUTE ON FUNCTION public.current_profile_id() FROM PUBLIC;
-REVOKE EXECUTE ON FUNCTION public.current_profile_id() FROM anon;
-GRANT  EXECUTE ON FUNCTION public.current_profile_id() TO authenticated;
-
--- Eğer Supabase security advisor rls_auto_enable() için de uyarı veriyorsa
--- (Supabase dahili fonksiyon, bizim şemamızda yok), şunu da çalıştır:
--- REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM PUBLIC;
--- REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon;
--- REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM authenticated;
--- GRANT  EXECUTE ON FUNCTION public.rls_auto_enable() TO service_role;
+-- rls_auto_enable: Supabase dahili — uyarı gelirse bu bloğu çalıştır
+-- REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM PUBLIC, anon, authenticated;
+-- GRANT  EXECUTE ON FUNCTION public.rls_auto_enable() TO service_role, postgres;
