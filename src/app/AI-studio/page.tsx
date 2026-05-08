@@ -19,7 +19,6 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
     if (!ctx) return;
 
     let animId: number;
-    let vortexT = 0;
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -29,6 +28,7 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
       size: number;
       bspX: number; bspY: number;
       opacity: number; hue: number;
+      textX: number; textY: number;
     };
 
     const particles: Particle[] = Array.from({ length: 200 }, () => {
@@ -41,13 +41,51 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
         bspX, bspY,
         opacity: Math.random() * 0.55 + 0.1,
         hue: Math.random() * 30,
+        textX: 0, textY: 0,
       };
     });
 
     const ANGULAR_SPEED = 0.022;
+    const READY_MS = 2800; // READY formasyonu süresi
 
     let wasVortex = false;
     let vortexStartTime = 0;
+    // 0=ambient  1=ready  2=ring
+    let phase = 0;
+
+    // "READY" yazısının piksel koordinatlarını örnekle, her parçacığa ata
+    const assignTextTargets = () => {
+      const off = document.createElement("canvas");
+      off.width = canvas.width;
+      off.height = canvas.height;
+      const oc = off.getContext("2d")!;
+      const fs = Math.min(canvas.width * 0.16, 130);
+      oc.font = `900 ${fs}px monospace`;
+      oc.fillStyle = "#fff";
+      oc.textAlign = "center";
+      oc.textBaseline = "middle";
+      oc.fillText("READY", canvas.width / 2, canvas.height / 2);
+
+      const { data } = oc.getImageData(0, 0, canvas.width, canvas.height);
+      const pts: { x: number; y: number }[] = [];
+      const step = 5;
+      for (let y = 0; y < canvas.height; y += step)
+        for (let x = 0; x < canvas.width; x += step)
+          if (data[(y * canvas.width + x) * 4 + 3] > 128)
+            pts.push({ x, y });
+
+      // Fisher-Yates shuffle
+      for (let i = pts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pts[i], pts[j]] = [pts[j], pts[i]];
+      }
+
+      particles.forEach((p, i) => {
+        const t = pts[i % pts.length];
+        p.textX = t.x;
+        p.textY = t.y;
+      });
+    };
 
     const resize = () => {
       const pW = canvas.width, pH = canvas.height;
@@ -62,58 +100,59 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
 
     const draw = () => {
       const isVortex = vortexRef.current;
-      if (isVortex && !wasVortex) vortexStartTime = Date.now();
+
+      if (isVortex && !wasVortex) {
+        vortexStartTime = Date.now();
+        phase = 1;
+        assignTextTargets();
+      }
+      if (!isVortex && wasVortex) phase = 0;
       wasVortex = isVortex;
-      vortexT = isVortex
-        ? Math.min(1, vortexT + 0.012)
-        : Math.max(0, vortexT - 0.018);
+
+      if (isVortex && phase === 1 && Date.now() - vortexStartTime > READY_MS)
+        phase = 2;
 
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
-      // Hedef halka yarıçapı — ekranın küçük kenarının %24'ü
       const targetR = Math.min(canvas.width, canvas.height) * 0.24;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       for (const p of particles) {
-        // Normal drift konumu
-        const normalX = p.x + p.bspX;
-        const normalY = p.y + p.bspY;
-
-        if (vortexT > 0) {
-          // Polar koordinat: mevcut açı + sabit ANGULAR_SPEED → hepsi senkron döner
-          const dx = p.x - cx;
-          const dy = p.y - cy;
-          const r = Math.sqrt(dx * dx + dy * dy) || 1;
-          const θ = Math.atan2(dy, dx) + ANGULAR_SPEED;
-          // Yarıçapı hedef halkaya doğru çek
-          const newR = r + (targetR - r) * 0.045;
-
-          const vortexX = cx + newR * Math.cos(θ);
-          const vortexY = cy + newR * Math.sin(θ);
-
-          // Normal drift ile vortex arasında yumuşak geçiş
-          p.x = normalX * (1 - vortexT) + vortexX * vortexT;
-          p.y = normalY * (1 - vortexT) + vortexY * vortexT;
-        } else {
-          p.x = normalX;
-          p.y = normalY;
+        if (phase === 0) {
+          // Ambient drift
+          p.x += p.bspX;
+          p.y += p.bspY;
           if (p.x < 0) p.x = canvas.width;
           if (p.x > canvas.width) p.x = 0;
           if (p.y < 0) p.y = canvas.height;
           if (p.y > canvas.height) p.y = 0;
+        } else if (phase === 1) {
+          // READY formasyonu — her sim hedef harfe doğru akın eder
+          p.x += (p.textX - p.x) * 0.09;
+          p.y += (p.textY - p.y) * 0.09;
+        } else {
+          // Senkronize halka — hepsi aynı açısal hızla döner
+          const dx = p.x - cx;
+          const dy = p.y - cy;
+          const r = Math.sqrt(dx * dx + dy * dy) || 1;
+          const θ = Math.atan2(dy, dx) + ANGULAR_SPEED;
+          const newR = r + (targetR - r) * 0.05;
+          p.x = cx + newR * Math.cos(θ);
+          p.y = cy + newR * Math.sin(θ);
         }
 
+        const boost = phase > 0 ? 0.5 : 0;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * (1 + vortexT * 0.8), 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, p.size * (1 + boost * 0.6), 0, Math.PI * 2);
         ctx.shadowColor = `hsla(${p.hue}, 90%, 60%, 0.9)`;
-        ctx.shadowBlur = 10 + vortexT * 20;
-        ctx.fillStyle = `hsla(${p.hue}, 90%, 60%, ${Math.min(1, p.opacity + vortexT * 0.4)})`;
+        ctx.shadowBlur = phase > 0 ? 14 : 10;
+        ctx.fillStyle = `hsla(${p.hue}, 90%, 60%, ${Math.min(1, p.opacity + boost * 0.3)})`;
         ctx.fill();
       }
 
-      // Bağlantı çizgileri sadece normal modda
-      if (vortexT < 0.3) {
+      // Bağlantı çizgileri sadece ambient modda
+      if (phase === 0) {
         ctx.shadowBlur = 0;
         for (let i = 0; i < particles.length; i++) {
           for (let j = i + 1; j < particles.length; j++) {
