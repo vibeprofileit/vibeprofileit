@@ -56,10 +56,10 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a0a0f] text-white overflow-x-hidden flex flex-col">
       <Header />
 
-      <main className="pt-32 pb-28 px-6" style={{ maxWidth: "1140px", margin: "0 auto" }}>
+      <main className="pt-32 pb-16 px-6 flex-1" style={{ maxWidth: "1140px", margin: "0 auto", width: "100%" }}>
 
         {/* Başlık */}
         <motion.div
@@ -169,14 +169,14 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* Alt not */}
-        <motion.p
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}
-          className="text-center text-white/20 text-xs mt-14"
-        >
-          Payments processed securely by Stripe. Tokens are non-refundable.
-        </motion.p>
       </main>
+
+      <footer
+        className="border-t py-8 text-center text-white/20 text-sm"
+        style={{ borderColor: "rgba(255,255,255,0.05)", marginTop: "auto" }}
+      >
+        © 2026 VibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
+      </footer>
     </div>
   );
 }
