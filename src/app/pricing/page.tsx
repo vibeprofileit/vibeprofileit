@@ -68,9 +68,6 @@ export default function PricingPage() {
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
           className="text-center mb-6"
         >
-          <span className="inline-block text-xs font-bold tracking-widest uppercase text-violet-400 mb-5 px-3 py-1 rounded-full border border-violet-500/30 bg-violet-500/10">
-            Token Packs
-          </span>
           <h1 className="text-5xl font-black tracking-tight mb-4"
             style={{ background: "linear-gradient(to right,#7c3aed,#a855f7,#c084fc)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             Get Your Tokens
@@ -130,7 +127,6 @@ export default function PricingPage() {
                 padding: "36px 32px",
               }}
             >
-              {/* Badge */}
               {plan.badge && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
                   <span className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-white"
@@ -140,29 +136,24 @@ export default function PricingPage() {
                 </div>
               )}
 
-              {/* Plan adı */}
               <p className="text-xs font-bold uppercase tracking-widest mb-5" style={{ color: plan.tokenColor }}>
                 {plan.name}
               </p>
 
-              {/* Fiyat */}
               <div className="flex items-start gap-1 mb-5">
                 <span className="text-2xl font-black mt-1" style={{ color: plan.tokenColor }}>$</span>
                 <span className="text-6xl font-black leading-none text-white">{plan.price.split(".")[0]}</span>
                 <span className="text-2xl font-black mt-1 text-white/60">.{plan.price.split(".")[1]}</span>
               </div>
 
-              {/* Token badge */}
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl mb-8 w-fit"
                 style={{ background: `${plan.cardBorder}33`, border: `1px solid ${plan.cardBorder}` }}>
                 <span className="text-2xl font-black" style={{ color: plan.tokenColor }}>{plan.tokens}</span>
                 <span className="text-sm font-semibold text-white/50">tokens</span>
               </div>
 
-              {/* Ayırıcı */}
               <div className="mb-6" style={{ height: "1px", background: `${plan.cardBorder}66` }} />
 
-              {/* Özellikler */}
               <ul className="flex flex-col gap-4 mb-10 flex-1">
                 {plan.perks.map(perk => (
                   <li key={perk} className="flex items-center gap-3 text-sm font-medium text-white/80">
@@ -172,7 +163,6 @@ export default function PricingPage() {
                 ))}
               </ul>
 
-              {/* CTA */}
               <button
                 onClick={() => handleBuy(plan)}
                 className="w-full py-3.5 rounded-xl font-bold text-sm text-white transition-transform duration-200 hover:scale-105 active:scale-95"
