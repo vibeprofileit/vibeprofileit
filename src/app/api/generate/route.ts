@@ -38,18 +38,20 @@ const FLUX_NEGATIVE_PROMPT =
   "ugly, oversaturated, noise, grain, washed out, " +
   "flat lighting, extra limbs, distorted, amateur, poorly drawn";
 
-const PONY_SYSTEM_PROMPT =
-  "score_9, score_8_up, masterpiece, best quality, " +
-  "vertical portrait, tall format, vibrant colors, " +
-  "detailed eyes, sharp lineart, cinematic lighting, " +
-  "intricate details, professional illustration, " +
-  "depth of field, dynamic pose, smooth shading";
+const KOLORS_SYSTEM_PROMPT =
+  "anime style illustration, masterpiece, best quality, " +
+  "ultra detailed, vertical portrait composition, tall format, " +
+  "vibrant saturated colors, highly detailed eyes, " +
+  "sharp clean lineart, dramatic cinematic lighting, " +
+  "dynamic action pose, detailed background, " +
+  "steam artwork, gaming aesthetic, epic atmosphere";
 
-const PONY_NEGATIVE_PROMPT =
-  "score_1, score_2, score_3, score_4, worst quality, " +
-  "low quality, blurry, watermark, horizontal composition, " +
-  "landscape format, bad anatomy, deformed, extra limbs, " +
-  "ugly, poorly drawn eyes, bad hands, missing fingers, flat";
+const KOLORS_NEGATIVE_PROMPT =
+  "worst quality, low quality, blurry, watermark, text, " +
+  "horizontal composition, landscape format, " +
+  "bad anatomy, deformed, extra limbs, " +
+  "poorly drawn eyes, bad hands, missing fingers, " +
+  "flat colors, dull, boring, generic";
 
 // ---------------------------------------------------------------------------
 // Rate limiter — in-memory, 3 req / 60 s per IP
@@ -182,8 +184,8 @@ export async function POST(request: NextRequest) {
 
   const modelKey     = selectModel(userPrompt, body.category);
   const model        = modelKey === "pony" ? MODEL_KOLORS : MODEL_FLUX;
-  const systemPrompt = modelKey === "pony" ? PONY_SYSTEM_PROMPT : FLUX_SYSTEM_PROMPT;
-  const negativePrompt = modelKey === "pony" ? PONY_NEGATIVE_PROMPT : FLUX_NEGATIVE_PROMPT;
+  const systemPrompt = modelKey === "pony" ? KOLORS_SYSTEM_PROMPT : FLUX_SYSTEM_PROMPT;
+  const negativePrompt = modelKey === "pony" ? KOLORS_NEGATIVE_PROMPT : FLUX_NEGATIVE_PROMPT;
   const finalPrompt  = `${userPrompt}, ${systemPrompt}`;
 
   let imageUrl: string;
