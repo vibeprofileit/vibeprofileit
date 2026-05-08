@@ -18,6 +18,7 @@ export default function Header() {
   const [open, setOpen] = useState(false)
   const [tokenBalance, setTokenBalance] = useState<number | null>(null)
   const ref = useRef<HTMLDivElement>(null)
+  
 
   useEffect(() => {
     function handle(e: MouseEvent) {

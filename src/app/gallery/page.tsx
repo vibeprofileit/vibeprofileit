@@ -291,6 +291,166 @@ function ImageModal({
   );
 }
 
+// ─── PurchaseModal ─────────────────────────────────────────────────────────────
+
+function PurchaseModal({
+  item,
+  tokenBalance,
+  onClose,
+  onSuccess,
+}: {
+  item: GalleryItem;
+  tokenBalance: number | null;
+  onClose: () => void;
+  onSuccess: (newBalance: number) => void;
+}) {
+  const [buying, setBuying] = useState(false);
+  const [error,  setError]  = useState<string | null>(null);
+  const canAfford = tokenBalance !== null && tokenBalance >= 10;
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
+
+  async function handleBuy() {
+    if (buying || !canAfford) return;
+    setBuying(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/purchases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artworkId: item.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Purchase failed. Please try again.");
+        return;
+      }
+      onSuccess(data.newBalance);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setBuying(false);
+    }
+  }
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(14px)" }}
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.94, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.94, y: 20 }}
+          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+          className="relative rounded-2xl overflow-hidden flex flex-col"
+          style={{
+            width: "100%", maxWidth: "400px",
+            background: "#08000f",
+            border: "1px solid rgba(255,215,0,0.35)",
+            boxShadow: "0 0 0 1px rgba(255,215,0,0.2), 0 0 40px rgba(255,215,0,0.1)",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full"
+            style={{ background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.1)" }}
+          >
+            <X size={14} color="#fff" />
+          </button>
+
+          {/* Preview */}
+          <div className="relative w-full" style={{ height: "180px", overflow: "hidden" }}>
+            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg,#0a0014,#1a0035)" }} />
+            {item.src && (
+              <img
+                src={item.coverUrl ?? item.src}
+                alt={item.theme}
+                className="absolute inset-0 w-full h-full object-cover opacity-60"
+              />
+            )}
+            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, #08000f 0%, transparent 60%)" }} />
+            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full"
+              style={{ background: "rgba(20,15,0,0.9)", border: "1px solid rgba(255,215,0,0.8)" }}>
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#FFD700", display: "inline-block" }} />
+              <span style={{ color: "#FFD700", fontSize: "8px", fontWeight: 800, letterSpacing: "0.12em" }}>PREMIUM</span>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-5 flex flex-col gap-4">
+            <div>
+              <h3 className="text-white font-black text-lg leading-tight">{item.theme}</h3>
+              <p className="text-white/40 text-xs mt-0.5">{item.width}×{item.height} · {item.format} · {item.sizeMB} MB</p>
+            </div>
+
+            {/* Balance */}
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl"
+              style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)" }}>
+              <span className="text-white/50 text-sm">Your balance</span>
+              <span className="font-black text-base" style={{ color: canAfford ? "#FFD700" : "#f87171" }}>
+                {tokenBalance ?? "—"} tokens
+              </span>
+            </div>
+
+            {/* Price row */}
+            <div className="flex items-center justify-between">
+              <span className="text-white/40 text-sm">Price</span>
+              <span className="font-black text-lg" style={{ color: "#FFD700" }}>10 tokens</span>
+            </div>
+
+            {error && (
+              <p className="text-rose-400 text-xs text-center">{error}</p>
+            )}
+
+            {!canAfford ? (
+              <div className="flex flex-col gap-2">
+                <p className="text-rose-400 text-xs text-center">Not enough tokens.</p>
+                <Link
+                  href="/pricing"
+                  onClick={onClose}
+                  className="w-full flex items-center justify-center py-3 rounded-xl text-sm font-bold text-white"
+                  style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)", border: "1px solid rgba(168,85,247,0.6)" }}
+                >
+                  Get Tokens
+                </Link>
+              </div>
+            ) : (
+              <button
+                onClick={handleBuy}
+                disabled={buying}
+                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all"
+                style={{
+                  background: buying ? "rgba(255,215,0,0.2)" : "linear-gradient(135deg, #d97706, #fbbf24)",
+                  border: "1px solid rgba(255,215,0,0.6)",
+                  opacity: buying ? 0.7 : 1,
+                  color: buying ? "#fff" : "#1a0a00",
+                }}
+              >
+                {buying ? "Processing..." : "Buy for 10 Tokens"}
+              </button>
+            )}
+          </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 // ─── SortDropdown ──────────────────────────────────────────────────────────────
 
 const SORT_OPTIONS = [
@@ -548,11 +708,13 @@ function GalleryCard({
   item,
   index,
   onView,
+  onBuy,
   ownedIds,
 }: {
   item: GalleryItem;
   index: number;
   onView: (item: GalleryItem) => void;
+  onBuy: (item: GalleryItem) => void;
   ownedIds: Set<string>;
 }) {
   const router = useRouter();
@@ -663,7 +825,8 @@ function GalleryCard({
       whileHover={!item.isAdult ? { scale: 1.02, transition: { duration: 0.2 } } : {}}
       onClick={() => {
         if (item.isAdult) return;
-        if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) { router.push("/pricing"); return; }
+        if (item.isPremium && !session?.user) { window.location.href = "/api/steam/login"; return; }
+        if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) { onBuy(item); return; }
         onView(item);
       }}
     >
@@ -798,7 +961,7 @@ function GalleryCard({
                 : "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.7) 100%)",
             }}
           >
-            {item.isPremium ? (
+            {item.isPremium && !ownedIds.has(item.id) ? (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
                 <Lock size={22} color="rgba(255,215,0,0.9)" strokeWidth={2.5} />
                 <span style={{ color: "rgba(255,215,0,0.95)", fontSize: "12px", fontWeight: 800, letterSpacing: "0.08em", textAlign: "center" }}>
@@ -897,8 +1060,10 @@ export default function GalleryPage() {
   const [hasMore,       setHasMore]       = useState(true);
   const [cols,          setCols]          = useState(4);
   const [selectedItem,  setSelectedItem]  = useState<GalleryItem | null>(null);
+  const [purchaseItem,  setPurchaseItem]  = useState<GalleryItem | null>(null);
   const [items,         setItems]         = useState<GalleryItem[]>([]);
   const [ownedIds,      setOwnedIds]      = useState<Set<string>>(new Set());
+  const [tokenBalance,  setTokenBalance]  = useState<number | null>(null);
 
   const loadingMoreRef  = useRef(false);
   const hasMoreRef      = useRef(true);
@@ -939,12 +1104,16 @@ export default function GalleryPage() {
     }
   }, [buildParams]);
 
-  // Kullanıcının sahip olduğu premium ID'leri çek (tek seferlik)
+  // Kullanıcının sahip olduğu premium ID'leri + token balance çek
   useEffect(() => {
     if (!session?.user?.userId) return;
     fetch("/api/account/premiums")
       .then(r => r.json())
       .then(d => setOwnedIds(new Set<string>(d.ids ?? [])))
+      .catch(() => {});
+    fetch("/api/user/me")
+      .then(r => r.json())
+      .then(d => setTokenBalance(d.tokenBalance ?? 0))
       .catch(() => {});
   }, [session?.user?.userId]);
 
@@ -1035,6 +1204,19 @@ export default function GalleryPage() {
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {selectedItem && (
         <ImageModal item={selectedItem} onClose={() => setSelectedItem(null)} allItems={items} onSelect={setSelectedItem} />
+      )}
+      {purchaseItem && (
+        <PurchaseModal
+          item={purchaseItem}
+          tokenBalance={tokenBalance}
+          onClose={() => setPurchaseItem(null)}
+          onSuccess={(newBalance) => {
+            setOwnedIds(prev => new Set([...prev, purchaseItem.id]));
+            setTokenBalance(newBalance);
+            setPurchaseItem(null);
+            setSelectedItem(purchaseItem);
+          }}
+        />
       )}
       <style>{`
         @keyframes skeletonPulse {
@@ -1196,6 +1378,7 @@ export default function GalleryPage() {
   item={item}
   index={ci * 5 + i}
   onView={setSelectedItem}
+  onBuy={setPurchaseItem}
   ownedIds={ownedIds}
 />
                     )}
