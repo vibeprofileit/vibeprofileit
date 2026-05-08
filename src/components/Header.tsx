@@ -52,7 +52,7 @@ export default function Header() {
           <Link href="/gallery"    className="text-sm font-semibold text-gray-300 hover:text-white transition-colors">View Gallery</Link>
           <Link href="/features"   className="text-sm font-semibold text-gray-300 hover:text-white transition-colors">Features</Link>
           <Link href="/how-to-use" className="text-sm font-semibold text-gray-300 hover:text-white transition-colors">How to Use</Link>
-          <Link href="#"           className="text-sm font-semibold text-gray-300 hover:text-white transition-colors">Pricing</Link>
+          <Link href="/pricing"    className="text-sm font-semibold text-gray-300 hover:text-white transition-colors">Pricing</Link>
         </nav>
 
         {/* Auth */}
