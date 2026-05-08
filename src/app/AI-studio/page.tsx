@@ -151,8 +151,8 @@ function CrimsonVoidBackground({ vortexRef }: { vortexRef: { current: boolean } 
           p.y = cy + newR * Math.sin(θ);
         }
 
-        const sizeMulti = phase === 1 ? 3.8 : phase === 2 ? 1.5 : 1;
-        const blur     = phase === 1 ? 22  : phase === 2 ? 14  : 10;
+        const sizeMulti = phase === 1 ? 1.8 : phase === 2 ? 1.4 : 1;
+        const blur     = phase === 1 ? 8   : phase === 2 ? 14  : 10;
         const alpha    = phase === 1 ? 1   : Math.min(1, p.opacity + (phase === 2 ? 0.3 : 0));
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * sizeMulti, 0, Math.PI * 2);
