@@ -52,6 +52,8 @@ export default function PricingPage() {
 
   function handleBuy(plan: typeof PLANS[0]) {
     if (!session?.user) { window.location.href = "/api/steam/login"; return; }
+    // TODO: Lemon Squeezy checkout URL'ini buraya ekle
+    // Örnek: window.location.href = `https://vibeprofileit.lemonsqueezy.com/checkout/buy/${plan.lsVariantId}?checkout[custom][userId]=${session.user.userId}`
     alert(`${plan.name} paketi yakında aktif olacak.`);
   }
 
@@ -170,6 +172,87 @@ export default function PricingPage() {
         </div>
 
       </main>
+
+      {/* Trust Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.4 }}
+        className="mt-14 mb-4"
+      >
+        {/* 4 Trust Pills */}
+        <div className="flex flex-wrap justify-center gap-3 mb-8">
+          {[
+            { icon: "🔒", label: "256-bit Encryption" },
+            { icon: "⚡", label: "Instant Token Delivery" },
+            { icon: "♾️",  label: "Tokens Never Expire" },
+            { icon: "💳", label: "All Cards Accepted" },
+          ].map(({ icon, label }) => (
+            <div key={label} className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white/50"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <span>{icon}</span>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Lemon Squeezy badge + card logos row */}
+        <div className="flex flex-col items-center gap-3">
+          {/* Lemon Squeezy */}
+          <div className="flex items-center gap-2 px-4 py-2 rounded-xl"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            {/* Lemon Squeezy logo SVG */}
+            <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Lemon body */}
+              <ellipse cx="16" cy="18" rx="11" ry="12" fill="#FFD230" />
+              {/* Lemon tip left */}
+              <ellipse cx="5.5" cy="18" rx="2.5" ry="2" fill="#FFD230" />
+              {/* Lemon tip right */}
+              <ellipse cx="26.5" cy="18" rx="2.5" ry="2" fill="#FFD230" />
+              {/* Stem */}
+              <path d="M16 6 C16 6 14 3 17 2 C19 1.5 20 3 18 5 C17 6 16 6 16 6Z" fill="#4CAF50" />
+              {/* Leaf */}
+              <path d="M16 6 C18 4 22 3 21 6 C20 8 17 7 16 6Z" fill="#66BB6A" />
+              {/* Shine */}
+              <ellipse cx="12" cy="14" rx="2.5" ry="3.5" fill="rgba(255,255,255,0.25)" transform="rotate(-20 12 14)" />
+            </svg>
+            <span className="text-xs font-semibold text-white/30">Powered by</span>
+            <span className="text-xs font-black text-white/50 tracking-tight">Lemon Squeezy</span>
+          </div>
+
+          {/* Card logos */}
+          <div className="flex items-center gap-2">
+            {/* Visa */}
+            <div className="flex items-center justify-center px-3 py-2 rounded"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", width: 72, height: 44 }}>
+              <svg viewBox="0 0 48 16" width="54" height="18">
+                <text x="0" y="13" fontFamily="Arial Black, Arial" fontWeight="900" fontSize="14" fill="#1A1F71" letterSpacing="-0.5">VISA</text>
+              </svg>
+            </div>
+
+            {/* Mastercard */}
+            <div className="flex items-center justify-center rounded"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", width: 72, height: 44 }}>
+              <svg viewBox="0 0 38 24" width="50" height="32">
+                <circle cx="14" cy="12" r="10" fill="#EB001B" />
+                <circle cx="24" cy="12" r="10" fill="#F79E1B" />
+                <path d="M19 4.8a10 10 0 0 1 0 14.4A10 10 0 0 1 19 4.8z" fill="#FF5F00" />
+              </svg>
+            </div>
+
+            {/* Amex */}
+            <div className="flex items-center justify-center px-2 py-2 rounded"
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", width: 72, height: 44 }}>
+              <svg viewBox="0 0 50 18" width="56" height="20">
+                <text x="0" y="13" fontFamily="Arial, sans-serif" fontWeight="700" fontSize="11" fill="#2E77BC" letterSpacing="0.5">AMEX</text>
+              </svg>
+            </div>
+          </div>
+
+          {/* Policy text */}
+          <p className="text-sm text-white/35 text-center max-w-xs leading-relaxed">
+            All sales are final. Tokens are credited instantly and never expire.
+          </p>
+        </div>
+      </motion.div>
 
       <footer
         className="border-t py-8 text-center text-white/20 text-sm"
