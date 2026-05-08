@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// TODO: npm install sharp — post-processing (resize, optimize, watermark) için gerekli
+// sharp v0.34.5 kurulu (Next.js 16 transitive dependency) — direkt kullanılabilir.
+// Post-processing (resize, watermark, format conversion) için aktive et:
 // import sharp from "sharp";
 // async function processImage(url: string): Promise<Buffer> {
 //   const res = await fetch(url);
 //   const buffer = Buffer.from(await res.arrayBuffer());
-//   return sharp(buffer).toBuffer();
+//   return sharp(buffer).resize(1260, 1600, { fit: "cover" }).toBuffer();
 // }
 
 // ---------------------------------------------------------------------------
