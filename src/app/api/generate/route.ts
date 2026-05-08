@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { fal } from "@fal-ai/client";
 import sharp from "sharp";
 
-fal.config({ credentials: process.env.FAL_KEY });
+fal.config({ credentials: process.env.FAL_API_KEY });
 
 // ---------------------------------------------------------------------------
 // Constants
