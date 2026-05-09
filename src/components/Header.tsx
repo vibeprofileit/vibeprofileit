@@ -50,6 +50,7 @@ export default function Header() {
               alt="Logo"
               width={36}
               height={36}
+              style={{ width: 36, height: 36 }}
               className="object-contain"
             />
             <span className="text-2xl font-semibold tracking-normal select-none bg-gradient-to-r from-[#6600ff] via-[#6600ff] via-[70%] to-white bg-clip-text text-transparent">
