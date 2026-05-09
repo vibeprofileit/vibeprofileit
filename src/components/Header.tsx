@@ -50,7 +50,7 @@ export default function Header() {
               alt="Logo"
               width={36}
               height={36}
-              className="h-[36px] w-auto object-contain"
+              className="object-contain"
             />
             <span className="text-2xl font-semibold tracking-normal select-none bg-gradient-to-r from-[#6600ff] via-[#6600ff] via-[70%] to-white bg-clip-text text-transparent">
               VibeProfileit
