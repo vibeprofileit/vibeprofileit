@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
     }
 
     await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "noreply@vibeprofileit.com",
       to: "vibeprofileit@gmail.com",
       subject: `New Feedback Ticket — from ${email}`,
       html: `
