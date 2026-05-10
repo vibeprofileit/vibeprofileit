@@ -52,7 +52,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="5. Data Retention">
-          We retain your account data for as long as your account is active. If you wish to have your data deleted, contact us at <a href="mailto:support@vibeprofileit.com" className="underline text-indigo-400">support@vibeprofileit.com</a> and we will process your request within 30 days.
+          We retain your account data for as long as your account is active. If you wish to have your data deleted, contact us at <a href="mailto:vibeprofileit@gmail.com" className="underline text-indigo-400">vibeprofileit@gmail.com</a> and we will process your request within 30 days.
         </Section>
 
         <Section title="6. Cookies & Sessions">
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="9. Contact">
-          Questions about this policy? Email us at <a href="mailto:support@vibeprofileit.com" className="underline text-indigo-400">support@vibeprofileit.com</a>.
+          Questions about this policy? Email us at <a href="mailto:vibeprofileit@gmail.com" className="underline text-indigo-400">vibeprofileit@gmail.com</a>.
         </Section>
       </main>
       <LegalFooter />

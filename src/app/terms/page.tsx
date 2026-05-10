@@ -68,7 +68,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="12. Contact">
-          For questions about these Terms, contact us at <a href="mailto:support@vibeprofileit.com" className="underline text-indigo-400">support@vibeprofileit.com</a>.
+          For questions about these Terms, contact us at <a href="mailto:vibeprofileit@gmail.com" className="underline text-indigo-400">vibeprofileit@gmail.com</a>.
         </Section>
       </main>
       <LegalFooter />

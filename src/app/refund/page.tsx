@@ -36,11 +36,11 @@ export default function RefundPage() {
         </Section>
 
         <Section title="Technical Issues">
-          If you were charged but did not receive your tokens, please contact us immediately at <a href="mailto:support@vibeprofileit.com" className="underline text-indigo-400">support@vibeprofileit.com</a> with your order confirmation. We will investigate and credit your account or issue a refund within 3 business days.
+          If you were charged but did not receive your tokens, please contact us immediately at <a href="mailto:vibeprofileit@gmail.com" className="underline text-indigo-400">vibeprofileit@gmail.com</a> with your order confirmation. We will investigate and credit your account or issue a refund within 3 business days.
         </Section>
 
         <Section title="How to Request a Refund">
-          Send an email to <a href="mailto:support@vibeprofileit.com" className="underline text-indigo-400">support@vibeprofileit.com</a> with the subject line <strong className="text-white">Refund Request</strong> and include:
+          Send an email to <a href="mailto:vibeprofileit@gmail.com" className="underline text-indigo-400">vibeprofileit@gmail.com</a> with the subject line <strong className="text-white">Refund Request</strong> and include:
           <ul className="list-disc pl-5 mt-3 space-y-1 text-white/70">
             <li>Your Steam display name or SteamID</li>
             <li>Your Lemon Squeezy order number</li>
@@ -54,7 +54,7 @@ export default function RefundPage() {
         </Section>
 
         <Section title="Contact">
-          Questions? Reach us at <a href="mailto:support@vibeprofileit.com" className="underline text-indigo-400">support@vibeprofileit.com</a>.
+          Questions? Reach us at <a href="mailto:vibeprofileit@gmail.com" className="underline text-indigo-400">vibeprofileit@gmail.com</a>.
         </Section>
       </main>
       <LegalFooter />

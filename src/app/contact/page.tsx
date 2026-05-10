@@ -18,8 +18,8 @@ export default function ContactPage() {
             {
               icon: <Mail size={20} />,
               label: "Email",
-              value: "support@vibeprofileit.com",
-              href: "mailto:support@vibeprofileit.com",
+              value: "vibeprofileit@gmail.com",
+              href: "mailto:vibeprofileit@gmail.com",
               color: "#818cf8",
             },
             {
@@ -86,7 +86,7 @@ export default function ContactPage() {
         >
           <p className="text-sm text-white/50 mb-3">Ready to reach out?</p>
           <a
-            href="mailto:support@vibeprofileit.com"
+            href="mailto:vibeprofileit@gmail.com"
             className="inline-block px-6 py-3 rounded-xl font-bold text-sm text-white transition-transform duration-200 hover:scale-105"
             style={{ background: "linear-gradient(to right, #7c3aed, #a855f7)" }}
           >
