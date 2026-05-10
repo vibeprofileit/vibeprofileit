@@ -28,7 +28,7 @@ const R2_BASE = "https://vibe-images.vibeprofileit.workers.dev";
 function getImageUrl(artwork: Artwork): string {
   if (artwork.r2Key) {
     const key =
-      artwork.r2Key.startsWith("artworks/") || artwork.r2Key.startsWith("pending/")
+      artwork.r2Key.startsWith("artworks/") || artwork.r2Key.startsWith("pending/") || artwork.r2Key.startsWith("premium/") || artwork.r2Key.startsWith("generations/")
         ? artwork.r2Key
         : `artworks/${artwork.r2Key}`;
     return `${R2_BASE}/${key}`;
