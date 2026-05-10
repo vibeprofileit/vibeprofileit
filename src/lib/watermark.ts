@@ -13,7 +13,7 @@ export async function stampWatermark(canvas: HTMLCanvasElement): Promise<void> {
   const BGPAD  = 8;
   const RADIUS = 6;
 
-  const wmW = Math.round(canvas.width * 0.12);
+  const wmW = 72;
   const wmH = Math.round(wm.naturalHeight * (wmW / wm.naturalWidth));
   const x   = canvas.width  - PAD - wmW;
   const y   = canvas.height - PAD - wmH;

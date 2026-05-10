@@ -575,7 +575,7 @@ function UploadPageInner() {
 
             const mainCrop = cropCanvas(masterCanvas, 0,   506);
             const sideCrop = cropCanvas(masterCanvas, 512, 100);
-            if (!isPremiumImage) await Promise.all([stampWatermark(mainCrop), stampWatermark(sideCrop)]);
+            if (!isPremiumImage) await stampWatermark(sideCrop);
 
             if (isElite) {
               zip.file("main.png", await canvasToBlob(mainCrop));

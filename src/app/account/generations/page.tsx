@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Download, Clock, Sparkles, X, ZapOff } from "lucide-react";
+import { Download, Clock, Sparkles, X, ZapOff, Wand2 } from "lucide-react";
 import Link from "next/link";
 
 async function downloadImage(url: string) {
@@ -17,6 +17,14 @@ async function downloadImage(url: string) {
   a.download = `vibeprofileit_ai.${ext}`;
   a.click();
   URL.revokeObjectURL(a.href);
+}
+
+async function openInDesignStudio(url: string) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  sessionStorage.setItem("studio_generated_image", objectUrl);
+  window.open("/design-studio?source=ai-studio", "_blank");
 }
 
 const ORG   = "#f97316";
@@ -153,6 +161,13 @@ function GenerationModal({ item, onClose }: { item: Generation; onClose: () => v
                 >
                   <Download size={15} /> Download
                 </button>
+                <button
+                  onClick={() => openInDesignStudio(item.r2_url)}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-transform duration-200 hover:scale-105"
+                  style={{ background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.5)", color: "#c4b5fd" }}
+                >
+                  <Wand2 size={15} /> Edit in Design Studio
+                </button>
               </div>
             </div>
           </div>
@@ -235,13 +250,20 @@ function GenerationCard({ item, index, onView }: { item: Generation; index: numb
           className="absolute inset-0 z-10 opacity-0 hover:opacity-100 transition-opacity duration-200"
           style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.75) 100%)" }}
         >
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none gap-2">
             <button
               onClick={e => { e.stopPropagation(); downloadImage(item.r2_url); }}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-full font-semibold text-white pointer-events-auto"
-              style={{ fontSize: "12px", background: ORG_A(0.85), border: `1px solid ${ORG_A(0.9)}` }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-white pointer-events-auto"
+              style={{ fontSize: "11px", background: ORG_A(0.85), border: `1px solid ${ORG_A(0.9)}` }}
             >
-              <Download size={12} /> Download
+              <Download size={11} /> Download
+            </button>
+            <button
+              onClick={e => { e.stopPropagation(); openInDesignStudio(item.r2_url); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold pointer-events-auto"
+              style={{ fontSize: "11px", background: "rgba(124,58,237,0.85)", border: "1px solid rgba(167,139,250,0.9)", color: "#fff" }}
+            >
+              <Wand2 size={11} /> Edit
             </button>
           </div>
         </motion.div>
