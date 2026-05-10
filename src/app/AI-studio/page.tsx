@@ -268,8 +268,8 @@ export default function StudioPage() {
     link.download = "vibeprofileit_ai";
     link.click();
     sessionStorage.setItem("studio_generated_image", generatedImage);
-    router.push("/design-studio?source=ai-studio");
-  }, [generatedImage, router]);
+    window.open("/design-studio?source=ai-studio", "_blank");
+  }, [generatedImage]);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden" style={{ background: "#050505" }}>

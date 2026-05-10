@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Download, Clock, Sparkles, X, ZapOff } from "lucide-react";
+import Link from "next/link";
 
 const ORG   = "#f97316";
 const ORG_L = "#fb923c";
@@ -305,6 +306,10 @@ export default function GenerationsPage() {
       <Header />
 
       <main className="relative z-10 pt-28 pb-20 px-4 md:px-8" style={{ maxWidth: "1800px", margin: "0 auto", width: "95%" }}>
+
+        <Link href="/" className="inline-block mb-8 text-lg font-semibold text-white hover:text-white/70 transition-colors">
+          ← Back to Home
+        </Link>
 
         {/* Başlık */}
         <div className="mb-4">
