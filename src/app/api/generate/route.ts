@@ -83,6 +83,12 @@ const FLUX_TRIGGERS = [
 const MODEL_FLUX   = "fal-ai/flux-pro/v1.1";
 const MODEL_KOLORS = "fal-ai/kolors";
 
+const CARS_SYSTEM_PROMPT =
+  "Cinematic automotive photography, vertical portrait composition for Steam profile artwork. " +
+  "Dramatic studio or street lighting, wet asphalt reflections, moody atmosphere. " +
+  "Sharp focus on vehicle body, photorealistic paint and chrome details. " +
+  "No people, no text, no watermarks. Professional car photography quality.";
+
 const FLUX_SYSTEM_PROMPT =
   "A professional game key art for a vertical Steam profile artwork showcase. " +
   "Solo character, powerful battle stance, upper body portrait framing. " +
@@ -174,8 +180,9 @@ function getClientIp(req: NextRequest): string {
 // Model routing
 // ---------------------------------------------------------------------------
 
-function selectModel(prompt: string, category?: string | null): "flux" | "kolors" {
+function selectModel(prompt: string, category?: string | null): "flux" | "kolors" | "cars" {
   if (category === "anime") return "kolors";
+  if (category === "cars") return "cars";
   if (category === "darkfantasy" || category === "cyberpunk") return "flux";
   const lower = prompt.toLowerCase();
   if (KOLORS_TRIGGERS.some((t) => lower.includes(t))) return "kolors";
@@ -377,11 +384,11 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const modelKey      = selectModel(userPrompt, body.category);
-  const model         = modelKey === "kolors" ? MODEL_KOLORS : MODEL_FLUX;
-  const systemPrompt  = modelKey === "kolors" ? KOLORS_SYSTEM_PROMPT : FLUX_SYSTEM_PROMPT;
+  const modelKey       = selectModel(userPrompt, body.category);
+  const model          = modelKey === "kolors" ? MODEL_KOLORS : MODEL_FLUX;
+  const systemPrompt   = modelKey === "kolors" ? KOLORS_SYSTEM_PROMPT : modelKey === "cars" ? CARS_SYSTEM_PROMPT : FLUX_SYSTEM_PROMPT;
   const negativePrompt = modelKey === "kolors" ? KOLORS_NEGATIVE_PROMPT : FLUX_NEGATIVE_PROMPT;
-  const finalPrompt   = `${userPrompt}, ${systemPrompt}`;
+  const finalPrompt    = `${userPrompt}, ${systemPrompt}`;
 
   let imageUrl: string;
   try {

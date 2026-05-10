@@ -36,6 +36,13 @@ const ELITE_STYLES = [
     powerPrompt:
       "interstellar nebula, cosmic dust, futuristic spacecraft, planetary rings, volumetric lighting, epic scale, high-tech interior, cold aesthetic, astronomical details",
   },
+  {
+    label: "Cars",
+    icon: "🚗",
+    category: "cars",
+    powerPrompt:
+      "dramatic lighting, wet asphalt reflections, moody atmosphere, sharp focus on vehicle, photorealistic paint and chrome details",
+  },
 ] as const;
 
 type EliteStyle = typeof ELITE_STYLES[number];
