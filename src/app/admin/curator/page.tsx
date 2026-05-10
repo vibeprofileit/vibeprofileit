@@ -480,7 +480,7 @@ function ApprovedTab({
   loading: boolean;
 }) {
   const [selected, setSelected] = useState<Artwork | null>(null);
-  const [mediaFilter, setMediaFilter] = useState<"ALL" | "ANIMATED" | "STATIC" | "NSFW">("ALL");
+  const [mediaFilter, setMediaFilter] = useState<"ALL" | "ANIMATED" | "STATIC" | "NSFW" | "PREMIUM">("ALL");
 
   const moveToPending = async (id: string) => {
     await fetch("/api/admin/artworks", {
@@ -522,6 +522,7 @@ function ApprovedTab({
 
   const filtered = artworks.filter((a) => {
     if (mediaFilter === "NSFW") return a.isNSFW;
+    if (mediaFilter === "PREMIUM") return a.isPremium;
     if (mediaFilter === "ALL") return true;
     return (a.mediaType ?? "STATIC") === mediaFilter;
   });
@@ -534,14 +535,14 @@ function ApprovedTab({
       <div className="flex items-center gap-4 mb-6 w-full max-w-[900px]">
         <p className="text-zinc-500 text-sm">{filtered.length} / {artworks.length} artwork</p>
         <div className="flex gap-2">
-          {(["ALL", "ANIMATED", "STATIC", "NSFW"] as const).map((f) => (
+          {(["ALL", "ANIMATED", "STATIC", "NSFW", "PREMIUM"] as const).map((f) => (
             <button key={f} onClick={() => setMediaFilter(f)}
               className={`px-3 py-1 rounded-lg text-xs font-semibold tracking-wide transition-all ${
                 mediaFilter === f
-                  ? f === "NSFW" ? "bg-red-600 text-white" : "bg-[#00ff99] text-black"
+                  ? f === "NSFW" ? "bg-red-600 text-white" : f === "PREMIUM" ? "bg-amber-500 text-black" : "bg-[#00ff99] text-black"
                   : "bg-zinc-800 text-zinc-400 hover:text-white"
               }`}>
-              {f === "ALL" ? "Tümü" : f === "ANIMATED" ? "Animated" : f === "STATIC" ? "Static" : "+18"}
+              {f === "ALL" ? "Tümü" : f === "ANIMATED" ? "Animated" : f === "STATIC" ? "Static" : f === "NSFW" ? "+18" : "💎 Premium"}
             </button>
           ))}
         </div>
