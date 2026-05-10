@@ -32,7 +32,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="5. Acceptable Use">
-          You agree not to use VibeProfileit to:
+          You agree <strong className="text-white text-base">not</strong> to use VibeProfileit to:
           <ul className="list-disc pl-5 mt-3 space-y-1 text-white/70">
             <li>Generate, upload, or distribute illegal, obscene, or NSFW content</li>
             <li>Infringe on the intellectual property rights of others</li>
