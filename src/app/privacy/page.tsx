@@ -11,7 +11,7 @@ export default function PrivacyPage() {
         <p className="text-white/40 text-sm mb-10">Last updated: May 10, 2026</p>
 
         <Section title="1. Who We Are">
-          VibeProfileit (&ldquo;we&rdquo;, &ldquo;our&rdquo;, &ldquo;us&rdquo;) is an online service that lets Steam users generate and download AI-powered profile artwork. We are operated as an independent project.
+          VibeProfileit is an online service that lets Steam users generate and download AI-powered profile artwork. It is operated as an independent project.
         </Section>
 
         <Section title="2. Data We Collect">
@@ -19,7 +19,6 @@ export default function PrivacyPage() {
           <ul className="list-disc pl-5 mt-3 space-y-1 text-white/70">
             <li>SteamID (your unique Steam identifier)</li>
             <li>Display name and avatar URL (public Steam profile data)</li>
-            <li>A placeholder email address derived from your SteamID (e.g. <em>76561198XXXXX@steam.placeholder</em>)</li>
           </ul>
           <p className="mt-3">We also collect:</p>
           <ul className="list-disc pl-5 mt-2 space-y-1 text-white/70">
@@ -37,26 +36,23 @@ export default function PrivacyPage() {
             <li>To generate and deliver AI artwork</li>
             <li>To detect and prevent abuse, fraud, or ToS violations</li>
           </ul>
-          We do not sell your data to third parties. We do not use your data for advertising.
+          <p className="mt-3">We do not sell your data to third parties. We do not use your data for advertising.</p>
         </Section>
 
         <Section title="4. Third-Party Services">
-          We share limited data with the following services to operate VibeProfileit:
+          VibeProfileit shares limited data with the following services to operate:
           <ul className="list-disc pl-5 mt-3 space-y-2 text-white/70">
             <li><strong className="text-white">Steam / Valve</strong> — Authentication via OpenID. Governed by the <a href="https://store.steampowered.com/privacy_agreement/" className="underline text-indigo-400">Steam Privacy Policy</a>.</li>
             <li><strong className="text-white">Lemon Squeezy</strong> — Payment processing. They handle card data; we never receive your card details. Governed by the <a href="https://www.lemonsqueezy.com/privacy" className="underline text-indigo-400">Lemon Squeezy Privacy Policy</a>.</li>
-            <li><strong className="text-white">fal.ai</strong> — AI image generation. Your prompt is sent to their API to produce images.</li>
-            <li><strong className="text-white">Cloudflare R2</strong> — Image storage.</li>
-            <li><strong className="text-white">Supabase</strong> — Database hosting (PostgreSQL).</li>
           </ul>
         </Section>
 
         <Section title="5. Data Retention">
-          We retain your account data for as long as your account is active. If you wish to have your data deleted, contact us at <a href="mailto:vibeprofileit@gmail.com" className="underline text-indigo-400">vibeprofileit@gmail.com</a> and we will process your request within 30 days.
+          Account data is retained for as long as your account is active. To request deletion, contact us at <a href="mailto:vibeprofileit@gmail.com" className="underline text-indigo-400">vibeprofileit@gmail.com</a> and the request will be processed within 30 days.
         </Section>
 
-        <Section title="6. Cookies & Sessions">
-          We use a single session cookie (<code className="text-white/60 bg-white/5 px-1 rounded">next-auth.session-token</code>) to keep you logged in. No third-party tracking cookies are set.
+        <Section title="6. Cookies &amp; Sessions">
+          A single session cookie is used to keep you logged in. It serves no other purpose. No third-party tracking cookies are set.
         </Section>
 
         <Section title="7. Children">
@@ -64,7 +60,7 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="8. Changes to This Policy">
-          We may update this policy periodically. Continued use of the service after changes constitutes acceptance. The &ldquo;Last updated&rdquo; date at the top reflects the most recent revision.
+          This policy may be updated periodically. Continued use of the service after changes constitutes acceptance. The &ldquo;Last updated&rdquo; date at the top reflects the most recent revision.
         </Section>
 
         <Section title="9. Contact">
