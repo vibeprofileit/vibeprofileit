@@ -190,16 +190,14 @@ export async function DELETE(request: NextRequest) {
   }
 
   const toReject = await prisma.artwork.findUnique({ where: { id } });
-  if (toReject?.r2Key?.startsWith("pending/")) {
+  if (toReject?.r2Key) {
     try {
       await r2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: toReject.r2Key }));
       console.log(`[REJECT] R2'den silindi: ${toReject.r2Key}`);
     } catch (err) {
       console.error("[REJECT] R2 silme hatası:", err);
     }
-    await prisma.artwork.delete({ where: { id } });
-  } else {
-    await prisma.artwork.update({ where: { id }, data: { status: "REJECTED" } });
   }
+  await prisma.artwork.delete({ where: { id } });
   return Response.json({ success: true });
 }

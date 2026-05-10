@@ -29,7 +29,8 @@ export async function POST() {
   const r2KeySet = new Set(r2Keys);
 
   // Yetim dosyaları bul: R2'de var ama DB'de yok → R2'den sil
-  const orphanR2Keys = r2Keys.filter((key) => !dbKeys.has(key));
+  // generations/ klasörü assets tablosunda, artwork tablosunda değil — orphan sayma
+  const orphanR2Keys = r2Keys.filter((key) => !dbKeys.has(key) && !key.startsWith("generations/"));
 
   const deletedFiles: string[] = [];
   const fileErrors: { key: string; error: string }[] = [];
@@ -68,16 +69,10 @@ export async function POST() {
   return Response.json({
     r2Total: r2Keys.length,
     dbTotal: dbKeys.size,
-    // R2 yetim dosyaları (DB'siz R2 nesneleri)
-    orphanFilesFound: orphanR2Keys.length,
-    deletedFiles: deletedFiles.length,
-    fileErrors: fileErrors.length,
-    deletedFileKeys: deletedFiles,
-    fileErrorDetails: fileErrors,
-    // Hayalet DB kayıtları (R2'siz DB kayıtları)
+    orphansFound: orphanR2Keys.length,
+    deleted: deletedFiles.length,
+    errors: fileErrors.length,
     ghostRecordsFound: ghostIds.length,
     deletedRecords,
-    recordErrors: recordErrors.length,
-    recordErrorDetails: recordErrors,
   });
 }
