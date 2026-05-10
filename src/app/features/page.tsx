@@ -135,6 +135,70 @@ export default function FeaturesPage() {
           ))}
         </div>
 
+        {/* Prompt Tips */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="mb-20"
+        >
+          <h2 className="text-2xl font-black mb-2 text-center">
+            How to Write a <span className="text-purple-400">Good Prompt</span>
+          </h2>
+          <p className="text-center text-white/30 text-sm mb-8">
+            Better prompts = better results. Here&apos;s what actually works.
+          </p>
+
+          <div className="grid md:grid-cols-2 gap-3">
+            {[
+              {
+                label: "Be specific",
+                bad: "cool character",
+                good: "armored knight, dark forest, moonlight",
+              },
+              {
+                label: "Character + Place + Mood",
+                tip: "The best prompts include all three. Example: [character], [location], [lighting/atmosphere]",
+              },
+              {
+                label: "Use Vibes, keep it short",
+                tip: "If you select Anime vibe, just write 'anime girl' — the system handles the rest.",
+              },
+              {
+                label: "Looking too realistic?",
+                tip: "Select the Anime vibe and add '2d anime, illustration' to your prompt.",
+              },
+              {
+                label: "Too dark / pure black output?",
+                tip: "Avoid 'dark night, black'. Use 'moonlight', 'dusk' or 'dramatic' instead.",
+              },
+              {
+                label: "Cars",
+                tip: "Select Cars vibe. Brand + location + weather is enough. Example: black BMW, rainy Tokyo street, neon reflections",
+              },
+              {
+                label: "Unwanted flames or energy?",
+                tip: "Avoid words like flames, fire, energy, glowing, aura in your prompt.",
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-purple-500/15 bg-zinc-900/60 px-5 py-4"
+              >
+                <p className="text-sm font-bold text-purple-400 mb-2">{item.label}</p>
+                {"bad" in item ? (
+                  <div className="flex flex-col gap-1 text-sm">
+                    <span className="text-red-400/70">✗ {item.bad}</span>
+                    <span className="text-green-400/70">✓ {item.good}</span>
+                  </div>
+                ) : (
+                  <p className="text-white/50 text-sm leading-relaxed">{item.tip}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </motion.div>
+
         {/* FAQ Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
