@@ -195,7 +195,7 @@ export default function Home() {
                 <div className="w-3 h-3 rounded-full bg-green-500/70" />
               </div>
               <div className="flex-1 mx-4 bg-white/5 rounded-md px-3 py-1 text-xs text-white/30 text-center">
-                steamcommunity.com/id/SirHaktan
+                steamcommunity.com/id/SirHacktan
               </div>
             </div>
 
@@ -227,7 +227,7 @@ export default function Home() {
                   </div>
                   <div className="pb-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-bold text-white text-lg">SirHaktan</span>
+                      <span className="font-bold text-white text-lg">SirHacktan</span>
                       <span className="text-xs px-2 py-0.5 rounded bg-[#4a9eff]/20 text-[#4a9eff] border border-[#4a9eff]/30">Online</span>
                     </div>
                     <p className="text-white/40 text-sm">Level 42 · 847 games · 12,340 hours</p>

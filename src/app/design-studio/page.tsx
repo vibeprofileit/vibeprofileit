@@ -1307,7 +1307,7 @@ function UploadPageInner() {
 
       {/* Footer */}
       <footer className="border-t border-white/5 py-8 mt-12 text-center text-white/20 text-sm w-full">
-        © 2026 VibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
+        © 2026 VibeProfileit — Made by SirHaktan for the Steam Community with ❤️. All rights reserved.
       </footer>
   </div>
   );
