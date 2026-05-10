@@ -27,5 +27,13 @@ export async function GET() {
     },
   });
 
-  return NextResponse.json({ generations });
+  const fixed = generations.map(g => ({
+    ...g,
+    r2_url: g.r2_url.replace(
+      "https://pub-a9fa3eb644a643638e6c89784ccb22fa.r2.dev/",
+      "https://vibe-images.vibeprofileit.workers.dev/"
+    ),
+  }));
+
+  return NextResponse.json({ generations: fixed });
 }

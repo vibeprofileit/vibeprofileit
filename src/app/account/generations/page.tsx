@@ -100,7 +100,7 @@ function GenerationModal({ item, onClose }: { item: Generation; onClose: () => v
                 <div>
                   <div className="text-white font-bold text-base">AI Generation</div>
                   <div style={{ color: ORG_L }} className="text-xs mt-0.5 font-semibold uppercase tracking-wide">
-                    {item.model_used === "flux" ? "Flux 1.1 Pro" : "Kolors"}
+                    VibeProfileit AI
                   </div>
                 </div>
               </div>
@@ -216,7 +216,7 @@ function GenerationCard({ item, index, onView }: { item: Generation; index: numb
           style={{ background: "rgba(20,12,0,0.85)", border: `1px solid ${ORG_A(0.5)}`, color: ORG_L }}
         >
           <Sparkles size={7} />
-          {item.model_used === "flux" ? "FLUX" : "KOLORS"}
+          AI
         </span>
       </div>
 
