@@ -255,7 +255,7 @@ async function saveToStorage(
 ): Promise<void> {
   const ext       = result.mimeType === "image/png" ? "png" : "jpg";
   const r2Key     = `generations/${userId}/${randomUUID()}.${ext}`;
-  const r2Url     = `${R2_PUBLIC_URL}/${r2Key}`;
+  const r2Url     = `https://vibe-images.vibeprofileit.workers.dev/${r2Key}`;
   const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
   await r2.send(new PutObjectCommand({

@@ -302,9 +302,7 @@ export default function StudioPage() {
                   fontWeight: 700,
                   color: generateStatus === "REVEAL" ? "#f87171" : "rgba(220,130,80,0.90)",
                   letterSpacing: generateStatus === "REVEAL" ? "0.5em" : "0.08em",
-                  textShadow: generateStatus === "REVEAL"
-                    ? "0 0 40px rgba(220,38,38,0.95), 0 0 80px rgba(220,38,38,0.4)"
-                    : "none",
+                  textShadow: "none",
                   textAlign: "center",
                   paddingLeft: generateStatus === "REVEAL" ? "0.5em" : 0,
                 }}

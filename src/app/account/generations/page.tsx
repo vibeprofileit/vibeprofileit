@@ -64,7 +64,7 @@ function GenerationModal({ item, onClose }: { item: Generation; onClose: () => v
           style={{
             maxWidth: "1150px", minHeight: "600px", background: "#050505",
             border:     `1px solid ${ORG_A(0.35)}`,
-            boxShadow:  `0 0 0 1px ${ORG_A(0.45)}, 0 0 30px ${ORG_A(0.15)}`,
+            boxShadow:  "none",
             scrollbarWidth: "none",
           } as React.CSSProperties}
           onClick={e => e.stopPropagation()}
@@ -94,7 +94,7 @@ function GenerationModal({ item, onClose }: { item: Generation; onClose: () => v
               {/* Brand */}
               <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(10,10,10,0.9)", border: `1px solid ${ORG_A(0.1)}` }}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-black text-white flex-shrink-0"
-                  style={{ background: `linear-gradient(135deg, ${ORG}, ${ORG_A(0.4)})`, boxShadow: `0 0 20px ${ORG_A(0.8)}` }}>
+                  style={{ background: `linear-gradient(135deg, ${ORG}, ${ORG_A(0.4)})` }}>
                   <Sparkles size={20} />
                 </div>
                 <div>
@@ -131,14 +131,6 @@ function GenerationModal({ item, onClose }: { item: Generation; onClose: () => v
                   </div>
                 ))}
               </div>
-
-              {/* Prompt */}
-              {item.prompt && (
-                <div className="rounded-xl p-4" style={{ background: "rgba(255,255,255,0.02)", border: `1px solid ${ORG_A(0.1)}` }}>
-                  <p className="text-xs text-white/30 uppercase tracking-wide font-medium mb-2">Prompt</p>
-                  <p className="text-sm text-white/60 leading-relaxed line-clamp-5">{item.prompt}</p>
-                </div>
-              )}
 
               {/* Download */}
               <div className="flex flex-col gap-2 mt-auto pb-6">
