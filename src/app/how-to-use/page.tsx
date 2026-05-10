@@ -90,19 +90,26 @@ export default function HowToUsePage() {
             transition={{ duration: 0.5 }}
             className="grid md:grid-cols-2 gap-8 items-center"
           >
-            <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-600/10 to-cyan-500/10 p-6 flex flex-col items-center justify-center min-h-[180px]">
-              <div className="flex gap-2 mb-4">
-                <div className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-[10px] font-mono">bg_left.png</div>
-                <div className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-[10px] font-mono">bg_middle.png</div>
-                <div className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-[10px] font-mono">bg_right.png</div>
+            <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-br from-blue-600/10 to-cyan-500/10 p-6 flex flex-col gap-4 justify-center min-h-[180px]">
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-black tracking-widest uppercase text-blue-300/60">Classic Mode</span>
+                <div className="flex gap-2">
+                  <div className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-[10px] font-mono">main.png</div>
+                  <div className="px-2 py-1 bg-blue-500/20 border border-blue-400/30 rounded text-[10px] font-mono">side.png</div>
+                </div>
               </div>
-              <span className="text-xs text-blue-300/60 font-mono italic">assets_ready_to_upload.zip</span>
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-black tracking-widest uppercase text-violet-300/60">Featured Mode</span>
+                <div className="flex gap-2">
+                  <div className="px-2 py-1 bg-violet-500/20 border border-violet-400/30 rounded text-[10px] font-mono">featured_main.png</div>
+                </div>
+              </div>
             </div>
             <div>
               <span className="text-5xl font-black text-white/8 select-none">01</span>
               <h2 className="text-2xl font-black mt-1 mb-2">Extract the Assets</h2>
               <p className="text-white/50 text-sm leading-relaxed">
-                Download and extract your ZIP file. You will find three pieces: <span className="text-white/80">bg_left</span>, <span className="text-white/80">bg_middle</span>, and <span className="text-white/80">bg_right</span>. Since Steam limits uploads to <span className="text-blue-300 font-semibold">one file at a time</span>, you must process these individually.
+                Download and extract your ZIP file. <span className="text-blue-300 font-semibold">Classic</span> mode gives you <span className="text-white/80">2 files</span>: <span className="text-white/80">main.png</span> and <span className="text-white/80">side.png</span>. <span className="text-violet-300 font-semibold">Featured</span> mode gives you <span className="text-white/80">1 file</span>: <span className="text-white/80">featured_main.png</span>. Since Steam limits uploads to <span className="text-blue-300 font-semibold">one file at a time</span>, you must process them individually.
               </p>
             </div>
           </motion.div>
@@ -151,14 +158,14 @@ export default function HowToUsePage() {
                 <div className="w-full h-2 bg-white/5 rounded-full mb-4 overflow-hidden">
                   <div className="w-1/3 h-full bg-violet-500" />
                 </div>
-                <div className="text-[10px] text-white/40 font-mono">Uploading: bg_left.png (1/3)</div>
+                <div className="text-[10px] text-white/40 font-mono">Uploading: main.png (1/2)</div>
               </div>
             </div>
             <div>
               <span className="text-5xl font-black text-white/8 select-none">03</span>
               <h2 className="text-2xl font-black mt-1 mb-2">Select Your File</h2>
               <p className="text-white/50 text-sm leading-relaxed">
-                Click <span className="text-violet-300 font-semibold">'Choose File'</span> and select one asset (Start with <span className="text-white/80">bg_left.png</span>). Provide a title. <span className="text-red-400 font-bold">DO NOT</span> click 'Save and Continue' yet; the bypass code must be executed first.
+                Click <span className="text-violet-300 font-semibold">'Choose File'</span> and select one asset. For Classic, start with <span className="text-white/80">main.png</span>. For Featured, select <span className="text-white/80">featured_main.png</span>. Provide a title. <span className="text-red-400 font-bold">DO NOT</span> click 'Save and Continue' yet; the bypass code must be executed first.
               </p>
             </div>
           </motion.div>
@@ -213,13 +220,16 @@ export default function HowToUsePage() {
               >
                 {copied ? "✓ COPIED!" : "COPY MAGIC CODE"}
               </button>
-              <div className="text-center text-[10px] text-green-400/50 font-black tracking-widest uppercase">Repeat for all 3 files</div>
+              <div className="flex justify-around text-[10px] font-black tracking-widest uppercase">
+                <span className="text-blue-400/60">Classic: 2 files</span>
+                <span className="text-violet-400/60">Featured: 1 file</span>
+              </div>
             </div>
             <div>
               <span className="text-5xl font-black text-white/8 select-none">05</span>
-              <h2 className="text-2xl font-black mt-1 mb-2">Execute & Repeat <span className="text-green-400">(3X)</span></h2>
+              <h2 className="text-2xl font-black mt-1 mb-2">Execute & Repeat</h2>
               <p className="text-white/50 text-sm leading-relaxed">
-                Click <span className="text-green-400 font-semibold">COPY MAGIC CODE</span>, paste it into the Console, and hit <span className="text-white/80 font-bold underline">ENTER</span>. Click 'Save' on Steam. <span className="text-white/90 font-bold italic underline">Repeat this entire process</span> for <span className="text-white/80">bg_middle.png</span> and <span className="text-white/80">bg_right.png</span>.
+                Click <span className="text-green-400 font-semibold">COPY MAGIC CODE</span>, paste it into the Console, and hit <span className="text-white/80 font-bold underline">ENTER</span>. Click 'Save' on Steam. <span className="text-blue-300 font-semibold">Classic:</span> repeat the entire process for <span className="text-white/80">side.png</span>. <span className="text-violet-300 font-semibold">Featured:</span> you&apos;re done after the first file.
               </p>
             </div>
           </motion.div>
