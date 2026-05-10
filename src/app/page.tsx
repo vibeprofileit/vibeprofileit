@@ -237,8 +237,8 @@ export default function Home() {
                 {/* Stats bar */}
                 <div className="mt-5 grid grid-cols-3 gap-3">
                   {[
-                    { label: "Badges", value: "124" },
-                    { label: "Friends", value: "89" },
+                    { label: "Badges", value: "41" },
+                    { label: "Friends", value: "1" },
                     { label: "Achievements", value: "2.4K" },
                   ].map((s) => (
                     <div key={s.label} className="bg-[#16202d] rounded-lg px-3 py-2.5 text-center border border-white/5">
