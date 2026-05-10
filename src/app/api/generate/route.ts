@@ -14,55 +14,134 @@ fal.config({ credentials: process.env.FAL_API_KEY });
 const NSFW_KEYWORDS = ["nude", "nsfw", "naked", "explicit"];
 
 const PONY_TRIGGERS = [
+  // Genel anime/manga
   "anime", "manga", "waifu", "drawn", "comic",
-  "illustration", "2d", "naruto", "demon", "jujutsu",
-  "illustrated", "bleach", "one piece", "attack on titan",
+  "illustration", "2d", "illustrated",
+  "cel shaded", "toon", "stylized",
+
+  // Klasik anime serileri
+  "naruto", "bleach", "one piece", "attack on titan",
   "sword art", "re zero", "hunter x hunter", "chainsaw",
+  "demon", "jujutsu", "fullmetal", "dragon ball",
+  "death note", "tokyo ghoul", "fairy tail", "black clover",
+  "my hero academia", "boku no hero",
+
+  // Anime game / gacha
+  "genshin", "honkai", "blue archive", "arknights",
+  "nikke", "punishing gray raven", "azur lane",
+  "fate grand order", "persona", "nier automata anime",
+
+  // Vtuber
+  "vtuber", "hololive", "nijisanji",
+
+  // Stil
+  "pixel art", "chibi art", "visual novel",
 ];
 
 const FLUX_TRIGGERS = [
+  // Temel realizm/sinema
   "photo", "realistic", "cinematic", "portrait", "photography",
-  "hyperrealistic", "fantasy", "cyberpunk", "warrior", "dragon",
-  "knight", "armor", "sci-fi", "epic", "fps", "rpg", "shooter",
-  "mech", "soldier", "ninja", "assassin", "sniper", "mage",
+  "hyperrealistic", "photorealistic",
+
+  // Tür ve atmosfer
+  "fantasy", "dark fantasy", "cyberpunk", "steampunk",
+  "post apocalyptic", "dystopian", "sci-fi", "space",
+  "horror", "gothic", "medieval",
+
+  // Karakter sınıfları
+  "warrior", "dragon", "knight", "armor",
+  "soldier", "ninja", "assassin", "sniper", "mage",
   "wizard", "berserker", "paladin", "warlock", "gunner",
   "mercenary", "hunter", "ranger", "samurai", "viking",
+  "spartan", "gladiator", "pirate", "bounty hunter",
+  "demon hunter", "vampire", "werewolf", "orc",
+
+  // Ekipman
+  "mech", "robot", "cyborg", "exosuit",
+  "sword", "gun", "rifle", "bow", "axe", "shield",
+
+  // Oyun türleri
+  "fps", "rpg", "shooter", "battle royale",
+  "mmorpg", "soulslike", "hack and slash",
+
+  // Popüler oyunlar (realistic stil)
+  "league of legends", "valorant", "call of duty",
+  "overwatch", "apex legends", "halo",
+  "doom", "witcher", "god of war",
+  "dark souls", "elden ring", "diablo",
+  "world of warcraft", "dota", "counter strike",
+  "pubg", "destiny", "cyberpunk 2077",
+  "monster hunter", "sekiro",
 ];
 
 const MODEL_FLUX   = "fal-ai/flux-pro/v1.1";
 const MODEL_KOLORS = "fal-ai/kolors";
 
 const FLUX_SYSTEM_PROMPT =
-  "Steam profile artwork, gaming character portrait, vertical portrait composition, " +
-  "tall format 9:16, cinematic lighting, dramatic shadows, volumetric fog, " +
-  "deep contrast, sharp focus, intricate details, atmospheric depth, " +
-  "epic scale, professional digital art, rich colors, dynamic hero pose, " +
-  "detailed armor or outfit, powerful character presence, masterpiece";
+  "professional digital artwork, gaming character portrait, " +
+  "vertical composition, close-up hero shot, " +
+  "cinematic dramatic lighting, rim lighting, god rays, " +
+  "deep shadows, volumetric light rays, " +
+  "ultra sharp focus on face and details, " +
+  "8k resolution, hyper detailed, intricate textures, " +
+  "photorealistic rendering, unreal engine 5 quality, " +
+  "dynamic powerful pose, intense gaze, battle ready stance, " +
+  "epic dark atmosphere, moody background, depth of field, " +
+  "bokeh background, award winning digital art, artstation trending";
 
 const FLUX_NEGATIVE_PROMPT =
-  "blurry, watermark, text, logo, horizontal composition, landscape format, " +
-  "low quality, bad anatomy, deformed, ugly, oversaturated, noise, grain, " +
-  "washed out, flat lighting, extra limbs, distorted, amateur, poorly drawn, " +
-  "food, cooking, kitchen, animals, pets, cat, dog, cute, kawaii, chibi, " +
-  "peaceful, slice of life, school, classroom, no character, empty scene";
+  // Kalite sorunları
+  "blurry, low quality, worst quality, jpeg artifacts, compression artifacts, " +
+  "noise, grain, washed out, overexposed, underexposed, " +
+  // Kompozisyon sorunları
+  "horizontal composition, landscape format, cropped head, out of frame, cut off, " +
+  // Anatomi sorunları
+  "bad anatomy, deformed, ugly, extra limbs, distorted, " +
+  "bad proportions, long neck, duplicate, clone, " +
+  "multiple people, crowd, group, " +
+  // Stil sorunları
+  "watermark, text, logo, signature, " +
+  "painting, illustration, cartoon, anime, " +
+  "flat lighting, amateur, poorly drawn, " +
+  // Konu dışı
+  "food, cooking, kitchen, animals, pets, cat, dog, " +
+  "cute, kawaii, chibi, peaceful, " +
+  "slice of life, school, classroom, no character, empty scene";
 
 const KOLORS_SYSTEM_PROMPT =
-  "anime gaming character illustration, masterpiece, best quality, " +
-  "ultra detailed, vertical portrait composition, tall format 9:16, " +
-  "vibrant saturated colors, highly detailed eyes, sharp clean lineart, " +
-  "dramatic cinematic lighting, dynamic battle pose, detailed background, " +
-  "Steam profile artwork, gaming aesthetic, epic atmosphere, " +
-  "powerful warrior or hero, intense expression, detailed weapon or armor";
+  "masterpiece, best quality, ultra highres, ultra detailed, " +
+  "anime illustration, game cg style, official art quality, key visual, " +
+  "1character, solo, upper body portrait, " +
+  "extremely detailed face, beautiful detailed eyes, perfect anatomy, " +
+  "dramatic side lighting, rim light, god rays, glowing effects, particle effects, " +
+  "dark fantasy atmosphere, " +
+  "detailed armor, intricate weapon design, " +
+  "dynamic angle, powerful warrior pose, fierce expression, " +
+  "vibrant color palette, high contrast, " +
+  "bokeh background, depth of field, " +
+  "trending on pixiv, game art style, splash art";
 
 const KOLORS_NEGATIVE_PROMPT =
-  "worst quality, low quality, blurry, watermark, text, " +
+  // Kalite sorunları
+  "worst quality, low quality, normal quality, lowres, blurry, " +
+  "jpeg artifacts, compression artifacts, " +
+  // Kompozisyon sorunları
   "horizontal composition, landscape format, " +
+  "cropped, out of frame, cut off, " +
+  // Anatomi sorunları
   "bad anatomy, deformed, extra limbs, " +
   "poorly drawn eyes, bad hands, missing fingers, " +
+  "bad face, ugly face, bad proportions, gross proportions, " +
+  "multiple girls, multiple boys, crowd, " +
+  // Stil sorunları
+  "watermark, text, signature, artist name, " +
+  "censored, mosaic, " +
   "flat colors, dull, boring, generic, " +
-  "food, animals, cute, kawaii, chibi, slice of life, " +
-  "school uniform, classroom, peaceful, no action, " +
-  "western cartoon, 3d render, realistic photo";
+  "monochrome, grayscale, " +
+  "western cartoon, 3d render, realistic photo, " +
+  // Konu dışı
+  "food, animals, cute, kawaii, chibi, " +
+  "slice of life, school uniform, classroom, peaceful, no action";
 
 // ---------------------------------------------------------------------------
 // Rate limiter — in-memory, 3 req / 60 s per IP
