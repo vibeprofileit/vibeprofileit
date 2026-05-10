@@ -853,7 +853,7 @@ function GalleryCard({
                 loading="lazy"
                 decoding="async"
                 style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
-                onError={() => setImageError(true)}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
               />
             )
           ) : (
@@ -917,11 +917,21 @@ function GalleryCard({
       ) : item.isPremium ? (
         <>
           {(!inView || (!thumbnailLoaded && !canvasFailed)) && <PremiumPlaceholder />}
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 w-full h-full"
-            style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s", transform: "translateZ(0)" }}
-          />
+          {canvasFailed ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={item.src}
+              alt={item.theme}
+              className="absolute inset-0 w-full h-full object-cover"
+              style={{ transform: "translateZ(0)" }}
+            />
+          ) : (
+            <canvas
+              ref={canvasRef}
+              className="absolute inset-0 w-full h-full"
+              style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s", transform: "translateZ(0)" }}
+            />
+          )}
         </>
       ) : item.src ? (
         <ProtectedImage
