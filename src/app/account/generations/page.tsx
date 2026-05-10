@@ -8,6 +8,17 @@ import { useRouter } from "next/navigation";
 import { Download, Clock, Sparkles, X, ZapOff } from "lucide-react";
 import Link from "next/link";
 
+async function downloadImage(url: string) {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  const ext = blob.type.includes("png") ? "png" : "jpg";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `vibeprofileit_ai.${ext}`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 const ORG   = "#f97316";
 const ORG_L = "#fb923c";
 const ORG_A = (a: number) => `rgba(249,115,22,${a})`;
@@ -135,16 +146,13 @@ function GenerationModal({ item, onClose }: { item: Generation; onClose: () => v
 
               {/* Download */}
               <div className="flex flex-col gap-2 mt-auto pb-6">
-                <a
-                  href={item.r2_url}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => downloadImage(item.r2_url)}
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-transform duration-200 hover:scale-105"
                   style={{ background: `linear-gradient(135deg, ${ORG}, #D97706)`, border: `1px solid ${ORG_L}` }}
                 >
                   <Download size={15} /> Download
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -228,17 +236,13 @@ function GenerationCard({ item, index, onView }: { item: Generation; index: numb
           style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.75) 100%)" }}
         >
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <a
-              href={item.r2_url}
-              download
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={e => e.stopPropagation()}
+            <button
+              onClick={e => { e.stopPropagation(); downloadImage(item.r2_url); }}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-full font-semibold text-white pointer-events-auto"
               style={{ fontSize: "12px", background: ORG_A(0.85), border: `1px solid ${ORG_A(0.9)}` }}
             >
               <Download size={12} /> Download
-            </a>
+            </button>
           </div>
         </motion.div>
       </AnimatePresence>

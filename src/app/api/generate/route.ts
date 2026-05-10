@@ -118,13 +118,11 @@ const FLUX_NEGATIVE_PROMPT =
 
 const KOLORS_SYSTEM_PROMPT =
   "masterpiece, best quality, ultra highres, " +
-  "2d anime style, flat cel shading, hand drawn, classic anime, manga style, " +
-  "anime illustration, official anime art, " +
+  "2d anime style, cel shading, hand drawn, classic anime, manga illustration, " +
+  "anime key visual, official anime art, pixiv style, " +
   "solo, upper body portrait, vertical composition, " +
-  "big anime eyes, sharp lineart, clean lines, " +
-  "dramatic lighting, glowing effects, " +
-  "vibrant colors, high contrast, " +
-  "pixiv, 2d anime, NOT photorealistic, NOT realistic, NOT 3d render";
+  "big expressive anime eyes, sharp lineart, clean lines, " +
+  "vibrant colors, high contrast";
 
 const KOLORS_NEGATIVE_PROMPT =
   // Kalite sorunları
@@ -141,9 +139,9 @@ const KOLORS_NEGATIVE_PROMPT =
   // Stil sorunları
   "watermark, text, signature, artist name, " +
   "censored, mosaic, " +
-  "flat colors, dull, boring, washed out, " +
+  "dull, boring, washed out, " +
   "monochrome, grayscale, " +
-  "western cartoon, 3d render, realistic photo, " +
+  "western cartoon, 3d render, realistic photo, photorealistic, hyperrealistic, " +
   // Konu dışı
   "food, animals, cute, kawaii, chibi, " +
   "slice of life, school uniform, classroom, peaceful, no action";
