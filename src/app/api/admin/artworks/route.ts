@@ -73,7 +73,8 @@ export async function PATCH(request: NextRequest) {
 
   if (r2Key?.startsWith("pending/")) {
     const ext = r2Key.split(".").pop() ?? "jpg";
-    const newR2Key = `artworks/${randomUUID()}.${ext}`;
+    const folder = isPremium ? "premium" : "artworks";
+    const newR2Key = `${folder}/${randomUUID()}.${ext}`;
     try {
       await r2.send(new CopyObjectCommand({
         Bucket: R2_BUCKET,
@@ -83,7 +84,7 @@ export async function PATCH(request: NextRequest) {
       await r2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: r2Key }));
       r2Key = newR2Key;
       finalSourceUrl = `${WORKER_BASE}/${newR2Key}`;
-      console.log(`[APPROVE] pending → artworks: ${newR2Key}`);
+      console.log(`[APPROVE] pending → ${folder}: ${newR2Key}`);
     } catch (err) {
       console.error("[APPROVE] R2 taşıma hatası:", err);
       return Response.json({ error: "R2 taşıma başarısız" }, { status: 502 });
@@ -118,7 +119,7 @@ export async function PATCH(request: NextRequest) {
     };
     const ext = formatMap[contentType.split(";")[0].trim()] ?? existing.format ?? "jpg";
 
-    r2Key = `artworks/${randomUUID()}.${ext}`;
+    r2Key = `${isPremium ? "premium" : "artworks"}/${randomUUID()}.${ext}`;
     try {
       await r2.send(
         new PutObjectCommand({

@@ -289,21 +289,19 @@ const SELECT_CLS = "bg-zinc-900 border border-zinc-700 focus:border-[#00ff99] ou
 
 // ─── Approved Modal ───────────────────────────────────────────────────────────
 function ApprovedModal({
-  artwork, onClose, onMoveToPending, onHardDelete, onToggleFeatured, onTogglePremium, onNext, onPrev,
+  artwork, onClose, onMoveToPending, onHardDelete, onToggleFeatured, onNext, onPrev,
 }: {
   artwork: Artwork;
   onClose: () => void;
   onMoveToPending: (id: string) => Promise<void>;
   onHardDelete: (id: string) => Promise<void>;
   onToggleFeatured: (id: string, current: boolean) => Promise<void>;
-  onTogglePremium: (id: string, current: boolean) => Promise<void>;
   onNext: () => void;
   onPrev: () => void;
 }) {
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [starring, setStarring] = useState(false);
-  const [premiuming, setPremiuming] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -359,10 +357,11 @@ function ApprovedModal({
             className={`flex-1 py-3 rounded-xl font-bold text-sm active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${artwork.isFeatured ? "bg-yellow-400 text-black hover:bg-yellow-300" : "bg-zinc-700 text-white hover:bg-zinc-600"}`}>
             {starring ? "..." : artwork.isFeatured ? "★  Featured" : "☆  Feature"}
           </button>
-          <button onClick={async () => { setPremiuming(true); await onTogglePremium(artwork.id, artwork.isPremium); setPremiuming(false); }} disabled={premiuming}
-            className={`flex-1 py-3 rounded-xl font-bold text-sm active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${artwork.isPremium ? "bg-amber-500 text-black hover:bg-amber-400" : "bg-zinc-700 text-white hover:bg-zinc-600"}`}>
-            {premiuming ? "..." : artwork.isPremium ? "💎  Premium" : "💎  Premium Yap"}
-          </button>
+          {artwork.isPremium && (
+            <span className="flex-1 py-3 rounded-xl font-bold text-sm text-center bg-amber-500/20 text-amber-400 border border-amber-500/30">
+              💎 Premium
+            </span>
+          )}
           <button onClick={async () => { setLoading(true); await onMoveToPending(artwork.id); setLoading(false); onClose(); }} disabled={loading}
             className="flex-1 py-3 rounded-xl font-bold text-sm bg-zinc-600 hover:bg-zinc-500 text-white active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
             {loading ? "Taşınıyor..." : "↩  Pending'e Al"}
@@ -558,7 +557,7 @@ function ApprovedTab({
         const handlePrev = () => { if (filtered.length) setSelected(filtered[(idx - 1 + filtered.length) % filtered.length]); };
         return (
           <ApprovedModal artwork={selected} onClose={() => setSelected(null)}
-            onMoveToPending={moveToPending} onHardDelete={hardDelete} onToggleFeatured={toggleFeatured} onTogglePremium={togglePremium}
+            onMoveToPending={moveToPending} onHardDelete={hardDelete} onToggleFeatured={toggleFeatured}
             onNext={handleNext} onPrev={handlePrev} />
         );
       })()}
