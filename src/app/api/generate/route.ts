@@ -78,30 +78,30 @@ const MODEL_FLUX   = "fal-ai/flux-pro/v1.1";
 const MODEL_KOLORS = "fal-ai/kolors";
 
 const FLUX_SYSTEM_PROMPT =
-  "professional digital artwork, gaming character portrait, " +
-  "vertical composition, close-up hero shot, " +
-  "cinematic dramatic lighting, rim lighting, god rays, " +
-  "deep shadows, volumetric light rays, " +
-  "ultra sharp focus on face and details, " +
-  "8k resolution, hyper detailed, intricate textures, " +
-  "photorealistic rendering, unreal engine 5 quality, " +
-  "dynamic powerful pose, intense gaze, battle ready stance, " +
-  "epic dark atmosphere, moody background, depth of field, " +
-  "bokeh background, award winning digital art, artstation trending";
+  "game key art, steam profile artwork, epic hero portrait, " +
+  "vertical portrait composition, upper body close-up hero shot, " +
+  "dramatic cinematic lighting, sharp rim light, volumetric god rays, deep shadows, " +
+  "hyper detailed face and armor, intricate textures, ultra sharp crisp focus, " +
+  "photorealistic digital painting, professional concept art, " +
+  "powerful dynamic stance, fierce battle-ready expression, intense gaze, " +
+  "rich atmospheric depth, dramatic color grading, high contrast, " +
+  "depth of field, bokeh background, " +
+  "award winning game illustration, professional concept art quality";
 
 const FLUX_NEGATIVE_PROMPT =
   // Kalite sorunları
-  "blurry, low quality, worst quality, jpeg artifacts, compression artifacts, " +
+  "blurry, soft focus, low quality, worst quality, jpeg artifacts, compression artifacts, " +
   "noise, grain, washed out, overexposed, underexposed, " +
   // Kompozisyon sorunları
-  "horizontal composition, landscape format, cropped head, out of frame, cut off, " +
+  "horizontal composition, landscape format, wide shot, full body, " +
+  "cropped head, out of frame, cut off, " +
   // Anatomi sorunları
   "bad anatomy, deformed, ugly, extra limbs, distorted, " +
   "bad proportions, long neck, duplicate, clone, " +
   "multiple people, crowd, group, " +
   // Stil sorunları
   "watermark, text, logo, signature, " +
-  "painting, illustration, cartoon, anime, " +
+  "flat cartoon, anime style, cel shading, " +
   "flat lighting, amateur, poorly drawn, " +
   // Konu dışı
   "food, cooking, kitchen, animals, pets, cat, dog, " +
@@ -110,33 +110,32 @@ const FLUX_NEGATIVE_PROMPT =
 
 const KOLORS_SYSTEM_PROMPT =
   "masterpiece, best quality, ultra highres, ultra detailed, " +
-  "anime illustration, game cg style, official art quality, key visual, " +
-  "1character, solo, upper body portrait, " +
-  "extremely detailed face, beautiful detailed eyes, perfect anatomy, " +
-  "dramatic side lighting, rim light, god rays, glowing effects, particle effects, " +
-  "dark fantasy atmosphere, " +
+  "game cg style, official art quality, key visual, splash art, " +
+  "solo, upper body portrait, vertical composition, " +
+  "extremely detailed face, beautiful detailed eyes, sharp focus, crisp clean lines, perfect anatomy, " +
+  "dramatic cinematic lighting, rim light, god rays, glowing effects, particle effects, " +
   "detailed armor, intricate weapon design, " +
   "dynamic angle, powerful warrior pose, fierce expression, " +
-  "vibrant color palette, high contrast, " +
+  "vibrant color palette, high contrast, rich colors, " +
   "bokeh background, depth of field, " +
-  "trending on pixiv, game art style, splash art";
+  "pixiv ranking, anime game art style, steam artwork";
 
 const KOLORS_NEGATIVE_PROMPT =
   // Kalite sorunları
-  "worst quality, low quality, normal quality, lowres, blurry, " +
+  "worst quality, low quality, normal quality, lowres, blurry, soft focus, " +
   "jpeg artifacts, compression artifacts, " +
   // Kompozisyon sorunları
-  "horizontal composition, landscape format, " +
+  "horizontal composition, landscape format, wide shot, full body, " +
   "cropped, out of frame, cut off, " +
   // Anatomi sorunları
-  "bad anatomy, deformed, extra limbs, " +
-  "poorly drawn eyes, bad hands, missing fingers, " +
-  "bad face, ugly face, bad proportions, gross proportions, " +
+  "bad anatomy, deformed, extra limbs, missing limbs, " +
+  "poorly drawn eyes, bad hands, missing fingers, extra fingers, " +
+  "bad face, ugly face, asymmetrical face, bad proportions, gross proportions, " +
   "multiple girls, multiple boys, crowd, " +
   // Stil sorunları
   "watermark, text, signature, artist name, " +
   "censored, mosaic, " +
-  "flat colors, dull, boring, generic, " +
+  "flat colors, dull, boring, washed out, " +
   "monochrome, grayscale, " +
   "western cartoon, 3d render, realistic photo, " +
   // Konu dışı
