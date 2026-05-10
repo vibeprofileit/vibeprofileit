@@ -17,7 +17,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Constants
 // ---------------------------------------------------------------------------
 
-const NSFW_KEYWORDS = ["nude", "nsfw", "naked", "explicit"];
+const NSFW_KEYWORDS = ["nude", "nsfw", "naked", "explicit", "demon girl", "succubus", "lingerie", "bikini", "sexy", "seductive"];
 
 const KOLORS_TRIGGERS = [
   // Genel anime/manga
@@ -113,15 +113,14 @@ const FLUX_NEGATIVE_PROMPT =
 
 const KOLORS_SYSTEM_PROMPT =
   "masterpiece, best quality, ultra highres, ultra detailed, " +
-  "game cg style, official art quality, key visual, splash art, " +
+  "2d anime style, flat cel shading, hand drawn illustration, classic anime aesthetic, clothed, fully dressed, " +
+  "official art quality, key visual, splash art, " +
   "solo, upper body portrait, vertical composition, " +
   "extremely detailed face, beautiful detailed eyes, sharp focus, crisp clean lines, perfect anatomy, " +
-  "dramatic cinematic lighting, rim light, god rays, glowing effects, particle effects, " +
-  "detailed armor, intricate weapon design, " +
-  "dynamic angle, powerful warrior pose, fierce expression, " +
+  "dramatic cinematic lighting, rim light, glowing effects, particle effects, " +
+  "dynamic angle, fierce expression, " +
   "vibrant color palette, high contrast, rich colors, " +
-  "bokeh background, depth of field, " +
-  "pixiv ranking, anime game art style, steam artwork";
+  "pixiv ranking, 2d anime art style, steam artwork";
 
 const KOLORS_NEGATIVE_PROMPT =
   // Kalite sorunları
