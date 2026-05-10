@@ -4,13 +4,14 @@ import { useSession, signOut } from "next-auth/react"
 import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Heart, Coins, Star, LogOut } from "lucide-react"
+import { Heart, Coins, Star, LogOut, Sparkles } from "lucide-react"
 import TokenIcon from "@/components/TokenIcon"
 
 const MENU_ITEMS = [
-  { icon: <Heart size={14} />, label: "Likes",       href: "/account/likes"    },
-  { icon: <Star  size={14} />, label: "My Premium",  href: "/account/premiums" },
-  { icon: <Coins size={14} />, label: "My Tokens",   href: ""                  },
+  { icon: <Heart    size={14} />, label: "Likes",          href: "/account/likes"        },
+  { icon: <Star     size={14} />, label: "My Premium",     href: "/account/premiums"     },
+  { icon: <Sparkles size={14} />, label: "My Generations", href: "/account/generations"  },
+  { icon: <Coins    size={14} />, label: "My Tokens",      href: ""                      },
 ]
 
 export default function Header() {
