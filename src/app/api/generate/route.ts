@@ -120,7 +120,7 @@ const KOLORS_SYSTEM_PROMPT =
   "masterpiece, best quality, ultra highres, " +
   "2d anime style, cel shading, hand drawn, classic anime, manga illustration, " +
   "anime key visual, official anime art, pixiv style, " +
-  "solo, upper body portrait, vertical composition, " +
+  "vertical composition, " +
   "big expressive anime eyes, sharp lineart, clean lines, " +
   "vibrant colors, high contrast";
 
