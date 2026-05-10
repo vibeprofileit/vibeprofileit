@@ -39,7 +39,6 @@ export default function TermsPage() {
             <li>Harass, threaten, or harm other users</li>
             <li>Attempt to reverse-engineer, scrape, or abuse the service</li>
             <li>Use automated tools or bots to interact with the service without our written consent</li>
-            <li>Circumvent rate limits or other technical restrictions</li>
           </ul>
         </Section>
 
