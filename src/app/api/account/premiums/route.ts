@@ -20,7 +20,7 @@ export async function GET() {
     return NextResponse.json({ items: [], ids: [] })
   }
 
-  const artworkIds = purchases.map(p => p.asset_id)
+  const artworkIds = purchases.map(p => p.asset_id).filter((id): id is string => id !== null)
 
   const artworks = await prisma.artwork.findMany({
     where:  { id: { in: artworkIds }, status: "APPROVED" },
