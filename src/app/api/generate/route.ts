@@ -13,7 +13,7 @@ fal.config({ credentials: process.env.FAL_API_KEY });
 
 const NSFW_KEYWORDS = ["nude", "nsfw", "naked", "explicit"];
 
-const PONY_TRIGGERS = [
+const KOLORS_TRIGGERS = [
   // Genel anime/manga
   "anime", "manga", "waifu", "drawn", "comic",
   "illustration", "2d", "illustrated",
@@ -177,7 +177,7 @@ function selectModel(prompt: string, category?: string | null): "flux" | "kolors
   if (category === "anime") return "kolors";
   if (category === "darkfantasy" || category === "cyberpunk") return "flux";
   const lower = prompt.toLowerCase();
-  if (PONY_TRIGGERS.some((t) => lower.includes(t))) return "kolors";
+  if (KOLORS_TRIGGERS.some((t) => lower.includes(t))) return "kolors";
   if (FLUX_TRIGGERS.some((t) => lower.includes(t))) return "flux";
   return "flux";
 }
