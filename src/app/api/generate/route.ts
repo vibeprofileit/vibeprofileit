@@ -17,7 +17,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Constants
 // ---------------------------------------------------------------------------
 
-const NSFW_KEYWORDS = ["nude", "nsfw", "naked", "explicit", "demon girl", "succubus", "lingerie", "bikini", "sexy", "seductive"];
+const NSFW_KEYWORDS = ["nude", "nsfw", "naked", "explicit", "demon girl", "succubus", "lingerie", "bikini", "sexy", "seductive", "pussy", "dick", "cock", "porn", "hentai", "sex", "boobs", "tits"];
 
 const KOLORS_TRIGGERS = [
   // Genel anime/manga
@@ -90,12 +90,11 @@ const CARS_SYSTEM_PROMPT =
   "No people, no text, no watermarks. Professional car photography quality.";
 
 const FLUX_SYSTEM_PROMPT =
-  "A professional game key art for a vertical Steam profile artwork showcase. " +
+  "Professional game key art for a vertical Steam profile artwork showcase. " +
   "Solo character, powerful battle stance, upper body portrait framing. " +
-  "Cinematic rim lighting separates the character from the dark atmospheric background. " +
+  "Cinematic rim lighting, dark atmospheric background. " +
   "Volumetric fog, sparks and embers in the air. " +
-  "Hyper detailed armor and face textures, sharp focus on eyes. " +
-  "Photorealistic, professional concept art quality.";
+  "Highly detailed, sharp focus, professional concept art quality.";
 
 const FLUX_NEGATIVE_PROMPT =
   // Kalite sorunları
@@ -118,15 +117,14 @@ const FLUX_NEGATIVE_PROMPT =
   "slice of life, school, classroom, no character, empty scene";
 
 const KOLORS_SYSTEM_PROMPT =
-  "masterpiece, best quality, ultra highres, ultra detailed, " +
-  "2d anime style, flat cel shading, hand drawn illustration, classic anime aesthetic, clothed, fully dressed, " +
-  "official art quality, key visual, splash art, " +
+  "masterpiece, best quality, ultra highres, " +
+  "2d anime style, flat cel shading, hand drawn, classic anime, manga style, " +
+  "anime illustration, official anime art, " +
   "solo, upper body portrait, vertical composition, " +
-  "extremely detailed face, beautiful detailed eyes, sharp focus, crisp clean lines, perfect anatomy, " +
-  "dramatic cinematic lighting, rim light, glowing effects, particle effects, " +
-  "dynamic angle, fierce expression, " +
-  "vibrant color palette, high contrast, rich colors, " +
-  "pixiv ranking, 2d anime art style, steam artwork";
+  "big anime eyes, sharp lineart, clean lines, " +
+  "dramatic lighting, glowing effects, " +
+  "vibrant colors, high contrast, " +
+  "pixiv, 2d anime, NOT photorealistic, NOT realistic, NOT 3d render";
 
 const KOLORS_NEGATIVE_PROMPT =
   // Kalite sorunları
