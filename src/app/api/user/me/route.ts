@@ -23,9 +23,17 @@ export async function GET() {
     where: { user_id: session.user.userId },
   })
 
+  const generationsCount = await prisma.assets.count({
+    where: {
+      user_id:    session.user.userId,
+      expires_at: { gt: new Date() },
+    },
+  })
+
   return NextResponse.json({
-    tokenBalance:   profile?.token_balance ?? 0,
+    tokenBalance:      profile?.token_balance ?? 0,
     likesCount,
     premiumsCount,
+    generationsCount,
   })
 }
