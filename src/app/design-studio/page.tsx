@@ -217,12 +217,12 @@ function UploadPageInner() {
       setBgUrl(imageUrl);
     }
 
-    // ai-studio bridge: sessionStorage'daki 1260×1600 görseli arka plan yap
+    // ai-studio bridge: localStorage'daki base64 görseli arka plan yap
     if (source === "ai-studio") {
-      const stored = sessionStorage.getItem("studio_generated_image");
+      const stored = localStorage.getItem("studio_generated_image");
       if (stored) {
         setBgUrl(stored);
-        sessionStorage.removeItem("studio_generated_image");
+        localStorage.removeItem("studio_generated_image");
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

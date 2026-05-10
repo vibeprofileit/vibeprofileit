@@ -19,12 +19,9 @@ async function downloadImage(url: string) {
   URL.revokeObjectURL(a.href);
 }
 
-async function openInDesignStudio(url: string) {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  const objectUrl = URL.createObjectURL(blob);
-  sessionStorage.setItem("studio_generated_image", objectUrl);
-  window.open("/design-studio?source=ai-studio", "_blank");
+function openInDesignStudio(url: string) {
+  const params = new URLSearchParams({ imageUrl: url, isPremium: "true" });
+  window.open(`/design-studio?${params}`, "_blank");
 }
 
 const ORG   = "#f97316";

@@ -268,14 +268,19 @@ export default function StudioPage() {
     setPreviewMode(true);
   }, []);
 
-  const handleDownloadAndEdit = useCallback(() => {
+  const handleDownloadAndEdit = useCallback(async () => {
     if (!generatedImage) return;
     const link = document.createElement("a");
     link.href = generatedImage;
     link.download = "vibeprofileit_ai";
     link.click();
-    sessionStorage.setItem("studio_generated_image", generatedImage);
-    window.open("/design-studio?source=ai-studio", "_blank");
+    const blob = await fetch(generatedImage).then(r => r.blob());
+    const reader = new FileReader();
+    reader.onload = () => {
+      localStorage.setItem("studio_generated_image", reader.result as string);
+      window.open("/design-studio?source=ai-studio", "_blank");
+    };
+    reader.readAsDataURL(blob);
   }, [generatedImage]);
 
   return (
