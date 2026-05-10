@@ -31,7 +31,7 @@ export default function RefundPage() {
             <li>Any purchase where one or more tokens have been used</li>
             <li>Requests submitted more than 7 days after purchase</li>
             <li>Accounts suspended or terminated for Terms of Service violations</li>
-            <li>Dissatisfaction with AI-generated image quality (generation is a best-effort service)</li>
+            <li>Dissatisfaction with AI-generated image quality — AI generation is a best-effort service and results may vary. The model may occasionally produce unexpected or imperfect outputs, which is inherent to the nature of AI technology and does not qualify as a service failure.</li>
           </ul>
         </Section>
 
