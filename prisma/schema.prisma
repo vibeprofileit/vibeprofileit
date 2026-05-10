@@ -95,7 +95,8 @@ model profiles {
 model purchases {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id      String
-  asset_id     String
+  asset_id     String?
+  ls_order_id  String?  @unique
   tokens_spent Int
   created_at   DateTime @default(now()) @db.Timestamptz(6)
 
