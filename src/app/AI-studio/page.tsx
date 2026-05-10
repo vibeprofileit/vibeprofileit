@@ -290,26 +290,33 @@ export default function StudioPage() {
               pointerEvents: "none",
             }}
           >
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={generateStatus}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.4 }}
-                style={{
-                  fontSize: generateStatus === "REVEAL" ? 52 : 20,
-                  fontWeight: 700,
-                  color: generateStatus === "REVEAL" ? "#f87171" : "rgba(220,130,80,0.90)",
-                  letterSpacing: generateStatus === "REVEAL" ? "0.5em" : "0.08em",
-                  textShadow: "none",
-                  textAlign: "center",
-                  paddingLeft: generateStatus === "REVEAL" ? "0.5em" : 0,
-                }}
-              >
-                {generateStatus}
-              </motion.p>
-            </AnimatePresence>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={generateStatus}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.4 }}
+                  style={{
+                    fontSize: generateStatus === "REVEAL" ? 52 : 20,
+                    fontWeight: 700,
+                    color: generateStatus === "REVEAL" ? "#f87171" : "rgba(220,130,80,0.90)",
+                    letterSpacing: generateStatus === "REVEAL" ? "0.5em" : "0.08em",
+                    textShadow: "none",
+                    textAlign: "center",
+                    paddingLeft: generateStatus === "REVEAL" ? "0.5em" : 0,
+                  }}
+                >
+                  {generateStatus}
+                </motion.p>
+              </AnimatePresence>
+              {generateStatus !== "REVEAL" && (
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.25)", letterSpacing: "0.06em", textAlign: "center" }}>
+                  Do not close or navigate away — your token is being used
+                </p>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
