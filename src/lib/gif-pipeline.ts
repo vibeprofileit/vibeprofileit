@@ -77,6 +77,7 @@ function patchDelays(buf: ArrayBuffer, delayCs: number): ArrayBuffer {
 async function hardOptimize(
   buf: ArrayBuffer,
   outName: string,
+  mode: 'classic' | 'featured',
   onWarning?: () => void,
   onProgress?: (p: number) => void,
 ): Promise<ArrayBuffer> {
@@ -123,31 +124,22 @@ async function hardOptimize(
     return { cmd, skip };
   }
 
-  // Pass 1: fps=15, colors=180, lossy=70
-  onProgress?.(50);
-  const { cmd: cmd1, skip: skip1 } = buildCmd(15, 180, 70);
-  let pass1 = await gRun(buf, cmd1);
-  console.log('[hardOptimize-pass1]', { skip: skip1, outputBytes: pass1.byteLength, underLimit: pass1.byteLength <= LIMIT });
-  if (skip1 > 1) {
-    const newDelayCs = Math.max(1, Math.round(totalDuration / frameCount * skip1 / 10));
-    pass1 = patchDelays(pass1, newDelayCs);
-    console.log('[hardOptimize-patchDelays-pass1]', { newDelayCs, patchedBytes: pass1.byteLength });
-  }
-  if (pass1.byteLength <= LIMIT) return pass1;
+  const lossySteps = mode === 'featured' ? [50, 70, 90] : [50, 70, 80];
+  const fpsSteps   = [15, 13, 12];
+  const colorSteps = [180, 160, 150];
 
-  // Pass 2: fps=12, colors=150, lossy=80 — original buf (no cumulative loss)
-  onWarning?.();
-  onProgress?.(80);
-  const { cmd: cmd2, skip: skip2 } = buildCmd(12, 150, 80);
-  let pass2 = await gRun(buf, cmd2);
-  console.log('[hardOptimize-pass2]', { skip: skip2, outputBytes: pass2.byteLength, underLimit: pass2.byteLength <= LIMIT });
-  if (skip2 > 1) {
-    const newDelayCs = Math.max(1, Math.round(totalDuration / frameCount * skip2 / 10));
-    pass2 = patchDelays(pass2, newDelayCs);
-    console.log('[hardOptimize-patchDelays-pass2]', { newDelayCs, patchedBytes: pass2.byteLength });
+  for (let i = 0; i < lossySteps.length; i++) {
+    if (i === 1) onWarning?.();
+    onProgress?.(50 + i * 20);
+    const { cmd, skip } = buildCmd(fpsSteps[i], colorSteps[i], lossySteps[i]);
+    let result = await gRun(buf, cmd);
+    console.log(`[hardOptimize-pass${i + 1}]`, { mode, lossy: lossySteps[i], skip, outputBytes: result.byteLength, underLimit: result.byteLength <= LIMIT });
+    if (skip > 1) {
+      const newDelayCs = Math.max(1, Math.round(totalDuration / frameCount * skip / 10));
+      result = patchDelays(result, newDelayCs);
+    }
+    if (result.byteLength <= LIMIT) return result;
   }
-  onProgress?.(95);
-  if (pass2.byteLength <= LIMIT) return pass2;
 
   throw new Error("This GIF is too high-quality for Steam's 5 MB limit — try a shorter clip or a lower-resolution source.");
 }
@@ -176,7 +168,7 @@ export async function runGifPipeline(
         console.log('[runGifPipeline-fastPath]', { name, bytes: cropBuf.byteLength });
         return [name, new Blob([cropBuf], { type: 'image/gif' })] as const;
       }
-      const optimized = await hardOptimize(cropBuf, name, onWarning, onProgress);
+      const optimized = await hardOptimize(cropBuf, name, mode, onWarning, onProgress);
       return [name, new Blob([optimized], { type: 'image/gif' })] as const;
     }),
   );
