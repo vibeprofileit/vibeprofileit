@@ -6,6 +6,7 @@
 }
 
 :root {
+  color-scheme: dark;
   --background: #0a0a0f;
   --foreground: #ffffff;
   --color-background: var(--background);
