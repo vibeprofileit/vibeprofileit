@@ -647,7 +647,7 @@ function UploadPageInner() {
         </Link>
 
         <div className="mb-6">
-          <h1 className="text-4xl font-black mb-1" style={{
+          <h1 className="text-2xl md:text-4xl font-black mb-1" style={{
             backgroundImage: "linear-gradient(to right, #2563eb, #06b6d4)",
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
@@ -697,7 +697,8 @@ function UploadPageInner() {
                 color:        showcaseMode === 'classic' ? "#c4b5fd" : "#8f98a0",
               }}
             >
-              Artwork Showcase
+              <span className="md:hidden">Classic</span>
+              <span className="hidden md:inline">Artwork Showcase</span>
             </button>
             <button
               onClick={() => setShowcaseMode('featured')}
@@ -708,7 +709,8 @@ function UploadPageInner() {
                 color:        showcaseMode === 'featured' ? "#93c5fd" : "#8f98a0",
               }}
             >
-              Featured Artwork Showcase
+              <span className="md:hidden">Featured</span>
+              <span className="hidden md:inline">Featured Artwork Showcase</span>
             </button>
           </div>
 
@@ -817,21 +819,21 @@ function UploadPageInner() {
       </div>
 
       {/* ── Profile Settings + View Settings — yan yana ── */}
-      <div className="w-full max-w-[976px] mx-auto px-4 mb-6 flex flex-row gap-0 items-stretch">
+      <div className="w-full max-w-[976px] mx-auto px-4 mb-6 flex flex-col md:flex-row gap-4 md:gap-0 items-stretch">
 
         {/* Profile Settings */}
-        <div className="flex-1 rounded-l-xl px-5 py-4"
-          style={{ background: "#11161d", border: "1px solid rgba(255,255,255,0.08)", borderRight: "none" }}>
+        <div className="flex-1 rounded-xl md:rounded-l-xl md:rounded-r-none px-5 py-4"
+          style={{ background: "#11161d", border: "1px solid rgba(255,255,255,0.08)" }}>
 
           {/* Section header */}
           <p className="text-[11px] uppercase tracking-widest mb-3" style={{ color: "#8f98a0" }}>
             Profile Settings
           </p>
 
-          <div className="flex items-start gap-4">
+          <div className="flex flex-col md:flex-row items-start gap-3 md:gap-4">
 
             {/* Display Name */}
-            <div className="flex flex-col gap-1.5 flex-1">
+            <div className="flex flex-col gap-1.5 w-full md:flex-1">
               <label style={{ fontSize: 10, fontWeight: 600, color: "#8f98a0", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                 Display Name
               </label>
@@ -848,7 +850,7 @@ function UploadPageInner() {
             </div>
 
             {/* Level */}
-            <div className="flex flex-col gap-1.5 w-32">
+            <div className="flex flex-col gap-1.5 w-full md:w-32">
               <label style={{ fontSize: 10, fontWeight: 600, color: "#8f98a0", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                 Level
               </label>
@@ -874,7 +876,7 @@ function UploadPageInner() {
             </div>
 
             {/* Reset All */}
-            <div className="self-end pb-[1px]">
+            <div className="self-start md:self-end md:pb-[1px]">
               <button
                 onClick={handleReset}
                 className="rounded px-4 py-2 text-sm font-semibold transition-colors duration-150"
@@ -890,8 +892,8 @@ function UploadPageInner() {
         </div>
 
         {/* View Settings -- ayni stilde, sagda */}
-        <div className="w-64 flex-shrink-0 rounded-r-xl px-5 py-4 flex flex-col justify-center gap-3"
-          style={{ background: "#11161d", border: "1px solid rgba(255,255,255,0.08)", borderLeft: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="w-full md:w-64 flex-shrink-0 rounded-xl md:rounded-r-xl md:rounded-l-none px-5 py-4 flex flex-col justify-center gap-3"
+          style={{ background: "#11161d", border: "1px solid rgba(255,255,255,0.08)" }}>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-1.5">
               <label style={{ fontSize: 10, fontWeight: 600, color: "#8f98a0", letterSpacing: "0.08em", textTransform: "uppercase" }}>
@@ -939,7 +941,8 @@ function UploadPageInner() {
           Profile content centered inside a 960px container.
           User sees the wallpaper side margins at the same ratio as Steam.
       ──────────────────────────────────────────────────────────────────────────── */}
-      <div className="mt-10 w-full">
+      <div className="mt-10 w-full overflow-x-auto">
+        <p className="md:hidden text-center text-xs mb-2" style={{ color: "rgba(255,255,255,0.25)" }}>← Scroll to explore preview →</p>
 
         {/* 1920px canvas — bordered, centered, wallpaper lives here */}
         <div
@@ -947,6 +950,7 @@ function UploadPageInner() {
           className="relative mx-auto overflow-hidden"
           style={{
             maxWidth: 1920,
+            minWidth: 768,
             border:   "1px solid #2a475e",
             height:   scaledHeight,
           }}
