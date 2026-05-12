@@ -384,7 +384,7 @@ function PurchaseModal({
           {/* Preview */}
           <div className="relative w-full" style={{ height: "180px", overflow: "hidden" }}>
             <div className="absolute inset-0" style={{ background: "linear-gradient(135deg,#0a0014,#1a0035)" }} />
-            {item.src && (
+            {(item.coverUrl || item.src) && (
               <img
                 src={item.coverUrl ?? item.src}
                 alt={item.theme}
@@ -883,7 +883,7 @@ function GalleryCard({
                 <>
                   {!thumbnailLoaded && !canvasFailed && <PremiumPlaceholder />}
                   {canvasFailed ? (
-                    !hovered && (
+                    !hovered && !!item.src && (
                       <img
                         src={item.src}
                         alt={item.theme}
@@ -904,7 +904,7 @@ function GalleryCard({
             </>
           )}
 
-          {hovered && inView && (
+          {hovered && inView && !!item.src && (
             <img
               src={item.src}
               alt={item.theme}
@@ -936,7 +936,7 @@ function GalleryCard({
       ) : item.isPremium ? (
         <>
           {(!inView || (!thumbnailLoaded && !canvasFailed)) && <PremiumPlaceholder />}
-          {canvasFailed ? (
+          {canvasFailed && !!item.src ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={item.src}

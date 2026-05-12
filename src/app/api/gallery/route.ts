@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 const CHUNK = 24;
 
@@ -119,9 +121,22 @@ export async function GET(request: NextRequest) {
       .map(id => artworkMap.get(id))
       .filter((a): a is NonNullable<typeof a> => !!a && !!a.sourceUrl);
 
+    // Premium src maskeleme: sahip olmayanlar boş string alır
+    const session = await getServerSession(authOptions);
+    const isAdmin = session?.user?.isAdmin ?? false;
+    let ownedIds = new Set<string>();
+    const hasPremium = orderedArtworks.some(a => a.isPremium);
+    if (hasPremium && !isAdmin && session?.user?.userId) {
+      const purchases = await prisma.purchases.findMany({
+        where: { user_id: session.user.userId },
+        select: { asset_id: true },
+      });
+      ownedIds = new Set(purchases.map((p: { asset_id: string | null }) => p.asset_id).filter(Boolean) as string[]);
+    }
+
     const items = orderedArtworks.map(a => ({
       id:         a.id,
-      src:        a.sourceUrl!,
+      src:        a.isPremium && !isAdmin && !ownedIds.has(a.id) ? "" : a.sourceUrl!,
       coverUrl:   a.coverUrl ?? null,
       theme:      a.theme     ?? "",
       color:      a.color     ?? "",
