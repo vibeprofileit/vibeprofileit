@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "VibeProfileit",
   description: "Transform your Steam profile into art with AI",
+  other: {
+    "darkreader-lock": "",
+  },
 };
 
 export default function RootLayout({
