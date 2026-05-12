@@ -75,7 +75,7 @@ export default function FeedbackButton() {
     <div className={`fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3 transition-opacity duration-200${modalOpen ? " opacity-0 pointer-events-none" : ""}`}>
       {/* Popover Form */}
       <div
-        className={`w-80 rounded-2xl border border-white/10 bg-[#0d0d12] backdrop-blur-md shadow-2xl shadow-black/60 overflow-hidden transition-all duration-300 origin-bottom-right ${
+        className={`w-[calc(100vw-3rem)] max-w-80 rounded-2xl border border-white/10 bg-[#0d0d12] backdrop-blur-md shadow-2xl shadow-black/60 overflow-hidden transition-all duration-300 origin-bottom-right ${
           open
             ? "opacity-100 translate-y-0 scale-100 pointer-events-auto"
             : "opacity-0 translate-y-4 scale-95 pointer-events-none"
@@ -164,11 +164,11 @@ export default function FeedbackButton() {
       {/* Trigger Button */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-[#6600ff] to-[#7c3aed] text-white text-sm font-semibold shadow-lg shadow-violet-900/40 hover:opacity-90 transition-opacity"
+        className="flex items-center justify-center gap-2 w-12 h-12 md:w-auto md:h-auto md:px-4 md:py-3 rounded-full bg-gradient-to-r from-[#6600ff] to-[#7c3aed] text-white text-sm font-semibold shadow-lg shadow-violet-900/40 hover:opacity-90 transition-opacity"
         aria-label="Help & Feedback"
       >
-        <MessageCircle className="w-4 h-4" />
-        Help &amp; Feedback
+        <MessageCircle className="w-5 h-5 md:w-4 md:h-4" />
+        <span className="hidden md:inline">Help &amp; Feedback</span>
       </button>
     </div>
   )
