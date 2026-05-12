@@ -187,9 +187,22 @@ function UploadPageInner() {
   const [showcaseMode, setShowcaseMode] = useState<'classic' | 'featured' | null>(null);
   const [gifWarning, setGifWarning] = useState(false);
   const [btnHovered, setBtnHovered] = useState(false);
+  const [opacityTip, setOpacityTip] = useState(false);
+
+  useEffect(() => {
+    if (!opacityTip) return;
+    const handle = (e: PointerEvent) => {
+      if (opacityTipRef.current && !opacityTipRef.current.contains(e.target as Node)) {
+        setOpacityTip(false);
+      }
+    };
+    document.addEventListener("pointerdown", handle);
+    return () => document.removeEventListener("pointerdown", handle);
+  }, [opacityTip]);
   const [isPremiumImage, setIsPremiumImage] = useState(false);
 
   const outerRef  = useRef<HTMLDivElement>(null);
+  const opacityTipRef = useRef<HTMLDivElement>(null);
   const masterRef = useRef<HTMLDivElement>(null);
   const [scaleFactor,  setScaleFactor]  = useState(1);
   const [scaledHeight, setScaledHeight] = useState(1000);
@@ -899,13 +912,19 @@ function UploadPageInner() {
               <label style={{ fontSize: 10, fontWeight: 600, color: "#8f98a0", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                 Panel Opacity
               </label>
-              <div className="relative group">
-                <span style={{ fontSize: 10, fontWeight: 700, color: "#4b6a8a", cursor: "help", lineHeight: 1 }}>(?)</span>
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
-                  <div className="bg-black/80 backdrop-blur-md border border-white/10 text-xs p-2 rounded-lg shadow-xl" style={{ color: "#c6d4df", lineHeight: 1.5 }}>
-                    Standard opacity is 80%. Other opacity options are only available through the Steam Points Store, and the transparency range depends on the bundle you purchase.
+              <div className="relative" ref={opacityTipRef}>
+                <button
+                  type="button"
+                  onClick={() => setOpacityTip(v => !v)}
+                  style={{ fontSize: 10, fontWeight: 700, color: opacityTip ? "#93c5fd" : "#4b6a8a", lineHeight: 1, background: "none", border: "none", padding: 0, cursor: "pointer" }}
+                >(?)</button>
+                {opacityTip && (
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 z-50">
+                    <div className="bg-black/90 backdrop-blur-md border border-white/10 text-xs p-2 rounded-lg shadow-xl" style={{ color: "#c6d4df", lineHeight: 1.5 }}>
+                      Standard opacity is 80%. Other opacity options are only available through the Steam Points Store, and the transparency range depends on the bundle you purchase.
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
             <span style={{ fontSize: 12, fontWeight: 700, color: "#c6d4df" }}>
