@@ -36,6 +36,15 @@ type GalleryItem = {
   createdAt: string;
 };
 
+function toHttps(url: string | null): string | null {
+  if (!url) return url;
+  return url.replace(/^http:\/\//i, "https://");
+}
+
+function normalizeItem(item: GalleryItem): GalleryItem {
+  return { ...item, src: toHttps(item.src) ?? item.src, coverUrl: toHttps(item.coverUrl) };
+}
+
 function hashCode(id: string): number {
   let h = 0;
   for (let i = 0; i < id.length; i++) {
@@ -236,10 +245,10 @@ function ImageModal({
                 ))}
               </div>
 
-              {!item.isPremium && <div className="h-[180px]" />}
+              {!item.isPremium && <div className="hidden md:block h-[180px]" />}
 
               {/* Butonlar */}
-              <div className={`flex flex-col gap-2 ${item.isPremium ? "mt-auto" : "mt-[220px]"} pb-6`}>
+              <div className={`flex flex-col gap-2 ${item.isPremium ? "mt-auto" : "mt-auto md:mt-[220px]"} pb-6`}>
                 <Link
                   href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src.replace(/^http:\/\//i, "https://"))}${item.isPremium ? "&isPremium=true" : ""}`}
                   target="_blank" rel="noopener noreferrer"
@@ -1113,7 +1122,7 @@ export default function GalleryPage() {
     try {
       const r    = await fetch(`/api/gallery?${buildParams(offsetRef.current)}`);
       const data = await r.json() as { items: GalleryItem[]; hasMore: boolean };
-      const fetched = data.items ?? [];
+      const fetched = (data.items ?? []).map(normalizeItem);
       setItems((prev) => [...prev, ...fetched]);
       hasMoreRef.current = data.hasMore ?? false;
       offsetRef.current += fetched.length;
@@ -1165,7 +1174,7 @@ export default function GalleryPage() {
       try {
         const r    = await fetch(`/api/gallery?${buildParams(0)}`, { signal: controller.signal });
         const data = await r.json() as { items: GalleryItem[]; hasMore: boolean };
-        const fetched = data.items ?? [];
+        const fetched = (data.items ?? []).map(normalizeItem);
         setItems(fetched);
         hasMoreRef.current = data.hasMore ?? false;
         offsetRef.current  = fetched.length;
