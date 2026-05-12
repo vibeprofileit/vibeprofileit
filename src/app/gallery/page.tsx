@@ -118,7 +118,7 @@ function ImageModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6"
+        className="fixed inset-0 z-50 flex items-start md:items-center justify-center pt-20 px-3 pb-3 md:p-6"
         style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(14px)" }}
         onClick={onClose}
       >
@@ -127,10 +127,9 @@ function ImageModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 16 }}
           transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-          className="modal-scroll relative w-[85vw] max-h-[88vh] overflow-y-auto rounded-2xl flex flex-col"
+          className="modal-scroll relative w-full md:w-[85vw] max-h-[calc(100vh-5rem)] md:max-h-[88vh] overflow-y-auto rounded-2xl flex flex-col"
           style={{
             maxWidth: "1150px",
-            minHeight: "750px",
             background: "#050505",
             border: "1px solid rgba(188,19,254,0.35)",
             boxShadow: "0 0 0 1px rgba(188,19,254,0.45), 0 0 30px rgba(188,19,254,0.18)",
@@ -242,7 +241,7 @@ function ImageModal({
               {/* Butonlar */}
               <div className={`flex flex-col gap-2 ${item.isPremium ? "mt-auto" : "mt-[220px]"} pb-6`}>
                 <Link
-                  href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}${item.isPremium ? "&isPremium=true" : ""}`}
+                  href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src.replace(/^http:\/\//i, "https://"))}${item.isPremium ? "&isPremium=true" : ""}`}
                   target="_blank" rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white"
                   style={{ background: "linear-gradient(135deg, rgba(188,19,254,0.85), rgba(120,0,200,0.6))", border: "1px solid rgba(188,19,254,1)", transition: "transform 0.2s ease" }}
@@ -278,7 +277,7 @@ function ImageModal({
           {related.length > 0 && !item.isPremium && (
             <div className="relative z-[70] px-6 py-5 mt-auto" style={{ borderTop: "1px solid rgba(188,19,254,0.15)", background: "rgba(5,5,5,0.8)" }}>
               <h3 className="text-white text-xs font-bold uppercase tracking-widest mb-4 pl-1">Related Vibes</h3>
-              <div className="grid grid-cols-4 gap-3 isolate pointer-events-auto" style={{ paddingBottom: "8px", overflow: "visible" }}>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 isolate pointer-events-auto" style={{ paddingBottom: "8px", overflow: "visible" }}>
                 {Array.from(new Map(related.map((r) => [r.id, r])).values()).map((rel) => (
                   <RelatedVibeCard key={rel.id} rel={rel} onSelect={onSelect} />
                 ))}
@@ -646,7 +645,7 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
       {hov && !rel.isAdult && (
         <>
           <Link
-            href={`/design-studio?id=${rel.id}&template=featured&imageUrl=${encodeURIComponent(rel.src)}${rel.isPremium ? "&isPremium=true" : ""}`}
+            href={`/design-studio?id=${rel.id}&template=featured&imageUrl=${encodeURIComponent(rel.src.replace(/^http:\/\//i, "https://"))}${rel.isPremium ? "&isPremium=true" : ""}`}
             target="_blank" rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
             className="absolute top-1.5 right-1.5 flex items-center gap-1 px-3 py-1.5 rounded-lg z-20"
@@ -992,7 +991,7 @@ function GalleryCard({
             ) : (
               <>
                 <Link
-                  href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}${item.isPremium ? "&isPremium=true" : ""}`}
+                  href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src.replace(/^http:\/\//i, "https://"))}${item.isPremium ? "&isPremium=true" : ""}`}
                   target="_blank" rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
                   className="absolute top-2.5 right-2.5 flex items-center gap-1 px-3 py-1.5 rounded-xl"
@@ -1310,7 +1309,8 @@ export default function GalleryPage() {
           transition={{ delay: 0.25, duration: 0.4 }}
           className="flex flex-col gap-3 mb-10 w-full"
         >
-          <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+          {/* Desktop: 3-column centered layout */}
+          <div className="hidden md:grid items-center" style={{ gridTemplateColumns: "1fr auto 1fr" }}>
             <div />
             <div className="relative" style={{ width: "432px", maxWidth: "90vw" }}>
               <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "rgba(188,19,254,0.6)" }} />
@@ -1328,6 +1328,41 @@ export default function GalleryPage() {
             <div style={{ display: "flex", justifyContent: "flex-end" }}>
               <SortDropdown value={sortBy} onChange={setSortBy} />
             </div>
+          </div>
+
+          {/* Mobile: search full width */}
+          <div className="md:hidden relative">
+            <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "rgba(188,19,254,0.6)" }} />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search for vibes..."
+              className="w-full pl-11 pr-5 py-3 rounded-2xl text-white text-sm outline-none transition-all duration-300"
+              style={{ background: "rgba(46,16,101,0.3)", border: "1px solid rgba(188,19,254,0.25)", color: "#fff" }}
+              onFocus={(e)  => { e.currentTarget.style.boxShadow = "0 0 20px rgba(188,19,254,0.4)";  e.currentTarget.style.border = "1px solid rgba(188,19,254,0.55)"; }}
+              onBlur={(e)   => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.border = "1px solid rgba(188,19,254,0.25)"; }}
+            />
+          </div>
+
+          {/* Mobile: sort pills */}
+          <div className="md:hidden flex items-center overflow-x-auto" style={{ scrollbarWidth: "none", gap: "6px" }}>
+            {SORT_OPTIONS.map((opt) => {
+              const active = opt.value === sortBy;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setSortBy(opt.value)}
+                  className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium text-white whitespace-nowrap transition-all duration-200"
+                  style={{
+                    background: active ? "rgba(188,19,254,0.2)" : "rgba(0,0,0,0.7)",
+                    border: active ? "1px solid #BC13FE" : "1px solid rgba(255,255,255,0.15)",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
           </div>
 
           <div className="flex items-center overflow-x-auto" style={{ scrollbarWidth: "none", gap: "6px" }}>
