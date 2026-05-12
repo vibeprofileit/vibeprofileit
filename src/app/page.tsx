@@ -66,7 +66,7 @@ export default function Home() {
       <Header />
 
       {/* Hero Section */}
-      <section className="pt-36 pb-16 px-6 text-center relative">
+      <section className="pt-24 md:pt-36 pb-10 md:pb-16 px-6 text-center relative">
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -88,10 +88,10 @@ export default function Home() {
           }}>
             The Most Powerful Engine for Your Steam Aesthetic
           </h1>
-          <p className="text-white/90 text-base md:text-lg max-w-2xl mx-auto mb-2 leading-relaxed tracking-wide whitespace-nowrap">
+          <p className="text-white/90 text-base md:text-lg max-w-2xl mx-auto mb-2 leading-relaxed tracking-wide">
             Professional tools to design, customize, and elevate your profile.
           </p>
-          <p className="text-white/90 text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed tracking-wide">
+          <p className="text-white/90 text-lg md:text-xl max-w-xl mx-auto mb-6 md:mb-10 leading-relaxed tracking-wide">
             All in one place.
           </p>
           <style>{`
@@ -131,15 +131,16 @@ export default function Home() {
             }
           `}</style>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
             <motion.div
+              className="w-full sm:w-auto"
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 340, damping: 22 }}
             >
               <Link
                 href="/design-studio"
-                className="relative overflow-hidden flex items-center justify-center px-8 py-3.5 rounded-full font-bold text-white transition-all duration-300"
+                className="w-full relative overflow-hidden flex items-center justify-center px-8 py-3.5 rounded-full font-bold text-white transition-all duration-300"
                 style={{
                   background: "linear-gradient(to right, #2563eb, #06b6d4)",
                 }}
@@ -148,10 +149,10 @@ export default function Home() {
               </Link>
             </motion.div>
 
-            <motion.div whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 320, damping: 22 }}>
+            <motion.div className="w-full sm:w-auto" whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 320, damping: 22 }}>
               <Link
                 href="/gallery"
-                className="vg-nebula vg-shimmer relative overflow-hidden flex items-center gap-2 justify-center px-8 py-3.5 rounded-full font-semibold text-white transition-all duration-300"
+                className="w-full vg-nebula vg-shimmer relative overflow-hidden flex items-center gap-2 justify-center px-8 py-3.5 rounded-full font-semibold text-white transition-all duration-300"
                 style={{
                   border: "1px solid rgba(188,19,254,0.45)",
                 }}
@@ -161,10 +162,10 @@ export default function Home() {
               </Link>
             </motion.div>
 
-            <motion.div whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 320, damping: 22 }}>
+            <motion.div className="w-full sm:w-auto" whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.95 }} transition={{ type: "spring", stiffness: 320, damping: 22 }}>
               <Link
                 href="/ai-studio"
-                className="ai-nebula vg-shimmer relative overflow-hidden flex items-center gap-2 justify-center px-11 py-3.5 rounded-full font-semibold text-white transition-all duration-300"
+                className="w-full ai-nebula vg-shimmer relative overflow-hidden flex items-center gap-2 justify-center px-11 py-3.5 rounded-full font-semibold text-white transition-all duration-300"
                 style={{
                   border: "1px solid rgba(225,29,72,0.45)",
                 }}
@@ -178,7 +179,7 @@ export default function Home() {
       </section>
 
       {/* Steam Profile Mockup */}
-      <section className="px-6 pb-24 flex justify-center">
+      <section className="px-6 pb-12 md:pb-24 flex justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -274,12 +275,12 @@ export default function Home() {
       </section>
 
       {/* Route Cards */}
-      <section className="px-6 pb-32 max-w-6xl mx-auto">
+      <section className="px-6 pb-16 md:pb-32 max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.5 }}
-          className="text-center mb-12"
+          className="text-center mb-8 md:mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-black mb-3">
             Choose your path

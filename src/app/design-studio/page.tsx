@@ -787,8 +787,8 @@ function UploadPageInner() {
           <button
             disabled={!canProceed || isProcessing}
             onClick={handleCutAndDownload}
-            onMouseEnter={() => setBtnHovered(true)}
-            onMouseLeave={() => setBtnHovered(false)}
+            onPointerEnter={() => setBtnHovered(true)}
+            onPointerLeave={() => setBtnHovered(false)}
             className="mt-5 w-full py-3 rounded-full font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-25 disabled:cursor-not-allowed overflow-hidden"
             style={{
               background: "linear-gradient(90deg,#7c3aed,#3b82f6,#7c3aed,#3b82f6,#7c3aed)",
@@ -879,8 +879,8 @@ function UploadPageInner() {
                 onClick={handleReset}
                 className="rounded px-4 py-2 text-sm font-semibold transition-colors duration-150"
                 style={{ background: "transparent", border: "1px solid rgba(239,68,68,0.30)", color: "#fca5a5" }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.15)"; }}
-                onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+                onPointerEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(239,68,68,0.15)"; }}
+                onPointerLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
               >
                 Reset All
               </button>

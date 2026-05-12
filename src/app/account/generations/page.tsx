@@ -200,8 +200,8 @@ function GenerationCard({ item, index, onView }: { item: Generation; index: numb
       ref={cardRef}
       className="relative rounded-xl overflow-hidden cursor-pointer"
       style={{ aspectRatio: "9/16", width: "100%", border: `1px solid ${ORG_A(0.25)}` }}
-      onMouseEnter={e => { (e.currentTarget as HTMLElement).style.border = `1px solid ${ORG_A(0.6)}`; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLElement).style.border = `1px solid ${ORG_A(0.25)}`; }}
+      onPointerEnter={e => { (e.currentTarget as HTMLElement).style.border = `1px solid ${ORG_A(0.6)}`; }}
+      onPointerLeave={e => { (e.currentTarget as HTMLElement).style.border = `1px solid ${ORG_A(0.25)}`; }}
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
       onClick={() => onView(item)}
     >

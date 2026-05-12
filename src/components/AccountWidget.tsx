@@ -158,8 +158,8 @@ export default function AccountWidget() {
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-between px-4 py-2.5 transition-colors duration-150"
                 style={{ color: "rgba(255,255,255,0.7)", textDecoration: "none" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(188,19,254,0.08)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                onPointerEnter={e => (e.currentTarget.style.background = "rgba(188,19,254,0.08)")}
+                onPointerLeave={e => (e.currentTarget.style.background = "transparent")}
               >
                 <div className="flex items-center gap-2.5">
                   <span style={{ color }}>{icon}</span>

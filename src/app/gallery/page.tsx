@@ -246,8 +246,8 @@ function ImageModal({
                   target="_blank" rel="noopener noreferrer"
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white"
                   style={{ background: "linear-gradient(135deg, rgba(188,19,254,0.85), rgba(120,0,200,0.6))", border: "1px solid rgba(188,19,254,1)", transition: "transform 0.2s ease" }}
-                  onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1.02)"; }}
-                  onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1)"; }}
+                  onPointerEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1.02)"; }}
+                  onPointerLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1)"; }}
                 >
                   <Download size={15} /> Customize & Download
                 </Link>
@@ -493,8 +493,8 @@ function SortDropdown({ value, onChange }: { value: string; onChange: (v: string
                   onClick={() => { onChange(opt.value); setOpen(false); }}
                   className="w-full text-left px-4 py-2.5 text-sm text-white transition-all duration-150"
                   style={{ background: active ? "rgba(188,19,254,0.2)" : "transparent", borderLeft: active ? "2px solid #BC13FE" : "2px solid transparent" }}
-                  onMouseEnter={(e) => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = "rgba(188,19,254,0.1)"; (e.currentTarget as HTMLButtonElement).style.borderLeft = "2px solid rgba(188,19,254,0.4)"; } }}
-                  onMouseLeave={(e) => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.borderLeft = "2px solid transparent"; } }}
+                  onPointerEnter={(e) => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = "rgba(188,19,254,0.1)"; (e.currentTarget as HTMLButtonElement).style.borderLeft = "2px solid rgba(188,19,254,0.4)"; } }}
+                  onPointerLeave={(e) => { if (!active) { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.borderLeft = "2px solid transparent"; } }}
                 >
                   {opt.label}
                 </button>
@@ -542,6 +542,7 @@ function SkeletonCard({ height }: { height: number }) {
 function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item: GalleryItem) => void }) {
   const [hov, setHov] = useState(false);
   const [stHov, setStHov] = useState(false);
+  const lastPtrType = useRef<string>('mouse');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
 
@@ -571,9 +572,16 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
     <div
       className="relative rounded-xl overflow-hidden cursor-pointer pointer-events-auto"
       style={{ aspectRatio: "9/14", background: "#050505", border: "1px solid rgba(188,19,254,0.25)", willChange: "transform" }}
-      onClick={(e) => { e.stopPropagation(); if (!rel.isAdult) onSelect(rel); }}
-      onMouseEnter={() => { if (!rel.isAdult) setHov(true); }}
-      onMouseLeave={() => { if (!rel.isAdult) { setHov(false); setStHov(false); } }}
+      onPointerDown={(e) => { lastPtrType.current = e.pointerType; }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!rel.isAdult) {
+          if (lastPtrType.current === 'touch' && !hov) { setHov(true); return; }
+          onSelect(rel);
+        }
+      }}
+      onPointerEnter={(e) => { if (!rel.isAdult && e.pointerType !== 'touch') setHov(true); }}
+      onPointerLeave={(e) => { if (!rel.isAdult && e.pointerType !== 'touch') { setHov(false); setStHov(false); } }}
     >
       {/* Adult: kırmızı pulse çerçeve */}
       {rel.isAdult && (
@@ -647,8 +655,8 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
               boxShadow: stHov ? "0 0 10px rgba(188,19,254,0.55)" : "0 0 5px rgba(188,19,254,0.25)",
               transform: stHov ? "scale(1.06)" : "scale(1)", transition: "all 0.2s ease",
             }}
-            onMouseEnter={() => setStHov(true)}
-            onMouseLeave={() => setStHov(false)}
+            onPointerEnter={() => setStHov(true)}
+            onPointerLeave={() => setStHov(false)}
           >
             <Pencil size={10} color="#fff" />
             <span style={{ color: "#fff", fontSize: "10px", fontWeight: 700 }}>View in Studio</span>
@@ -658,8 +666,8 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
               onClick={(e) => { e.stopPropagation(); onSelect(rel); }}
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-white font-semibold pointer-events-auto"
               style={{ background: "rgba(0,0,0,0.55)", border: "1px solid rgba(188,19,254,0.7)", fontSize: "11px", transition: "all 0.2s ease" }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(188,19,254,0.65)"; }}
-              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
+              onPointerEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(188,19,254,0.65)"; }}
+              onPointerLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; }}
             >
               <Eye size={11} /> View
             </button>
@@ -678,8 +686,8 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
             onClick={(e) => { e.stopPropagation(); onSelect(rel); }}
             className="px-4 py-1.5 rounded-full text-xs font-bold text-white transition-all duration-200"
             style={{ background: "rgba(220,38,38,0.8)", border: "1px solid rgba(220,38,38,0.9)", cursor: "pointer", pointerEvents: "auto" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(220,38,38,1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(220,38,38,0.6)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.06)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(220,38,38,0.8)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+            onPointerEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(220,38,38,1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(220,38,38,0.6)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.06)"; }}
+            onPointerLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(220,38,38,0.8)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
           >
             Yes
           </button>
@@ -728,6 +736,7 @@ function GalleryCard({
   const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
   const [canvasFailed,   setCanvasFailed]   = useState(false);
   const [imageError,     setImageError]     = useState(false);
+  const lastPtrType = useRef<string>('mouse');
 
   const aspectRatio = item.width > 0 && item.height > 0 ? `${item.width}/${item.height}` : "9/16";
 
@@ -820,13 +829,15 @@ function GalleryCard({
       ref={cardRef}
       className="relative rounded-xl overflow-hidden cursor-pointer"
       style={{ aspectRatio, width: "100%", minHeight: "100px", border: "1px solid rgba(188,19,254,0.2)", willChange: "transform", contain: "layout style paint" }}
-      onMouseEnter={() => { if (!item.isAdult) setHovered(true); }}
-      onMouseLeave={() => { if (!item.isAdult) { setHovered(false); setStudioHovered(false); setViewHovered(false); } }}
+      onPointerDown={(e) => { lastPtrType.current = e.pointerType; }}
+      onPointerEnter={(e) => { if (!item.isAdult && e.pointerType !== 'touch') setHovered(true); }}
+      onPointerLeave={(e) => { if (!item.isAdult && e.pointerType !== 'touch') { setHovered(false); setStudioHovered(false); setViewHovered(false); } }}
       whileHover={!item.isAdult ? { scale: 1.02, transition: { duration: 0.2 } } : {}}
       onClick={() => {
         if (item.isAdult) return;
         if (item.isPremium && !session?.user) { window.location.href = "/api/steam/login"; return; }
         if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) { onBuy(item); return; }
+        if (lastPtrType.current === 'touch' && !hovered) { setHovered(true); return; }
         onView(item);
       }}
     >
@@ -990,8 +1001,8 @@ function GalleryCard({
                     boxShadow: studioHovered ? "0 0 15px rgba(188,19,254,0.5)" : "0 0 8px rgba(188,19,254,0.3)",
                     transform: studioHovered ? "scale(1.05)" : "scale(1)", transition: "all 0.2s ease",
                   }}
-                  onMouseEnter={() => setStudioHovered(true)}
-                  onMouseLeave={() => setStudioHovered(false)}
+                  onPointerEnter={() => setStudioHovered(true)}
+                  onPointerLeave={() => setStudioHovered(false)}
                 >
                   <Pencil size={12} color="#fff" />
                   <span className="text-white font-semibold" style={{ fontSize: "11px" }}>View in Studio</span>
@@ -1009,8 +1020,8 @@ function GalleryCard({
                       boxShadow: viewHovered ? "0 0 18px rgba(188,19,254,0.65)" : "none",
                       transition: "all 0.2s ease",
                     }}
-                    onMouseEnter={() => setViewHovered(true)}
-                    onMouseLeave={() => setViewHovered(false)}
+                    onPointerEnter={() => setViewHovered(true)}
+                    onPointerLeave={() => setViewHovered(false)}
                   >
                     <Eye size={12} /> View
                   </button>
@@ -1046,8 +1057,8 @@ function GalleryCard({
             onClick={(e) => { e.stopPropagation(); onView(item); }}
             className="px-5 py-1.5 rounded-full text-xs font-bold text-white transition-all duration-200"
             style={{ background: "rgba(220,38,38,0.8)", border: "1px solid rgba(220,38,38,0.9)", cursor: "pointer", pointerEvents: "auto" }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(220,38,38,1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(220,38,38,0.6)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.06)"; }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(220,38,38,0.8)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
+            onPointerEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(220,38,38,1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 14px rgba(220,38,38,0.6)"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.06)"; }}
+            onPointerLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(220,38,38,0.8)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "none"; (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
           >
             Yes
           </button>

@@ -239,6 +239,7 @@ function LikeCard({ item, index, onView }: { item: GalleryItem; index: number; o
   const [hovered, setHovered] = useState(false);
   const [studioHovered, setStudioHovered] = useState(false);
   const cardRef   = useRef<HTMLDivElement>(null);
+  const lastPtrType = useRef<string>('mouse');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [inView,          setInView]          = useState(false);
   const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
@@ -287,11 +288,13 @@ function LikeCard({ item, index, onView }: { item: GalleryItem; index: number; o
       ref={cardRef}
       className="relative rounded-xl overflow-hidden cursor-pointer"
       style={{ aspectRatio, width: "100%", border: "1px solid rgba(188,19,254,0.2)" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => { setHovered(false); setStudioHovered(false); }}
+      onPointerDown={(e) => { lastPtrType.current = e.pointerType; }}
+      onPointerEnter={(e) => { if (e.pointerType !== 'touch') setHovered(true); }}
+      onPointerLeave={(e) => { if (e.pointerType !== 'touch') { setHovered(false); setStudioHovered(false); } }}
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
       onClick={() => {
         if (item.isPremium) { router.push("/pricing"); return; }
+        if (lastPtrType.current === 'touch' && !hovered) { setHovered(true); return; }
         onView(item);
       }}
     >
@@ -374,8 +377,8 @@ function LikeCard({ item, index, onView }: { item: GalleryItem; index: number; o
                 boxShadow: studioHovered ? "0 0 15px rgba(188,19,254,0.5)" : "0 0 8px rgba(188,19,254,0.3)",
                 transform: studioHovered ? "scale(1.05)" : "scale(1)", transition: "all 0.2s ease",
               }}
-              onMouseEnter={() => setStudioHovered(true)}
-              onMouseLeave={() => setStudioHovered(false)}
+              onPointerEnter={() => setStudioHovered(true)}
+              onPointerLeave={() => setStudioHovered(false)}
             >
               <Pencil size={12} color="#fff" />
               <span className="text-white font-semibold" style={{ fontSize: "11px" }}>View in Studio</span>
