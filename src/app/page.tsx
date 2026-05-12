@@ -5,7 +5,7 @@ import { Upload, Library, Sparkles, ChevronRight } from "lucide-react";
 import type { Variants } from "framer-motion";
 import Link from "next/link";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 import Header from "@/components/Header";
 
 const routes = [
@@ -127,6 +127,7 @@ export default function Home() {
               width: 40%;
               background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
               animation: shimmerPass 3s ease-in-out infinite;
+              pointer-events: none;
             }
             .gs-arrow {
               animation: pulseX 1.2s ease-in-out infinite;
@@ -136,10 +137,9 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-stretch sm:items-center">
             <MotionLink
               href="/design-studio"
-              whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 340, damping: 22 }}
-              className="relative overflow-hidden flex items-center justify-center px-8 py-3.5 rounded-full font-bold text-white transition-all duration-300"
+              className="relative overflow-hidden flex items-center justify-center px-8 py-3.5 rounded-full font-bold text-white hover:opacity-90 transition-opacity duration-300"
               style={{ background: "linear-gradient(to right, #2563eb, #06b6d4)" }}
             >
               Design Tool
@@ -147,10 +147,9 @@ export default function Home() {
 
             <MotionLink
               href="/gallery"
-              whileHover={{ y: -4, scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 320, damping: 22 }}
-              className="vg-nebula vg-shimmer relative overflow-hidden flex items-center gap-2 justify-center px-8 py-3.5 rounded-full font-semibold text-white transition-all duration-300"
+              className="vg-nebula vg-shimmer relative overflow-hidden flex items-center gap-2 justify-center px-8 py-3.5 rounded-full font-semibold text-white hover:opacity-90 transition-opacity duration-300"
               style={{ border: "1px solid rgba(188,19,254,0.45)" }}
             >
               View Gallery
@@ -159,10 +158,9 @@ export default function Home() {
 
             <MotionLink
               href="/ai-studio"
-              whileHover={{ y: -4, scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 320, damping: 22 }}
-              className="ai-nebula vg-shimmer relative overflow-hidden flex items-center gap-2 justify-center px-8 py-3.5 rounded-full font-semibold text-white transition-all duration-300"
+              className="ai-nebula vg-shimmer relative overflow-hidden flex items-center gap-2 justify-center px-8 py-3.5 rounded-full font-semibold text-white hover:opacity-90 transition-opacity duration-300"
               style={{ border: "1px solid rgba(225,29,72,0.45)" }}
             >
               AI Studio

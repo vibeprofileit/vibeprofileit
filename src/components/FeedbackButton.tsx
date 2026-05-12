@@ -72,7 +72,7 @@ export default function FeedbackButton() {
   }
 
   return (
-    <div className={`fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3 transition-opacity duration-200${modalOpen ? " opacity-0 pointer-events-none" : ""}`}>
+    <div className={`fixed bottom-6 right-6 z-[9999] flex flex-col items-end gap-3 transition-opacity duration-200 pointer-events-none${modalOpen ? " opacity-0" : ""}`}>
       {/* Popover Form */}
       <div
         className={`w-[calc(100vw-3rem)] max-w-80 rounded-2xl border border-white/10 bg-[#0d0d12] backdrop-blur-md shadow-2xl shadow-black/60 overflow-hidden transition-all duration-300 origin-bottom-right ${
@@ -164,7 +164,7 @@ export default function FeedbackButton() {
       {/* Trigger Button */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex items-center justify-center gap-2 w-12 h-12 md:w-auto md:h-auto md:px-4 md:py-3 rounded-full bg-gradient-to-r from-[#6600ff] to-[#7c3aed] text-white text-sm font-semibold shadow-lg shadow-violet-900/40 hover:opacity-90 transition-opacity"
+        className="pointer-events-auto flex items-center justify-center gap-2 w-12 h-12 md:w-auto md:h-auto md:px-4 md:py-3 rounded-full bg-gradient-to-r from-[#6600ff] to-[#7c3aed] text-white text-sm font-semibold shadow-lg shadow-violet-900/40 hover:opacity-90 transition-opacity"
         aria-label="Help & Feedback"
       >
         <MessageCircle className="w-5 h-5 md:w-4 md:h-4" />
