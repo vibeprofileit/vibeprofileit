@@ -406,51 +406,69 @@ function PurchaseModal({
               <p className="text-white/40 text-xs mt-0.5">{item.width}×{item.height} · {item.format} · {item.sizeMB} MB</p>
             </div>
 
-            {/* Balance */}
-            <div className="flex items-center justify-between px-4 py-3 rounded-xl"
-              style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)" }}>
-              <span className="text-white/50 text-sm">Your balance</span>
-              <span className="font-black text-base" style={{ color: canAfford ? "#FFD700" : "#f87171" }}>
-                {tokenBalance ?? "—"} tokens
-              </span>
-            </div>
-
-            {/* Price row */}
-            <div className="flex items-center justify-between">
-              <span className="text-white/40 text-sm">Price</span>
-              <span className="font-black text-lg" style={{ color: "#FFD700" }}>10 tokens</span>
-            </div>
-
-            {error && (
-              <p className="text-rose-400 text-xs text-center">{error}</p>
-            )}
-
-            {!canAfford ? (
-              <div className="flex flex-col gap-2">
-                <p className="text-rose-400 text-xs text-center">Not enough tokens.</p>
-                <Link
-                  href="/pricing"
-                  onClick={onClose}
-                  className="w-full flex items-center justify-center py-3 rounded-xl text-sm font-bold text-white"
-                  style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)", border: "1px solid rgba(168,85,247,0.6)" }}
+            {tokenBalance === null ? (
+              <div className="flex flex-col gap-3">
+                <p className="text-white/50 text-sm text-center">Sign in with Steam to purchase premium wallpapers.</p>
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl"
+                  style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)" }}>
+                  <span className="text-white/50 text-sm">Price</span>
+                  <span className="font-black text-base" style={{ color: "#FFD700" }}>10 tokens</span>
+                </div>
+                <a
+                  href="/api/steam/login"
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white"
+                  style={{ background: "linear-gradient(135deg, #1b2838, #2a475e)", border: "1px solid rgba(102,192,244,0.5)" }}
                 >
-                  Get Tokens
-                </Link>
+                  Sign in with Steam
+                </a>
               </div>
             ) : (
-              <button
-                onClick={handleBuy}
-                disabled={buying}
-                className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all"
-                style={{
-                  background: buying ? "rgba(255,215,0,0.2)" : "linear-gradient(135deg, #d97706, #fbbf24)",
-                  border: "1px solid rgba(255,215,0,0.6)",
-                  opacity: buying ? 0.7 : 1,
-                  color: buying ? "#fff" : "#1a0a00",
-                }}
-              >
-                {buying ? "Processing..." : "Buy for 10 Tokens"}
-              </button>
+              <>
+                {/* Balance */}
+                <div className="flex items-center justify-between px-4 py-3 rounded-xl"
+                  style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)" }}>
+                  <span className="text-white/50 text-sm">Your balance</span>
+                  <span className="font-black text-base" style={{ color: canAfford ? "#FFD700" : "#f87171" }}>
+                    {tokenBalance} tokens
+                  </span>
+                </div>
+
+                {/* Price row */}
+                <div className="flex items-center justify-between">
+                  <span className="text-white/40 text-sm">Price</span>
+                  <span className="font-black text-lg" style={{ color: "#FFD700" }}>10 tokens</span>
+                </div>
+
+                {error && <p className="text-rose-400 text-xs text-center">{error}</p>}
+
+                {!canAfford ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-rose-400 text-xs text-center">Not enough tokens.</p>
+                    <Link
+                      href="/pricing"
+                      onClick={onClose}
+                      className="w-full flex items-center justify-center py-3 rounded-xl text-sm font-bold text-white"
+                      style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)", border: "1px solid rgba(168,85,247,0.6)" }}
+                    >
+                      Get Tokens
+                    </Link>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleBuy}
+                    disabled={buying}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all"
+                    style={{
+                      background: buying ? "rgba(255,215,0,0.2)" : "linear-gradient(135deg, #d97706, #fbbf24)",
+                      border: "1px solid rgba(255,215,0,0.6)",
+                      opacity: buying ? 0.7 : 1,
+                      color: buying ? "#fff" : "#1a0a00",
+                    }}
+                  >
+                    {buying ? "Processing..." : "Buy for 10 Tokens"}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </motion.div>
@@ -843,9 +861,8 @@ function GalleryCard({
       whileHover={!item.isAdult ? { scale: 1.02, transition: { duration: 0.2 } } : {}}
       onClick={() => {
         if (item.isAdult) return;
-        if (item.isPremium && !session?.user) { window.location.href = "/api/steam/login"; return; }
-        if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) { onBuy(item); return; }
         if (lastPtrType.current === 'touch' && !hovered) { setHovered(true); return; }
+        if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) { onBuy(item); return; }
         onView(item);
       }}
     >

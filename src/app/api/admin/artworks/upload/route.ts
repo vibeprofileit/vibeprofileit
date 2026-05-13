@@ -1,5 +1,5 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2, R2_BUCKET, R2_PUBLIC_URL } from "@/lib/r2";
+import { r2, R2_BUCKET } from "@/lib/r2";
 import { prisma } from "@/lib/prisma";
 import type { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
         ContentType: "image/webp",
         ContentLength: coverBuffer.byteLength,
       }));
-      coverUrl = `${R2_PUBLIC_URL}/${coverKey}`;
+      coverUrl = `${WORKER_BASE}/${coverKey}`;
       console.log(`[UPLOAD] Cover thumbnail → ${coverKey}`);
     } catch (err) {
       console.error("[UPLOAD] Cover thumbnail hatası (non-fatal):", err);

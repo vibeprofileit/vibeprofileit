@@ -1,5 +1,5 @@
 import { PutObjectCommand, DeleteObjectCommand, CopyObjectCommand } from "@aws-sdk/client-s3";
-import { r2, R2_BUCKET, R2_PUBLIC_URL } from "@/lib/r2";
+import { r2, R2_BUCKET } from "@/lib/r2";
 import { prisma } from "@/lib/prisma";
 import type { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
@@ -186,7 +186,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     if (artwork.coverUrl) {
-      const coverKey = artwork.coverUrl.replace(R2_PUBLIC_URL + "/", "");
+      const coverKey = artwork.coverUrl.replace(WORKER_BASE + "/", "");
       if (coverKey !== artwork.coverUrl) {
         try {
           await r2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: coverKey }));
@@ -212,7 +212,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   if (toReject?.coverUrl) {
-    const coverKey = toReject.coverUrl.replace(R2_PUBLIC_URL + "/", "");
+    const coverKey = toReject.coverUrl.replace(WORKER_BASE + "/", "");
     if (coverKey !== toReject.coverUrl) {
       try {
         await r2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: coverKey }));
