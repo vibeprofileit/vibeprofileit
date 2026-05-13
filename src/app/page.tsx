@@ -284,8 +284,8 @@ export default function Home() {
         {/* Mobile: yatay scroll — Desktop: 3 kolon grid */}
         <div className="md:hidden flex gap-4 overflow-x-auto pb-3" style={{ scrollbarWidth: "none" }}>
           {routes.map((route) => (
-            <Link key={route.id} href={route.href} className="flex-shrink-0 w-[75vw]">
-              <div className={`relative group rounded-2xl border ${route.border} bg-gradient-to-br ${route.gradient} p-5 cursor-pointer shadow-xl ${route.glow} overflow-hidden h-full`}>
+            <Link key={route.id} href={route.href} className="flex-shrink-0 w-[75vw] flex">
+              <div className={`relative group rounded-2xl border ${route.border} bg-gradient-to-br ${route.gradient} p-5 cursor-pointer shadow-xl ${route.glow} overflow-hidden flex-1`}>
                 <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center mb-3">
                   <route.icon size={18} className="text-white" />
                 </div>
@@ -304,14 +304,14 @@ export default function Home() {
 
         <div className="hidden md:grid md:grid-cols-3 gap-5">
           {routes.map((route, i) => (
-            <Link key={route.id} href={route.href}>
+            <Link key={route.id} href={route.href} className="h-full">
             <motion.div
               custom={i}
               variants={fadeUp}
               initial="hidden"
               animate="show"
               whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className={`relative group rounded-2xl border ${route.border} bg-gradient-to-br ${route.gradient} p-6 cursor-pointer shadow-xl ${route.glow} hover:shadow-2xl transition-shadow overflow-hidden`}
+              className={`relative group rounded-2xl border ${route.border} bg-gradient-to-br ${route.gradient} p-6 cursor-pointer shadow-xl ${route.glow} hover:shadow-2xl transition-shadow overflow-hidden h-full`}
             >
               {/* Card glow on hover */}
               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-white/5 to-transparent rounded-2xl" />

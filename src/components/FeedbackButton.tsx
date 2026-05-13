@@ -153,7 +153,7 @@ export default function FeedbackButton() {
 
           <div
             className="cf-turnstile"
-            data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAADOkHcfCYnnc531G"}
             data-theme="dark"
             data-size="compact"
           />
