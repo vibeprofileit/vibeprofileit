@@ -192,8 +192,17 @@ export default function StudioPage() {
 
   const [generateStatus, setGenerateStatus] = useState("");
   const [generateError,  setGenerateError]  = useState("");
+  const [tokenBalance,   setTokenBalance]   = useState<number | null>(null);
 
   const vortexRef = useRef(false);
+
+  useEffect(() => {
+    if (!session?.user?.userId) return;
+    fetch("/api/user/me")
+      .then(r => r.json())
+      .then(d => setTokenBalance(d.tokenBalance ?? 0))
+      .catch(() => {});
+  }, [session?.user?.userId]);
 
   const handleVisualize = useCallback(async () => {
     if (isGenerating) return;
@@ -520,6 +529,17 @@ export default function StudioPage() {
               })}
             </div>
           </div>
+
+          {/* Token balance */}
+          {session?.user && tokenBalance !== null && (
+            <div style={{
+              display: "flex", justifyContent: "flex-end",
+              marginBottom: 10, fontSize: 12,
+              color: tokenBalance >= 15 ? "rgba(220,130,80,0.55)" : "#f87171",
+            }}>
+              Balance: <span style={{ fontWeight: 700, marginLeft: 5 }}>{tokenBalance} tokens</span>
+            </div>
+          )}
 
           {/* Visualize button */}
           <button

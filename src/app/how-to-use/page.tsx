@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const MAGIC_CODE = `$J('#image_width').val('1000'); $J('#image_height').val('1');`;
 
@@ -251,9 +252,7 @@ export default function HowToUsePage() {
         </div>
       </main>
 
-      <footer className="border-t border-white/5 py-8 text-center text-white/20 text-sm">
-        © 2026 VibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }

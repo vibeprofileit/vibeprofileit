@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import Footer from "@/components/Footer";
 
 const features = [
   {
@@ -258,10 +259,7 @@ export default function FeaturesPage() {
         </motion.div>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t border-white/5 py-8 mt-12 text-center text-white/20 text-sm w-full">
-        © 2026 VibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }

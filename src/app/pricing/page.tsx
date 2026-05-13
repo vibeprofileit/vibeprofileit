@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { useSession } from "next-auth/react";
 import { Check, Zap, Image, Sparkles } from "lucide-react";
 import TokenIcon from "@/components/TokenIcon";
@@ -260,18 +261,7 @@ export default function PricingPage() {
         </div>
       </motion.div>
 
-      <footer
-        className="border-t py-8 text-center text-white/20 text-sm"
-        style={{ borderColor: "rgba(255,255,255,0.05)", marginTop: "auto" }}
-      >
-        <div className="flex justify-center gap-6 mb-3 text-white/30 text-xs">
-          <a href="/privacy" className="hover:text-white/60 transition-colors">Privacy Policy</a>
-          <a href="/terms" className="hover:text-white/60 transition-colors">Terms of Service</a>
-          <a href="/refund" className="hover:text-white/60 transition-colors">Refund Policy</a>
-          <a href="/contact" className="hover:text-white/60 transition-colors">Contact Us</a>
-        </div>
-        © 2026 VibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }

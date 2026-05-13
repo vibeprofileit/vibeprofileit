@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export const metadata = { title: "Terms of Service — VibeProfileit" };
 
@@ -70,7 +71,7 @@ export default function TermsPage() {
           For questions about these Terms, contact us at <a href="mailto:vibeprofileit@gmail.com" className="underline text-indigo-400">vibeprofileit@gmail.com</a>.
         </Section>
       </main>
-      <LegalFooter />
+      <Footer />
     </div>
   );
 }
@@ -81,19 +82,5 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="text-lg font-bold mb-3 text-white">{title}</h2>
       <div className="text-white/60 leading-relaxed text-sm space-y-2">{children}</div>
     </section>
-  );
-}
-
-function LegalFooter() {
-  return (
-    <footer className="border-t border-white/5 py-8 text-center text-white/20 text-sm">
-      <div className="flex justify-center gap-6 mb-3 text-white/30 text-xs">
-        <a href="/privacy" className="hover:text-white/60 transition-colors">Privacy Policy</a>
-        <a href="/terms" className="hover:text-white/60 transition-colors">Terms of Service</a>
-        <a href="/refund" className="hover:text-white/60 transition-colors">Refund Policy</a>
-        <a href="/contact" className="hover:text-white/60 transition-colors">Contact Us</a>
-      </div>
-      © 2026 VibeProfileit — All rights reserved.
-    </footer>
   );
 }

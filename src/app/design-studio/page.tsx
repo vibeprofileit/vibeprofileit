@@ -12,6 +12,7 @@ import { saveAs } from "file-saver";
 import type { SteamProfileData, SteamFriend } from "../api/steam/profile/route";
 import { runGifPipeline as processGif } from "@/lib/gif-pipeline";
 import { stampWatermark } from "@/lib/watermark";
+import Footer from "@/components/Footer";
 const MAX_FILE_SIZE      = 15 * 1024 * 1024; // 15 MB
 const ELITE_BYPASS_BYTES = 5_138_022;        // 4.9 MB — static görsel sıkıştırma eşiği
 
@@ -1328,10 +1329,7 @@ function UploadPageInner() {
       </div>
     </div>
 
-      {/* Footer */}
-      <footer className="border-t border-white/5 py-8 mt-12 text-center text-white/20 text-sm w-full">
-        © 2026 VibeProfileit — Made by SirHaktan for the Steam Community with ❤️. All rights reserved.
-      </footer>
+      <Footer />
   </div>
   );
 }

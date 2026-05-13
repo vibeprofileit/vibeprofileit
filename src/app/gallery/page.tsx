@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import ProtectedImage from "@/components/ui/ProtectedImage";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -1777,12 +1778,7 @@ export default function GalleryPage() {
         )}
       </main>
 
-      <footer
-        className="border-t py-8 text-center text-white/20 text-sm"
-        style={{ borderColor: "rgba(255,255,255,0.05)" }}
-      >
-        © 2026 VibeProfileit — Made by SirHacktan for the Steam Community with ❤️. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }

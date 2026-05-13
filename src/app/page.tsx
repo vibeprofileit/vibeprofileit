@@ -7,6 +7,7 @@ import Link from "next/link";
 
 const MotionLink = motion.create(Link);
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const routes = [
   {
@@ -327,16 +328,26 @@ export default function Home() {
       </section>
 
 
-      {/* Footer */}
-      <footer className="border-t border-white/5 py-8 text-center text-white/20 text-sm">
-        <div className="flex justify-center gap-6 mb-3 text-white/30 text-xs">
-          <a href="/privacy" className="hover:text-white/60 transition-colors">Privacy Policy</a>
-          <a href="/terms" className="hover:text-white/60 transition-colors">Terms of Service</a>
-          <a href="/refund" className="hover:text-white/60 transition-colors">Refund Policy</a>
-          <a href="/contact" className="hover:text-white/60 transition-colors">Contact Us</a>
+      {/* Social proof */}
+      <section className="px-6 py-16 max-w-3xl mx-auto text-center">
+        <p className="text-white/20 text-xs uppercase tracking-widest font-semibold mb-8">
+          Trusted by the Steam community
+        </p>
+        <div className="grid grid-cols-3 gap-6">
+          {[
+            { value: "500+", label: "Designs created" },
+            { value: "200+", label: "Happy users" },
+            { value: "5★", label: "Community rated" },
+          ].map(({ value, label }) => (
+            <div key={label}>
+              <div className="text-2xl md:text-3xl font-black text-white mb-1">{value}</div>
+              <div className="text-white/30 text-xs">{label}</div>
+            </div>
+          ))}
         </div>
-        © 2026 VibeProfileit — Made by SirHacktan for the Steam Community with ❤️ . All rights reserved.
-      </footer>
+      </section>
+
+      <Footer />
     </div>
   );
 }
