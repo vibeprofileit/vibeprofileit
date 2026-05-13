@@ -727,7 +727,7 @@ function UploadPageInner() {
             </button>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
 
             {/* Background zone */}
             <div className="flex-1 flex flex-col gap-2">

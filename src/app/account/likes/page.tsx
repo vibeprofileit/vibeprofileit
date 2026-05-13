@@ -133,7 +133,7 @@ function ImageModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6"
+        className="fixed inset-0 z-50 flex items-start md:items-center justify-center pt-16 px-3 pb-3 md:p-6"
         style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(14px)" }}
         onClick={onClose}
       >
@@ -142,9 +142,9 @@ function ImageModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 16 }}
           transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-          className="modal-scroll relative w-[85vw] max-h-[88vh] overflow-y-auto rounded-2xl flex flex-col"
+          className="modal-scroll relative w-full md:w-[85vw] max-h-[calc(100vh-5rem)] md:max-h-[88vh] overflow-y-auto rounded-2xl flex flex-col"
           style={{
-            maxWidth: "1150px", minHeight: "750px", background: "#050505",
+            maxWidth: "1150px", background: "#050505",
             border: "1px solid rgba(188,19,254,0.35)",
             boxShadow: "0 0 0 1px rgba(188,19,254,0.45), 0 0 30px rgba(188,19,254,0.18)",
             scrollbarWidth: "none",
@@ -243,7 +243,7 @@ function ImageModal({
           {related.length > 0 && (
             <div className="relative z-[70] px-6 py-5 mt-auto" style={{ borderTop: "1px solid rgba(188,19,254,0.15)", background: "rgba(5,5,5,0.8)" }}>
               <h3 className="text-white text-xs font-bold uppercase tracking-widest mb-4 pl-1">Related Vibes</h3>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {related.map((rel) => {
                   const isLocked = rel.isPremium && !session?.user?.isAdmin && !ownedIds.has(rel.id);
                   const showMini = miniModalId === rel.id;

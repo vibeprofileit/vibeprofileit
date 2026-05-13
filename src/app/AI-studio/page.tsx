@@ -383,6 +383,7 @@ export default function StudioPage() {
         <motion.div
           animate={{ opacity: isGenerating ? 0 : 1 }}
           transition={{ duration: 0.5 }}
+          className="ai-hud-panel"
           style={{
             width: "100%", maxWidth: 800,
             background: "rgba(18,4,4,0.92)",
@@ -707,6 +708,9 @@ export default function StudioPage() {
         }
         textarea::placeholder { color: rgba(220,100,60,0.35); }
         textarea::-webkit-scrollbar { display: none; }
+        @media (max-width: 640px) {
+          .ai-hud-panel { padding: 28px 20px 24px !important; }
+        }
       `}</style>
     </div>
   );
