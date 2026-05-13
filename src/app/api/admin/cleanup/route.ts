@@ -5,12 +5,23 @@ import { requireAdmin } from "@/lib/adminAuth";
 
 export async function POST() {
   const deny = await requireAdmin(); if (deny) return deny;
-  // DB'deki tüm r2Key'leri al (tüm statuslar)
+  const WORKER_BASE = "https://vibe-images.vibeprofileit.workers.dev";
+
+  // DB'deki tüm r2Key + coverUrl'leri al (tüm statuslar)
   const dbArtworks = await prisma.artwork.findMany({
-    select: { id: true, r2Key: true },
+    select: { id: true, r2Key: true, coverUrl: true },
     where: { r2Key: { not: null } },
   });
-  const dbKeys = new Set(dbArtworks.map((a) => a.r2Key as string));
+  const dbKeys = new Set<string>();
+  for (const a of dbArtworks) {
+    if (a.r2Key) dbKeys.add(a.r2Key);
+    if (a.coverUrl) {
+      const coverKey = a.coverUrl.startsWith(WORKER_BASE + "/")
+        ? a.coverUrl.slice(WORKER_BASE.length + 1)
+        : null;
+      if (coverKey) dbKeys.add(coverKey);
+    }
+  }
 
   // R2'deki tüm dosyaları listele (sayfalama ile)
   const r2Keys: string[] = [];

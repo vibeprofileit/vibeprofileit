@@ -567,6 +567,41 @@ function ApprovedTab({
   );
 }
 
+// ─── Regen Thumbnails Butonu ─────────────────────────────────────────────────
+function RegenThumbsButton() {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<{ total: number; ok: number; failed: number } | null>(null);
+
+  const run = async () => {
+    if (!window.confirm("Tüm GIF cover'ları sıfırlanıp yeniden üretilecek. Devam?")) return;
+    setLoading(true);
+    setResult(null);
+    try {
+      await fetch("/api/admin/fix-cover-urls", { method: "POST" });
+      const res = await fetch("/api/admin/artworks/regen-thumbnails", { method: "POST" });
+      const data = await res.json();
+      setResult(data);
+    } catch {
+      alert("Hata, konsolu kontrol et.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-2 mb-3">
+      <button onClick={run} disabled={loading}
+        className="px-4 py-2 rounded-lg text-xs font-semibold bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-zinc-700">
+        {loading ? "Üretiliyor..." : "🎞  Cover Thumbnail Yenile"}
+      </button>
+      {result && (
+        <p className="text-xs font-mono text-zinc-500">
+          Toplam: {result.total} · OK: {result.ok} · Hata: {result.failed}
+        </p>
+      )}
+    </div>
+  );
+}
+
 // ─── Cleanup Butonu ───────────────────────────────────────────────────────────
 function CleanupButton() {
   const [loading, setLoading] = useState(false);
@@ -717,6 +752,7 @@ export default function CuratorPage() {
 
       {tab === "approved" ? (
         <>
+          <RegenThumbsButton />
           <CleanupButton />
           <ApprovedTab artworks={approvedArtworks} setArtworks={setApprovedArtworks} loading={approvedLoading} />
         </>
