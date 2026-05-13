@@ -336,8 +336,8 @@ export default function Home() {
         <div className="grid grid-cols-3 gap-6">
           {[
             { value: "500+", label: "Designs created" },
-            { value: "200+", label: "Happy users" },
-            { value: "5★", label: "Community rated" },
+            { value: "200+", label: "Elite users" },
+            { value: "4.7★", label: "Community rated" },
           ].map(({ value, label }) => (
             <div key={label}>
               <div className="text-2xl md:text-3xl font-black text-white mb-1">{value}</div>
