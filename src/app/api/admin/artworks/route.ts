@@ -1,5 +1,5 @@
 import { PutObjectCommand, DeleteObjectCommand, CopyObjectCommand } from "@aws-sdk/client-s3";
-import { r2, R2_BUCKET } from "@/lib/r2";
+import { r2, R2_BUCKET, R2_PUBLIC_URL } from "@/lib/r2";
 import { prisma } from "@/lib/prisma";
 import type { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
@@ -185,6 +185,18 @@ export async function DELETE(request: NextRequest) {
       }
     }
 
+    if (artwork.coverUrl) {
+      const coverKey = artwork.coverUrl.replace(R2_PUBLIC_URL + "/", "");
+      if (coverKey !== artwork.coverUrl) {
+        try {
+          await r2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: coverKey }));
+          console.log(`[DELETE] Cover silindi: ${coverKey}`);
+        } catch (err) {
+          console.error("[DELETE] Cover silme hatası (non-fatal):", err);
+        }
+      }
+    }
+
     await prisma.artwork.delete({ where: { id } });
     return Response.json({ success: true });
   }
@@ -198,6 +210,19 @@ export async function DELETE(request: NextRequest) {
       console.error("[REJECT] R2 silme hatası:", err);
     }
   }
+
+  if (toReject?.coverUrl) {
+    const coverKey = toReject.coverUrl.replace(R2_PUBLIC_URL + "/", "");
+    if (coverKey !== toReject.coverUrl) {
+      try {
+        await r2.send(new DeleteObjectCommand({ Bucket: R2_BUCKET, Key: coverKey }));
+        console.log(`[REJECT] Cover silindi: ${coverKey}`);
+      } catch (err) {
+        console.error("[REJECT] Cover silme hatası (non-fatal):", err);
+      }
+    }
+  }
+
   await prisma.artwork.delete({ where: { id } });
   return Response.json({ success: true });
 }

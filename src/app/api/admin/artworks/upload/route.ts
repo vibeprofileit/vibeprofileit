@@ -1,5 +1,5 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { r2, R2_BUCKET } from "@/lib/r2";
+import { r2, R2_BUCKET, R2_PUBLIC_URL } from "@/lib/r2";
 import { prisma } from "@/lib/prisma";
 import type { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
@@ -100,6 +100,25 @@ export async function POST(request: NextRequest) {
 
   const sourceUrl = `${WORKER_BASE}/${r2Key}`;
 
+  let coverUrl: string | null = null;
+  if (isGif) {
+    try {
+      const coverBuffer = await sharp(buffer, { animated: false }).webp({ quality: 80 }).toBuffer();
+      const coverKey = `covers/${randomUUID()}.webp`;
+      await r2.send(new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: coverKey,
+        Body: coverBuffer,
+        ContentType: "image/webp",
+        ContentLength: coverBuffer.byteLength,
+      }));
+      coverUrl = `${R2_PUBLIC_URL}/${coverKey}`;
+      console.log(`[UPLOAD] Cover thumbnail → ${coverKey}`);
+    } catch (err) {
+      console.error("[UPLOAD] Cover thumbnail hatası (non-fatal):", err);
+    }
+  }
+
   const artwork = await prisma.artwork.create({
     data: {
       sourceUrl,
@@ -109,6 +128,7 @@ export async function POST(request: NextRequest) {
       format,
       sizeBytes: file.size,
       status: "PENDING",
+      ...(coverUrl ? { coverUrl } : {}),
     },
   });
 
