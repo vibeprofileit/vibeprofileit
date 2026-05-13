@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import type { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
 import sharp from "sharp";
+import { requireAdmin } from "@/lib/adminAuth";
 
 const WORKER_BASE = "https://vibe-images.vibeprofileit.workers.dev";
 
@@ -12,6 +13,7 @@ const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/gif"]);
 const MAX_SIZE_BYTES = 21 * 1024 * 1024; // 21 MB
 
 export async function POST(request: NextRequest) {
+  const deny = await requireAdmin(); if (deny) return deny;
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -101,23 +103,6 @@ export async function POST(request: NextRequest) {
   const sourceUrl = `${WORKER_BASE}/${r2Key}`;
 
   let coverUrl: string | null = null;
-  if (isGif) {
-    try {
-      const coverBuffer = await sharp(buffer, { animated: false }).webp({ quality: 80 }).toBuffer();
-      const coverKey = `covers/${randomUUID()}.webp`;
-      await r2.send(new PutObjectCommand({
-        Bucket: R2_BUCKET,
-        Key: coverKey,
-        Body: coverBuffer,
-        ContentType: "image/webp",
-        ContentLength: coverBuffer.byteLength,
-      }));
-      coverUrl = `${WORKER_BASE}/${coverKey}`;
-      console.log(`[UPLOAD] Cover thumbnail → ${coverKey}`);
-    } catch (err) {
-      console.error("[UPLOAD] Cover thumbnail hatası (non-fatal):", err);
-    }
-  }
 
   const artwork = await prisma.artwork.create({
     data: {
@@ -128,9 +113,27 @@ export async function POST(request: NextRequest) {
       format,
       sizeBytes: file.size,
       status: "PENDING",
-      ...(coverUrl ? { coverUrl } : {}),
     },
   });
 
-  return Response.json(artwork, { status: 201 });
+  if (isGif) {
+    try {
+      const coverBuffer = await sharp(buffer, { animated: false }).webp({ quality: 80 }).toBuffer();
+      const coverKey = `covers/${artwork.id}.webp`;
+      await r2.send(new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: coverKey,
+        Body: coverBuffer,
+        ContentType: "image/webp",
+        ContentLength: coverBuffer.byteLength,
+      }));
+      coverUrl = `${WORKER_BASE}/${coverKey}`;
+      await prisma.artwork.update({ where: { id: artwork.id }, data: { coverUrl } });
+      console.log(`[UPLOAD] Cover thumbnail → ${coverKey}`);
+    } catch (err) {
+      console.error("[UPLOAD] Cover thumbnail hatası (non-fatal):", err);
+    }
+  }
+
+  return Response.json({ ...artwork, coverUrl }, { status: 201 });
 }

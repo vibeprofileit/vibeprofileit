@@ -294,7 +294,7 @@ async function notifyAdmin(opts: {
   remaining:   number;
 }): Promise<void> {
   await resend.emails.send({
-    from:    "noreply@vibeprofileit.com",
+    from:    "VibeProfileit <onboarding@resend.dev>",
     to:      "vibeprofileit@gmail.com",
     subject: `New AI Generation — ${opts.displayName}`,
     html: `

@@ -3,6 +3,7 @@ import { r2, R2_BUCKET } from "@/lib/r2";
 import { prisma } from "@/lib/prisma";
 import sharp from "sharp";
 import type { Readable } from "stream";
+import { requireAdmin } from "@/lib/adminAuth";
 
 const WORKER_BASE = "https://vibe-images.vibeprofileit.workers.dev";
 const R2_PUBLIC_URL = "https://pub-a9fa3eb644a643638e6c89784ccb22fa.r2.dev";
@@ -17,8 +18,9 @@ async function streamToBuffer(stream: Readable): Promise<Buffer> {
 
 // DB'deki yanlış R2_PUBLIC_URL'leri Worker URL'e çevirir (WebP zaten R2'de var)
 export async function PATCH() {
+  const deny = await requireAdmin(); if (deny) return deny;
   const result = await prisma.$executeRaw`
-    UPDATE "Artwork"
+    UPDATE "Gallery_page"
     SET "coverUrl" = REPLACE("coverUrl", ${R2_PUBLIC_URL}, ${WORKER_BASE})
     WHERE "coverUrl" LIKE ${R2_PUBLIC_URL + "%"}
   `;
@@ -27,6 +29,7 @@ export async function PATCH() {
 
 // Yeni thumbnail üretimi: coverUrl eksik veya yanlış olan animated artwork'ler
 export async function POST() {
+  const deny = await requireAdmin(); if (deny) return deny;
   const artworks = await prisma.artwork.findMany({
     where: {
       mediaType: { equals: "animated", mode: "insensitive" },

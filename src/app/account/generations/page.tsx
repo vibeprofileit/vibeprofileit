@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Download, Clock, Sparkles, X, ZapOff, Wand2 } from "lucide-react";
+import Footer from "@/components/Footer";
 import Link from "next/link";
 
 async function downloadImage(url: string) {
@@ -396,6 +397,7 @@ export default function GenerationsPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

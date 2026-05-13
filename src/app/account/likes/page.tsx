@@ -8,6 +8,7 @@ import ProtectedImage from "@/components/ui/ProtectedImage";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Eye, X, Download, Heart, Pencil, ExternalLink, Lock } from "lucide-react";
+import Footer from "@/components/Footer";
 
 type GalleryItem = {
   id: string;
@@ -342,8 +343,9 @@ function ImageModal({
 
 // ─── LikeCard ─────────────────────────────────────────────────────────────────
 
-function LikeCard({ item, index, onView }: { item: GalleryItem; index: number; onView: (item: GalleryItem) => void }) {
+function LikeCard({ item, index, onView, ownedIds }: { item: GalleryItem; index: number; onView: (item: GalleryItem) => void; ownedIds: Set<string> }) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [hovered, setHovered] = useState(false);
   const [studioHovered, setStudioHovered] = useState(false);
   const cardRef   = useRef<HTMLDivElement>(null);
@@ -401,8 +403,9 @@ function LikeCard({ item, index, onView }: { item: GalleryItem; index: number; o
       onPointerLeave={(e) => { if (e.pointerType !== 'touch') { setHovered(false); setStudioHovered(false); } }}
       whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
       onClick={() => {
-        if (item.isPremium) { router.push("/pricing"); return; }
-        if (lastPtrType.current === 'touch' && !hovered) { setHovered(true); return; }
+        const isPremiumLocked = item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id);
+        if (lastPtrType.current === 'touch' && !hovered && !isPremiumLocked) { setHovered(true); return; }
+        if (isPremiumLocked) { router.push("/pricing"); return; }
         onView(item);
       }}
     >
@@ -648,6 +651,7 @@ export default function LikesPage() {
                     item={item}
                     index={ci * 5 + i}
                     onView={setSelectedItem}
+                    ownedIds={ownedIds}
                   />
                 ))}
               </div>
@@ -655,6 +659,8 @@ export default function LikesPage() {
           </div>
         )}
       </main>
+
+      <Footer />
 
       <style>{`
         @keyframes skeletonPulse {

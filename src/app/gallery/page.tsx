@@ -13,8 +13,8 @@ import { Search, ExternalLink, ChevronDown, Pencil, Eye, X, Download, Heart, Loc
 const CHUNK_SIZE = 24;
 
 const CATEGORIES = [
-  "All","Anime", "Artist", "Cars", "Cartoon", "City", "Fantasy", "Gaming",
-  "Marvel", "Movie", "Nature", "Samurai", "Art", "Real", "Neon", "Animated", "Static", "Premium",
+  "All", "Premium", "Anime", "Artist", "Cars", "Cartoon", "City", "Fantasy", "Gaming",
+  "Marvel", "Movie", "Nature", "Samurai", "Art", "Real", "Neon", "Animated", "Static",
 ];
 
 type GalleryItem = {
@@ -1223,7 +1223,7 @@ function GalleryCard({
               borderRadius: "inherit",
               overflow: "hidden",
               background: item.isPremium
-                ? "rgba(0,0,0,0.45)"
+                ? "rgba(0,0,0,0.12)"
                 : "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.7) 100%)",
             }}
           >

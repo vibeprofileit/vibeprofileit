@@ -1,8 +1,10 @@
 import { ListObjectsV2Command, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { r2, R2_BUCKET } from "@/lib/r2";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export async function POST() {
+  const deny = await requireAdmin(); if (deny) return deny;
   // DB'deki tüm r2Key'leri al (tüm statuslar)
   const dbArtworks = await prisma.artwork.findMany({
     select: { id: true, r2Key: true },

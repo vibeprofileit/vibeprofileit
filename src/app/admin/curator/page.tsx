@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -605,6 +607,8 @@ function CleanupButton() {
 type PageTab = "pending" | "approved";
 
 export default function CuratorPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [tab, setTab] = useState<PageTab>("pending");
   const [queue, setQueue] = useState<Artwork[]>([]);
   const [queueLoading, setQueueLoading] = useState(true);
@@ -614,6 +618,12 @@ export default function CuratorPage() {
   const [tags, setTags] = useState({ theme: "", color: "", vibe: "", mediaType: "ANIMATED", isFeatured: false, isNSFW: false, isPremium: false });
 
   const current = queue[0] ?? null;
+
+  useEffect(() => {
+    if (status === "unauthenticated" || (status === "authenticated" && !session?.user?.isAdmin)) {
+      router.replace("/");
+    }
+  }, [status, session, router]);
 
   const fetchQueue = useCallback(async () => {
     setQueueLoading(true);
@@ -685,6 +695,10 @@ export default function CuratorPage() {
     setQueue((q) => q.filter((a) => a.id !== current.id));
     setActionLoading(false);
   };
+
+  if (status === "loading" || !session?.user?.isAdmin) {
+    return <div className="min-h-screen bg-[#0a0a0f]" />;
+  }
 
   return (
     <main className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center py-12 px-4">

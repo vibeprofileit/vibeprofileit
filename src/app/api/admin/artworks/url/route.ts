@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
 import type { NextRequest } from "next/server";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export async function POST(request: NextRequest) {
+  const deny = await requireAdmin(); if (deny) return deny;
   let body: unknown;
   try {
     body = await request.json();

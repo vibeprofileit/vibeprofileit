@@ -8,6 +8,18 @@ import ProtectedImage from "@/components/ui/ProtectedImage";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Eye, X, Download, Pencil, ExternalLink, Star } from "lucide-react";
+import Footer from "@/components/Footer";
+
+async function downloadPremium(src: string, theme: string) {
+  const res = await fetch(src);
+  const blob = await res.blob();
+  const ext = blob.type.includes("gif") ? "gif" : blob.type.includes("png") ? "png" : "jpg";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `vibeprofileit_${theme || "premium"}.${ext}`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 const GOLD    = "#F59E0B";
 const GOLD_LT = "#FBBF24";
@@ -127,16 +139,13 @@ function PremiumModal({
 
               {/* Actions */}
               <div className="flex flex-col gap-2 mt-auto pb-6">
-                <a
-                  href={item.src}
-                  download
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  onClick={() => downloadPremium(item.src, item.theme)}
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white"
                   style={{ background: `linear-gradient(135deg, ${GOLD}, #D97706)`, border: `1px solid ${GOLD_LT}` }}
                 >
                   <Download size={15} /> Download
-                </a>
+                </button>
                 <Link
                   href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src)}&isPremium=true`}
                   target="_blank" rel="noopener noreferrer"
@@ -446,6 +455,7 @@ export default function PremiumsPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

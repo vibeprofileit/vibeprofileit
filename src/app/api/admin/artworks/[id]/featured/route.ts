@@ -1,10 +1,12 @@
 import { prisma } from "@/lib/prisma";
 import type { NextRequest } from "next/server";
+import { requireAdmin } from "@/lib/adminAuth";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const deny = await requireAdmin(); if (deny) return deny;
   const { id } = await params;
   if (!id) return Response.json({ error: "id gerekli" }, { status: 400 });
 

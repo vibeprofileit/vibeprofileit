@@ -4,10 +4,12 @@ import { prisma } from "@/lib/prisma";
 import type { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
 import { ArtworkStatus } from "@prisma/client";
+import { requireAdmin } from "@/lib/adminAuth";
 
 const WORKER_BASE = "https://vibe-images.vibeprofileit.workers.dev";
 
 export async function GET(request: NextRequest) {
+  const deny = await requireAdmin(); if (deny) return deny;
   const statusParam = request.nextUrl.searchParams.get("status") ?? "PENDING";
   const status = statusParam as ArtworkStatus;
   try {
@@ -31,6 +33,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
+  const deny = await requireAdmin(); if (deny) return deny;
   const { id, theme, color, vibe, mediaType, isFeatured, isNSFW, isPremium, moveToPending, toggleFeatured, togglePremium } = await request.json();
 
   if (!id) return Response.json({ error: "id gerekli" }, { status: 400 });
@@ -163,6 +166,7 @@ export async function PATCH(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const deny = await requireAdmin(); if (deny) return deny;
   const { id, hardDelete } = await request.json();
   if (!id) return Response.json({ error: "id gerekli" }, { status: 400 });
 

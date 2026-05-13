@@ -1,9 +1,11 @@
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from "@/lib/adminAuth";
 
 const OLD = "https://pub-a9fa3eb644a643638e6c89784ccb22fa.r2.dev/";
 const NEW = "https://vibe-images.vibeprofileit.workers.dev/";
 
 export async function POST() {
+  const deny = await requireAdmin(); if (deny) return deny;
   const assets = await prisma.assets.findMany({
     where: { r2_url: { contains: "pub-a9fa3eb644a643638e6c89784ccb22fa.r2.dev" } },
     select: { id: true, r2_url: true },
