@@ -620,10 +620,10 @@ export default function CuratorPage() {
   const current = queue[0] ?? null;
 
   useEffect(() => {
-    if (status === "unauthenticated" || (status === "authenticated" && !session?.user?.isAdmin)) {
+    if (status === "unauthenticated") {
       router.replace("/");
     }
-  }, [status, session, router]);
+  }, [status, router]);
 
   const fetchQueue = useCallback(async () => {
     setQueueLoading(true);
@@ -696,7 +696,7 @@ export default function CuratorPage() {
     setActionLoading(false);
   };
 
-  if (status === "loading" || !session?.user?.isAdmin) {
+  if (status === "loading") {
     return <div className="min-h-screen bg-[#0a0a0f]" />;
   }
 
