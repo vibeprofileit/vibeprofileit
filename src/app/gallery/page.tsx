@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 import ProtectedImage from "@/components/ui/ProtectedImage";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Search, ExternalLink, ChevronDown, Pencil, Eye, X, Download, Heart, Lock } from "lucide-react";
+import { Search, ExternalLink, ChevronDown, Pencil, Eye, X, Download, Heart, Lock, Wand2 } from "lucide-react";
 
 const CHUNK_SIZE = 24;
 
@@ -301,6 +301,10 @@ function ImageModal({
 
 // ─── PurchaseModal ─────────────────────────────────────────────────────────────
 
+const GOLD   = "#FFD700";
+const GOLD_L = "#fbbf24";
+const GOLD_A = (a: number) => `rgba(255,215,0,${a})`;
+
 function PurchaseModal({
   item,
   tokenBalance,
@@ -349,118 +353,119 @@ function PurchaseModal({
     }
   }
 
+  const studioUrl = `/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent((item.src ?? "").replace(/^http:\/\//i, "https://"))}&isPremium=true`;
+
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(14px)" }}
+        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6"
+        style={{ background: "rgba(0,0,0,0.92)", backdropFilter: "blur(14px)" }}
         onClick={onClose}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.94, y: 20 }}
+          initial={{ opacity: 0, scale: 0.96, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.94, y: 20 }}
-          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-          className="relative rounded-2xl overflow-hidden flex flex-col"
+          exit={{ opacity: 0, scale: 0.96, y: 16 }}
+          transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+          className="modal-scroll relative w-[85vw] max-h-[88vh] overflow-y-auto rounded-2xl flex flex-col"
           style={{
-            width: "100%", maxWidth: "400px",
-            background: "#08000f",
-            border: "1px solid rgba(255,215,0,0.35)",
-            boxShadow: "0 0 0 1px rgba(255,215,0,0.2), 0 0 40px rgba(255,215,0,0.1)",
-          }}
+            maxWidth: "1150px", minHeight: "600px", background: "#050505",
+            border: `1px solid ${GOLD_A(0.35)}`,
+            boxShadow: "none",
+            scrollbarWidth: "none",
+          } as React.CSSProperties}
           onClick={(e) => e.stopPropagation()}
         >
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-full"
-            style={{ background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.1)" }}
+            className="absolute top-4 right-4 z-20 flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200"
+            style={{ background: "rgba(0,0,0,0.65)", border: `1px solid ${GOLD_A(0.45)}` }}
           >
-            <X size={14} color="#fff" />
+            <X size={16} color="#fff" />
           </button>
 
-          {/* Preview */}
-          <div className="relative w-full" style={{ height: "180px", overflow: "hidden" }}>
-            <div className="absolute inset-0" style={{ background: "linear-gradient(135deg,#0a0014,#1a0035)" }} />
-            {(item.coverUrl || item.src) && (
+          <div className="flex flex-col md:flex-row gap-6 p-6 items-stretch flex-1">
+            {/* Sol: Görsel */}
+            <div className="rounded-xl relative overflow-hidden isolate"
+              style={{ display: "flex", alignItems: "center", justifyContent: "center", alignSelf: "center", width: "fit-content", maxHeight: "75vh", background: "#050505", border: `1px solid ${GOLD_A(0.18)}` }}>
               <img
                 src={item.coverUrl ?? item.src}
                 alt={item.theme}
-                className="absolute inset-0 w-full h-full object-cover opacity-60"
+                className="w-auto object-contain relative z-[1]"
+                style={{ maxHeight: "75vh" }}
               />
-            )}
-            <div className="absolute inset-0" style={{ background: "linear-gradient(to top, #08000f 0%, transparent 60%)" }} />
-            <div className="absolute top-3 left-3 flex items-center gap-1 px-2 py-0.5 rounded-full"
-              style={{ background: "rgba(20,15,0,0.9)", border: "1px solid rgba(255,215,0,0.8)" }}>
-              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#FFD700", display: "inline-block" }} />
-              <span style={{ color: "#FFD700", fontSize: "8px", fontWeight: 800, letterSpacing: "0.12em" }}>PREMIUM</span>
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="p-5 flex flex-col gap-4">
-            <div>
-              <h3 className="text-white font-black text-lg leading-tight">{item.theme}</h3>
-              <p className="text-white/40 text-xs mt-0.5">{item.width}×{item.height} · {item.format} · {item.sizeMB} MB</p>
             </div>
 
-            {tokenBalance === null ? (
-              <div className="flex flex-col gap-3">
-                <p className="text-white/50 text-sm text-center">Sign in with Steam to purchase premium wallpapers.</p>
-                <div className="flex items-center justify-between px-4 py-3 rounded-xl"
-                  style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)" }}>
-                  <span className="text-white/50 text-sm">Price</span>
-                  <span className="font-black text-base" style={{ color: "#FFD700" }}>10 tokens</span>
+            {/* Sağ: Sidebar */}
+            <div className="flex flex-col gap-5 flex-1 min-w-0">
+              {/* Brand */}
+              <div className="flex items-center gap-3 p-3 rounded-xl"
+                style={{ background: "rgba(10,10,10,0.9)", border: `1px solid ${GOLD_A(0.1)}` }}>
+                <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-black flex-shrink-0"
+                  style={{ background: `linear-gradient(135deg, ${GOLD}, ${GOLD_A(0.4)})` }}>
+                  <Lock size={20} color="#1a0a00" />
                 </div>
-                <a
-                  href="/api/steam/login"
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white"
-                  style={{ background: "linear-gradient(135deg, #1b2838, #2a475e)", border: "1px solid rgba(102,192,244,0.5)" }}
-                >
-                  Sign in with Steam
-                </a>
-              </div>
-            ) : (
-              <>
-                {/* Balance */}
-                <div className="flex items-center justify-between px-4 py-3 rounded-xl"
-                  style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.2)" }}>
-                  <span className="text-white/50 text-sm">Your balance</span>
-                  <span className="font-black text-base" style={{ color: canAfford ? "#FFD700" : "#f87171" }}>
-                    {tokenBalance} tokens
-                  </span>
-                </div>
-
-                {/* Price row */}
-                <div className="flex items-center justify-between">
-                  <span className="text-white/40 text-sm">Price</span>
-                  <span className="font-black text-lg" style={{ color: "#FFD700" }}>10 tokens</span>
-                </div>
-
-                {error && <p className="text-rose-400 text-xs text-center">{error}</p>}
-
-                {!canAfford ? (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-rose-400 text-xs text-center">Not enough tokens.</p>
-                    <Link
-                      href="/pricing"
-                      onClick={onClose}
-                      className="w-full flex items-center justify-center py-3 rounded-xl text-sm font-bold text-white"
-                      style={{ background: "linear-gradient(135deg, #7c3aed, #a855f7)", border: "1px solid rgba(168,85,247,0.6)" }}
-                    >
-                      Get Tokens
-                    </Link>
+                <div>
+                  <div className="text-white font-bold text-base">{item.theme}</div>
+                  <div className="text-xs mt-0.5 font-semibold uppercase tracking-wide" style={{ color: GOLD_L }}>
+                    Premium Wallpaper
                   </div>
+                </div>
+              </div>
+
+              {/* Metadata */}
+              <div className="rounded-xl p-4 flex flex-col gap-3"
+                style={{ background: "rgba(10,10,10,0.8)", border: `1px solid ${GOLD_A(0.15)}` }}>
+                {[
+                  { label: "Dimensions", value: `${item.width} × ${item.height}` },
+                  { label: "Format",     value: item.format },
+                  { label: "Size",       value: `${item.sizeMB} MB` },
+                  { label: "Style",      value: item.style || item.color || "—" },
+                ].map(({ label, value }) => (
+                  <div key={label} className="flex items-center justify-between">
+                    <span className="text-white/50 text-xs font-medium uppercase tracking-wide">{label}</span>
+                    <span className="text-white text-sm font-bold">{value}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Token bilgisi — giriş yapılmışsa */}
+              {tokenBalance !== null && (
+                <div className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold"
+                  style={{ background: GOLD_A(0.07), border: `1px solid ${GOLD_A(0.25)}`, color: canAfford ? GOLD_L : "#f87171" }}>
+                  <span className="text-white/50">Balance · Price</span>
+                  <span>{tokenBalance} · 10 tokens</span>
+                </div>
+              )}
+
+              {error && <p className="text-rose-400 text-xs text-center">{error}</p>}
+
+              {/* Butonlar */}
+              <div className="flex flex-col gap-2 mt-auto pb-6">
+                {tokenBalance === null ? (
+                  <a
+                    href="/api/steam/login"
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-transform duration-200 hover:scale-105"
+                    style={{ background: "linear-gradient(135deg, #1b2838, #2a475e)", border: "1px solid rgba(102,192,244,0.5)" }}
+                  >
+                    Sign in with Steam
+                  </a>
+                ) : !canAfford ? (
+                  <Link
+                    href="/pricing" onClick={onClose}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-transform duration-200 hover:scale-105"
+                    style={{ background: `linear-gradient(135deg, ${GOLD}, #D97706)`, border: `1px solid ${GOLD_L}` }}
+                  >
+                    Get Tokens
+                  </Link>
                 ) : (
                   <button
-                    onClick={handleBuy}
-                    disabled={buying}
-                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-all"
+                    onClick={handleBuy} disabled={buying}
+                    className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-transform duration-200 hover:scale-105"
                     style={{
-                      background: buying ? "rgba(255,215,0,0.2)" : "linear-gradient(135deg, #d97706, #fbbf24)",
-                      border: "1px solid rgba(255,215,0,0.6)",
+                      background: buying ? GOLD_A(0.2) : `linear-gradient(135deg, ${GOLD}, #D97706)`,
+                      border: `1px solid ${GOLD_L}`,
                       opacity: buying ? 0.7 : 1,
                       color: buying ? "#fff" : "#1a0a00",
                     }}
@@ -468,8 +473,17 @@ function PurchaseModal({
                     {buying ? "Processing..." : "Buy for 10 Tokens"}
                   </button>
                 )}
-              </>
-            )}
+
+                <Link
+                  href={studioUrl} target="_blank" rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-transform duration-200 hover:scale-105"
+                  style={{ background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.5)", color: "#c4b5fd" }}
+                >
+                  <Wand2 size={15} /> Edit in Design Studio
+                </Link>
+              </div>
+            </div>
           </div>
         </motion.div>
       </motion.div>
