@@ -45,6 +45,17 @@ function normalizeItem(item: GalleryItem): GalleryItem {
   return { ...item, src: toHttps(item.src) ?? item.src, coverUrl: toHttps(item.coverUrl) };
 }
 
+async function downloadGalleryItem(url: string, theme: string) {
+  const res  = await fetch(url);
+  const blob = await res.blob();
+  const ext  = blob.type.includes("gif") ? "gif" : blob.type.includes("png") ? "png" : "jpg";
+  const a    = document.createElement("a");
+  a.href     = URL.createObjectURL(blob);
+  a.download = `vibeprofileit_${theme || "premium"}.${ext}`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 function hashCode(id: string): number {
   let h = 0;
   for (let i = 0; i < id.length; i++) {
@@ -140,8 +151,8 @@ function ImageModal({
           style={{
             maxWidth: "1150px",
             background: "#050505",
-            border: "1px solid rgba(188,19,254,0.35)",
-            boxShadow: "0 0 0 1px rgba(188,19,254,0.45), 0 0 30px rgba(188,19,254,0.18)",
+            border: item.isPremium ? `1px solid ${GOLD_A(0.35)}` : "1px solid rgba(188,19,254,0.35)",
+            boxShadow: item.isPremium ? "none" : "0 0 0 1px rgba(188,19,254,0.45), 0 0 30px rgba(188,19,254,0.18)",
             scrollbarWidth: "none",
             msOverflowStyle: "none",
           } as React.CSSProperties}
@@ -150,14 +161,14 @@ function ImageModal({
           <button
             onClick={onClose}
             className="absolute top-4 right-4 z-20 flex items-center justify-center w-9 h-9 rounded-full transition-all duration-200"
-            style={{ background: "rgba(0,0,0,0.65)", border: "1px solid rgba(188,19,254,0.45)" }}
+            style={{ background: "rgba(0,0,0,0.65)", border: item.isPremium ? `1px solid ${GOLD_A(0.45)}` : "1px solid rgba(188,19,254,0.45)" }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background  = "rgba(188,19,254,0.22)";
-              (e.currentTarget as HTMLButtonElement).style.boxShadow   = "0 0 14px rgba(188,19,254,0.5)";
+              (e.currentTarget as HTMLButtonElement).style.background = item.isPremium ? GOLD_A(0.15) : "rgba(188,19,254,0.22)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow  = item.isPremium ? `0 0 14px ${GOLD_A(0.4)}` : "0 0 14px rgba(188,19,254,0.5)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background  = "rgba(0,0,0,0.65)";
-              (e.currentTarget as HTMLButtonElement).style.boxShadow   = "none";
+              (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,0,0,0.65)";
+              (e.currentTarget as HTMLButtonElement).style.boxShadow  = "none";
             }}
           >
             <X size={16} color="#fff" />
@@ -173,7 +184,7 @@ function ImageModal({
                 width: "fit-content",
                 maxHeight: "75vh",
                 background: "#050505",
-                border: "1px solid rgba(188,19,254,0.18)",
+                border: item.isPremium ? `1px solid ${GOLD_A(0.18)}` : "1px solid rgba(188,19,254,0.18)",
               }}
             >
               {item.src ? (
@@ -187,31 +198,38 @@ function ImageModal({
                 <div
                   className="absolute inset-0 opacity-10"
                   style={{
-                    backgroundImage: "linear-gradient(rgba(188,19,254,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(188,19,254,0.4) 1px, transparent 1px)",
+                    backgroundImage: item.isPremium
+                      ? `linear-gradient(${GOLD_A(0.4)} 1px, transparent 1px), linear-gradient(90deg, ${GOLD_A(0.4)} 1px, transparent 1px)`
+                      : "linear-gradient(rgba(188,19,254,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(188,19,254,0.4) 1px, transparent 1px)",
                     backgroundSize: "24px 24px",
                   }}
                 />
               )}
-              <div className="absolute pointer-events-none z-10" style={{ inset: "8px", border: "1px solid rgba(188,19,254,0.18)", borderRadius: "10px" }} />
+              <div className="absolute pointer-events-none z-10" style={{ inset: "8px", border: item.isPremium ? `1px solid ${GOLD_A(0.18)}` : "1px solid rgba(188,19,254,0.18)", borderRadius: "10px" }} />
               <div className="absolute top-4 left-4 w-7 h-7 pointer-events-none z-10"
-                style={{ borderTop: "2px solid rgba(188,19,254,0.7)", borderLeft: "2px solid rgba(188,19,254,0.7)", borderRadius: "3px 0 0 0" }} />
+                style={{ borderTop: item.isPremium ? `2px solid ${GOLD_A(0.7)}` : "2px solid rgba(188,19,254,0.7)", borderLeft: item.isPremium ? `2px solid ${GOLD_A(0.7)}` : "2px solid rgba(188,19,254,0.7)", borderRadius: "3px 0 0 0" }} />
               <div className="absolute bottom-4 right-4 w-7 h-7 pointer-events-none z-10"
-                style={{ borderBottom: "2px solid rgba(188,19,254,0.7)", borderRight: "2px solid rgba(188,19,254,0.7)", borderRadius: "0 0 3px 0" }} />
+                style={{ borderBottom: item.isPremium ? `2px solid ${GOLD_A(0.7)}` : "2px solid rgba(188,19,254,0.7)", borderRight: item.isPremium ? `2px solid ${GOLD_A(0.7)}` : "2px solid rgba(188,19,254,0.7)", borderRadius: "0 0 3px 0" }} />
             </div>
 
             {/* Sağ: Sidebar */}
             <div className="flex flex-col gap-5 flex-1 min-w-0">
               {/* Sanatçı kartı */}
-              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(10,10,10,0.9)", border: "1px solid rgba(188,19,254,0.1)" }}>
+              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(10,10,10,0.9)", border: item.isPremium ? `1px solid ${GOLD_A(0.1)}` : "1px solid rgba(188,19,254,0.1)" }}>
                 <div
-                  className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-black text-white flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg, rgba(188,19,254,1), rgba(188,19,254,0.4))", boxShadow: "0 0 20px rgba(188,19,254,0.8), 0 0 40px rgba(188,19,254,0.3)" }}
+                  className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-black flex-shrink-0"
+                  style={item.isPremium
+                    ? { background: `linear-gradient(135deg, ${GOLD}, ${GOLD_A(0.4)})` }
+                    : { background: "linear-gradient(135deg, rgba(188,19,254,1), rgba(188,19,254,0.4))", boxShadow: "0 0 20px rgba(188,19,254,0.8), 0 0 40px rgba(188,19,254,0.3)", color: "#fff" }
+                  }
                 >
-                  V
+                  {item.isPremium ? <Lock size={20} color="#1a0a00" /> : <span className="text-white">V</span>}
                 </div>
                 <div className="min-w-0">
-                  <div className="text-white font-bold text-base leading-tight truncate">VibeProfileit</div>
-                  <div className="text-white/50 text-xs mt-0.5">Elite Selection</div>
+                  <div className="text-white font-bold text-base leading-tight truncate">{item.isPremium ? "VibeProfileit" : "VibeProfileit"}</div>
+                  <div className="text-xs mt-0.5 font-semibold" style={{ color: item.isPremium ? GOLD_L : "rgba(255,255,255,0.5)" }}>
+                    {item.isPremium ? "Premium Wallpaper" : "Elite Selection"}
+                  </div>
                 </div>
               </div>
 
@@ -232,7 +250,7 @@ function ImageModal({
               )}
 
               {/* Metadata */}
-              <div className="rounded-xl p-4 flex flex-col gap-3" style={{ background: "rgba(10,10,10,0.8)", border: "1px solid rgba(188,19,254,0.15)" }}>
+              <div className="rounded-xl p-4 flex flex-col gap-3" style={{ background: "rgba(10,10,10,0.8)", border: item.isPremium ? `1px solid ${GOLD_A(0.15)}` : "1px solid rgba(188,19,254,0.15)" }}>
                 {[
                   { label: "Resolution", value: `${item.width}×${item.height}` },
                   { label: "Format",     value: item.format                    },
@@ -249,31 +267,51 @@ function ImageModal({
 
               {/* Butonlar */}
               <div className={`flex flex-col gap-2 ${item.isPremium ? "mt-auto" : "mt-auto md:mt-[220px]"} pb-6`}>
-                <Link
-                  href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src.replace(/^http:\/\//i, "https://"))}${item.isPremium ? "&isPremium=true" : ""}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white"
-                  style={{ background: "linear-gradient(135deg, rgba(188,19,254,0.85), rgba(120,0,200,0.6))", border: "1px solid rgba(188,19,254,1)", transition: "transform 0.2s ease" }}
-                  onPointerEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1.02)"; }}
-                  onPointerLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1)"; }}
-                >
-                  <Download size={15} /> Customize & Download
-                </Link>
-                {!item.isPremium && (
-                  <button
-                    onClick={toggleLike}
-                    disabled={likeLoading}
-                    className="flex items-center justify-center gap-2 py-2 rounded-xl text-[12px] font-medium transition-all duration-200"
-                    style={{
-                      background: liked ? "rgba(255,77,141,0.15)" : "transparent",
-                      border: liked ? "1px solid rgba(255,77,141,0.5)" : "1px solid rgba(255,255,255,0.1)",
-                      color: liked ? "#ff4d8d" : "rgba(255,255,255,0.5)",
-                      opacity: likeLoading ? 0.6 : 1,
-                    }}
-                  >
-                    <Heart size={13} fill={liked ? "#ff4d8d" : "none"} />
-                    {liked ? "Liked" : "Like"}
-                  </button>
+                {item.isPremium ? (
+                  <>
+                    <button
+                      onClick={() => downloadGalleryItem(item.src, item.theme)}
+                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-transform duration-200 hover:scale-105"
+                      style={{ background: `linear-gradient(135deg, ${GOLD}, #D97706)`, border: `1px solid ${GOLD_L}`, color: "#1a0a00" }}
+                    >
+                      <Download size={15} /> Download
+                    </button>
+                    <Link
+                      href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src.replace(/^http:\/\//i, "https://"))}&isPremium=true`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold transition-transform duration-200 hover:scale-105"
+                      style={{ background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.5)", color: "#c4b5fd" }}
+                    >
+                      <Wand2 size={15} /> Edit in Design Studio
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href={`/design-studio?id=${item.id}&template=featured&imageUrl=${encodeURIComponent(item.src.replace(/^http:\/\//i, "https://"))}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white"
+                      style={{ background: "linear-gradient(135deg, rgba(188,19,254,0.85), rgba(120,0,200,0.6))", border: "1px solid rgba(188,19,254,1)", transition: "transform 0.2s ease" }}
+                      onPointerEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1.02)"; }}
+                      onPointerLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.transform = "scale(1)"; }}
+                    >
+                      <Download size={15} /> Customize & Download
+                    </Link>
+                    <button
+                      onClick={toggleLike}
+                      disabled={likeLoading}
+                      className="flex items-center justify-center gap-2 py-2 rounded-xl text-[12px] font-medium transition-all duration-200"
+                      style={{
+                        background: liked ? "rgba(255,77,141,0.15)" : "transparent",
+                        border: liked ? "1px solid rgba(255,77,141,0.5)" : "1px solid rgba(255,255,255,0.1)",
+                        color: liked ? "#ff4d8d" : "rgba(255,255,255,0.5)",
+                        opacity: likeLoading ? 0.6 : 1,
+                      }}
+                    >
+                      <Heart size={13} fill={liked ? "#ff4d8d" : "none"} />
+                      {liked ? "Liked" : "Like"}
+                    </button>
+                  </>
                 )}
               </div>
             </div>

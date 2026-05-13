@@ -24,9 +24,9 @@ function openInDesignStudio(url: string) {
   window.open(`/design-studio?${params}`, "_blank");
 }
 
-const ORG   = "#f97316";
-const ORG_L = "#fb923c";
-const ORG_A = (a: number) => `rgba(249,115,22,${a})`;
+const ORG   = "#e11d48";
+const ORG_L = "#fb7185";
+const ORG_A = (a: number) => `rgba(225,29,72,${a})`;
 
 type Generation = {
   id:         string;
@@ -154,7 +154,7 @@ function GenerationModal({ item, onClose }: { item: Generation; onClose: () => v
                 <button
                   onClick={() => downloadImage(item.r2_url)}
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white transition-transform duration-200 hover:scale-105"
-                  style={{ background: `linear-gradient(135deg, ${ORG}, #D97706)`, border: `1px solid ${ORG_L}` }}
+                  style={{ background: `linear-gradient(135deg, ${ORG}, #f97316)`, border: `1px solid ${ORG_L}` }}
                 >
                   <Download size={15} /> Download
                 </button>
@@ -337,11 +337,9 @@ export default function GenerationsPage() {
         {/* Başlık */}
         <div className="mb-4">
           <h1 className="text-3xl font-black tracking-tight">
-            <span style={{ background: `linear-gradient(to right, ${ORG}, ${ORG_L}, #fed7aa)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <span style={{ background: `linear-gradient(to right, ${ORG}, ${ORG_L}, #fecdd3)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               My Generations
             </span>
-            {" "}
-            <span className="text-white/60 text-2xl font-semibold">(AI Studio)</span>
           </h1>
         </div>
 
