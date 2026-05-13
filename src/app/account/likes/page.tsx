@@ -7,7 +7,7 @@ import Header from "@/components/Header";
 import ProtectedImage from "@/components/ui/ProtectedImage";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Eye, X, Download, Heart, Pencil, ExternalLink } from "lucide-react";
+import { Eye, X, Download, Heart, Pencil, ExternalLink, Lock } from "lucide-react";
 
 type GalleryItem = {
   id: string;
@@ -43,14 +43,47 @@ function ImageModal({
   allItems,
   onSelect,
   onUnlike,
+  ownedIds,
+  tokenBalance,
+  onBuySuccess,
 }: {
   item: GalleryItem;
   onClose: () => void;
   allItems: GalleryItem[];
   onSelect: (item: GalleryItem) => void;
   onUnlike: (id: string) => void;
+  ownedIds: Set<string>;
+  tokenBalance: number | null;
+  onBuySuccess: (item: GalleryItem, newBalance: number) => void;
 }) {
+  const { data: session } = useSession();
   const [unliking, setUnliking] = useState(false);
+  const [miniModalId, setMiniModalId] = useState<string | null>(null);
+  const [buying, setBuying] = useState(false);
+  const [buyError, setBuyError] = useState("");
+
+  async function handleBuy(rel: GalleryItem) {
+    setBuying(true);
+    setBuyError("");
+    try {
+      const res = await fetch("/api/purchases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artworkId: rel.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBuyError(data.error ?? "Purchase failed");
+      } else {
+        setMiniModalId(null);
+        onBuySuccess(rel, data.newBalance);
+      }
+    } catch {
+      setBuyError("Network error");
+    } finally {
+      setBuying(false);
+    }
+  }
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -85,7 +118,7 @@ function ImageModal({
 
   const seenIds = new Set<string>();
   const related = [...allItems]
-    .filter((m) => m.id !== item.id && !m.isPremium && (m.theme === item.theme || m.style === item.style))
+    .filter((m) => m.id !== item.id && (m.theme === item.theme || m.style === item.style))
     .sort(() => 0.5 - Math.random())
     .filter((m) => { if (seenIds.has(m.id)) return false; seenIds.add(m.id); return true; })
     .slice(0, 4);
@@ -211,18 +244,87 @@ function ImageModal({
             <div className="relative z-[70] px-6 py-5 mt-auto" style={{ borderTop: "1px solid rgba(188,19,254,0.15)", background: "rgba(5,5,5,0.8)" }}>
               <h3 className="text-white text-xs font-bold uppercase tracking-widest mb-4 pl-1">Related Vibes</h3>
               <div className="grid grid-cols-4 gap-3">
-                {related.map((rel) => (
-                  <div
-                    key={rel.id}
-                    onClick={() => onSelect(rel)}
-                    className="relative rounded-xl overflow-hidden cursor-pointer"
-                    style={{ aspectRatio: "9/14", background: "#050505", border: "1px solid rgba(188,19,254,0.25)" }}
-                  >
-                    {rel.src && (
-                      <img src={rel.src} alt={rel.theme} className="absolute inset-0 w-full h-full object-cover" />
-                    )}
-                  </div>
-                ))}
+                {related.map((rel) => {
+                  const isLocked = rel.isPremium && !session?.user?.isAdmin && !ownedIds.has(rel.id);
+                  const showMini = miniModalId === rel.id;
+                  return (
+                    <div
+                      key={rel.id}
+                      onClick={() => isLocked ? setMiniModalId(rel.id) : onSelect(rel)}
+                      className="relative rounded-xl overflow-hidden cursor-pointer"
+                      style={{ aspectRatio: "9/14", background: "#050505", border: isLocked ? "1px solid rgba(255,215,0,0.35)" : "1px solid rgba(188,19,254,0.25)" }}
+                    >
+                      {rel.src && (
+                        <img src={rel.src} alt={rel.theme} className="absolute inset-0 w-full h-full object-cover" />
+                      )}
+
+                      {/* Premium rozeti */}
+                      {rel.isPremium && (
+                        <div className="absolute top-1.5 left-1.5 flex items-center gap-1 px-1.5 py-0.5 rounded-full z-10 pointer-events-none"
+                          style={{ background: "rgba(20,15,0,0.9)", border: "1px solid rgba(255,215,0,0.8)", boxShadow: "0 0 6px rgba(255,215,0,0.4)" }}>
+                          <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#FFD700", display: "inline-block" }} />
+                          <span style={{ color: "#FFD700", fontSize: "7px", fontWeight: 800, letterSpacing: "0.1em" }}>PREMIUM</span>
+                        </div>
+                      )}
+
+                      {/* Mini modal */}
+                      {showMini && (
+                        <div
+                          className="absolute inset-0 z-30 flex flex-col rounded-xl overflow-hidden"
+                          onClick={(e) => e.stopPropagation()}
+                          style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }}
+                        >
+                          <button
+                            className="absolute top-1.5 right-1.5 z-40 flex items-center justify-center w-5 h-5 rounded-full"
+                            style={{ background: "rgba(255,255,255,0.1)" }}
+                            onClick={(e) => { e.stopPropagation(); setMiniModalId(null); setBuyError(""); }}
+                          >
+                            <X size={10} color="rgba(255,255,255,0.7)" />
+                          </button>
+                          <div className="flex-1 flex flex-col items-center justify-center gap-1.5 px-2">
+                            <Lock size={18} color="#FFD700" />
+                            <span style={{ color: "#FFD700", fontSize: "8px", fontWeight: 800, letterSpacing: "0.1em", textAlign: "center", textTransform: "uppercase" }}>Premium</span>
+                          </div>
+                          <div className="px-2 pb-3 flex flex-col gap-1.5">
+                            {buyError && miniModalId === rel.id && (
+                              <span style={{ color: "#f87171", fontSize: "8px", fontWeight: 600, textAlign: "center", display: "block" }}>{buyError}</span>
+                            )}
+                            {!session?.user?.userId ? (
+                              <a
+                                href="/api/steam/login"
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-white font-bold"
+                                style={{ background: "linear-gradient(135deg, #1b2838, #2a475e)", border: "1px solid rgba(102,192,244,0.5)", fontSize: "9px" }}
+                              >
+                                Login with Steam
+                              </a>
+                            ) : tokenBalance !== null && tokenBalance < 10 ? (
+                              <div className="w-full flex flex-col items-center gap-1">
+                                <span style={{ color: "#f87171", fontSize: "8px", fontWeight: 600, textAlign: "center" }}>Not enough tokens</span>
+                                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "7px", textAlign: "center" }}>{tokenBalance}/10 tokens</span>
+                              </div>
+                            ) : (
+                              <button
+                                disabled={buying}
+                                onClick={(e) => { e.stopPropagation(); handleBuy(rel); }}
+                                className="w-full flex items-center justify-center py-2 rounded-lg font-bold"
+                                style={{
+                                  background: buying ? "rgba(255,215,0,0.2)" : "linear-gradient(135deg, #FFD700, #D97706)",
+                                  border: "1px solid rgba(255,215,0,0.6)",
+                                  color: buying ? "rgba(255,215,0,0.5)" : "#1a0a00",
+                                  fontSize: "9px",
+                                  cursor: buying ? "not-allowed" : "pointer",
+                                }}
+                              >
+                                {buying ? "..." : "Buy for 10 Tokens"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -422,6 +524,8 @@ export default function LikesPage() {
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState<GalleryItem | null>(null);
   const [cols, setCols] = useState(4);
+  const [ownedIds, setOwnedIds] = useState<Set<string>>(new Set());
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/");
@@ -433,6 +537,14 @@ export default function LikesPage() {
       .then(r => r.json())
       .then(d => { setItems(d.items ?? []); setLoading(false); })
       .catch(() => setLoading(false));
+    fetch("/api/account/premiums")
+      .then(r => r.json())
+      .then(d => setOwnedIds(new Set<string>(d.ids ?? [])))
+      .catch(() => {});
+    fetch("/api/user/me")
+      .then(r => r.json())
+      .then(d => setTokenBalance(d.tokenBalance ?? 0))
+      .catch(() => {});
   }, [session?.user?.userId]);
 
   useEffect(() => {
@@ -464,10 +576,20 @@ export default function LikesPage() {
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
           allItems={items}
-          onSelect={setSelectedItem}
+          onSelect={(item) => {
+            if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) return;
+            setSelectedItem(item);
+          }}
           onUnlike={(id) => {
             setItems(prev => prev.filter(i => i.id !== id));
             setSelectedItem(null);
+          }}
+          ownedIds={ownedIds}
+          tokenBalance={tokenBalance}
+          onBuySuccess={(item, newBalance) => {
+            setOwnedIds(prev => new Set([...prev, item.id]));
+            setTokenBalance(newBalance);
+            setSelectedItem(item);
           }}
         />
       )}

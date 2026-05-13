@@ -17,7 +17,7 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@map("users")
+  @@map("kullanicilar")
 }
 
 // ─── Supabase'de zaten var olan tablolar (db pull ile alındı) ─────────────────
@@ -41,6 +41,8 @@ model Artwork {
   isNSFW     Boolean       @default(false)
   coverUrl   String?
   isPremium  Boolean       @default(false)
+
+  @@map("Gallery_page")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -61,6 +63,7 @@ model assets {
 
   @@index([created_at(sort: Desc)], map: "idx_assets_created_at")
   @@index([user_id], map: "idx_assets_user_id")
+  @@map("uretimler")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -73,6 +76,7 @@ model likes {
   @@unique([user_id, artwork_id])
   @@index([artwork_id], map: "idx_likes_artwork_id")
   @@index([user_id], map: "idx_likes_user_id")
+  @@map("begeniler")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -89,6 +93,7 @@ model profiles {
   updated_at    DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([user_id], map: "idx_profiles_user_id")
+  @@map("profiller")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -104,6 +109,7 @@ model purchases {
   @@unique([user_id, asset_id])
   @@index([asset_id], map: "idx_purchases_asset_id")
   @@index([user_id], map: "idx_purchases_user_id")
+  @@map("satin_almalar")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -118,6 +124,7 @@ model token_usage {
   assets          assets?  @relation(fields: [asset_id], references: [id], onUpdate: NoAction)
 
   @@index([user_id], map: "idx_token_usage_user_id")
+  @@map("token_kullanimi")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -132,6 +139,7 @@ model transactions {
   created_at     DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([user_id], map: "idx_transactions_user_id")
+  @@map("islemler")
 }
 
 enum ArtworkStatus {

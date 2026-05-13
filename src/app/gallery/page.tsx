@@ -72,11 +72,17 @@ function ImageModal({
   onClose,
   allItems,
   onSelect,
+  ownedIds,
+  tokenBalance,
+  onBuySuccess,
 }: {
   item: GalleryItem;
   onClose: () => void;
   allItems: GalleryItem[];
   onSelect: (item: GalleryItem) => void;
+  ownedIds: Set<string>;
+  tokenBalance: number | null;
+  onBuySuccess: (item: GalleryItem, newBalance: number) => void;
 }) {
   const { data: session } = useSession();
   const [liked, setLiked] = useState(false);
@@ -326,7 +332,7 @@ function ImageModal({
               <h3 className="text-white text-xs font-bold uppercase tracking-widest mb-4 pl-1">Related Vibes</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 isolate pointer-events-auto" style={{ paddingBottom: "8px", overflow: "visible" }}>
                 {Array.from(new Map(related.map((r) => [r.id, r])).values()).map((rel) => (
-                  <RelatedVibeCard key={rel.id} rel={rel} onSelect={onSelect} />
+                  <RelatedVibeCard key={rel.id} rel={rel} onSelect={onSelect} ownedIds={ownedIds} tokenBalance={tokenBalance} onBuySuccess={onBuySuccess} />
                 ))}
               </div>
             </div>
@@ -617,12 +623,53 @@ function SkeletonCard({ height }: { height: number }) {
 
 // ─── RelatedVibeCard ───────────────────────────────────────────────────────────
 
-function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item: GalleryItem) => void }) {
+function RelatedVibeCard({
+  rel,
+  onSelect,
+  ownedIds,
+  tokenBalance,
+  onBuySuccess,
+}: {
+  rel: GalleryItem;
+  onSelect: (item: GalleryItem) => void;
+  ownedIds: Set<string>;
+  tokenBalance: number | null;
+  onBuySuccess: (item: GalleryItem, newBalance: number) => void;
+}) {
+  const { data: session } = useSession();
   const [hov, setHov] = useState(false);
   const [stHov, setStHov] = useState(false);
   const lastPtrType = useRef<string>('mouse');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [thumbnailLoaded, setThumbnailLoaded] = useState(false);
+  const [miniModal, setMiniModal] = useState(false);
+  const [buying, setBuying] = useState(false);
+  const [buyError, setBuyError] = useState("");
+
+  const isPremiumLocked = rel.isPremium && !session?.user?.isAdmin && !ownedIds.has(rel.id);
+
+  async function handleBuy() {
+    setBuying(true);
+    setBuyError("");
+    try {
+      const res = await fetch("/api/purchases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artworkId: rel.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBuyError(data.error ?? "Purchase failed");
+      } else {
+        setMiniModal(false);
+        onBuySuccess(rel, data.newBalance);
+      }
+    } catch {
+      setBuyError("Network error");
+    } finally {
+      setBuying(false);
+    }
+  }
 
   useEffect(() => {
     if (rel.isAnimated && rel.src) {
@@ -649,10 +696,11 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
   return (
     <div
       className="relative rounded-xl overflow-hidden cursor-pointer pointer-events-auto"
-      style={{ aspectRatio: "9/14", background: "#050505", border: "1px solid rgba(188,19,254,0.25)", willChange: "transform" }}
+      style={{ aspectRatio: "9/14", background: "#050505", border: isPremiumLocked ? "1px solid rgba(255,215,0,0.35)" : "1px solid rgba(188,19,254,0.25)", willChange: "transform" }}
       onPointerDown={(e) => { lastPtrType.current = e.pointerType; }}
       onClick={(e) => {
         e.stopPropagation();
+        if (isPremiumLocked) { setMiniModal(true); return; }
         if (!rel.isAdult) {
           if (lastPtrType.current === 'touch' && !hov) { setHov(true); return; }
           onSelect(rel);
@@ -691,7 +739,7 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
             className="absolute inset-0 w-full h-full"
             style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s", imageRendering: "-webkit-optimize-contrast" }}
           />
-          {hov && (
+          {hov && !isPremiumLocked && (
             <img
               src={rel.src}
               alt={rel.theme}
@@ -706,6 +754,8 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
           alt={rel.theme}
           className="absolute inset-0 w-full h-full object-cover"
           style={{ filter: hov ? "brightness(0.8)" : "none", transition: "filter 0.2s ease" }}
+          onContextMenu={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}
         />
       )}
 
@@ -720,8 +770,87 @@ function RelatedVibeCard({ rel, onSelect }: { rel: GalleryItem; onSelect: (item:
         </div>
       )}
 
-      {/* Hover butonları */}
-      {hov && !rel.isAdult && (
+      {/* PREMIUM rozeti */}
+      {rel.isPremium && !rel.isAnimated && (
+        <div className="absolute top-2 left-2 flex items-center gap-1 px-2 py-0.5 rounded-full z-10 pointer-events-none"
+          style={{ background: "rgba(20,15,0,0.9)", border: "1px solid rgba(255,215,0,0.8)", boxShadow: "0 0 8px rgba(255,215,0,0.5)" }}>
+          <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#FFD700", boxShadow: "0 0 5px #FFD700", display: "inline-block" }} />
+          <span style={{ color: "#FFD700", fontSize: "8px", fontWeight: 800, letterSpacing: "0.12em" }}>PREMIUM</span>
+        </div>
+      )}
+
+      {/* Premium locked hover overlay */}
+      {isPremiumLocked && hov && !miniModal && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2"
+          style={{ background: "rgba(0,0,0,0.40)" }}
+          onContextMenu={(e) => e.preventDefault()}
+          onDragStart={(e) => e.preventDefault()}>
+          <Lock size={16} color="#FFD700" />
+          <span style={{ color: "#FFD700", fontSize: "9px", fontWeight: 800, letterSpacing: "0.1em", textAlign: "center" }}>Buy for 10 Tokens</span>
+        </div>
+      )}
+
+      {/* Mini modal — premium satın alma */}
+      {miniModal && (
+        <div
+          className="absolute inset-0 z-30 flex flex-col rounded-xl overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+          style={{ background: "rgba(0,0,0,0.82)", backdropFilter: "blur(3px)", WebkitBackdropFilter: "blur(3px)" }}
+        >
+          <button
+            className="absolute top-1.5 right-1.5 z-40 flex items-center justify-center w-5 h-5 rounded-full"
+            style={{ background: "rgba(255,255,255,0.1)" }}
+            onClick={(e) => { e.stopPropagation(); setMiniModal(false); setBuyError(""); }}
+          >
+            <X size={10} color="rgba(255,255,255,0.7)" />
+          </button>
+
+          <div className="flex-1 flex flex-col items-center justify-center gap-1.5 px-2">
+            <Lock size={18} color="#FFD700" />
+            <span style={{ color: "#FFD700", fontSize: "8px", fontWeight: 800, letterSpacing: "0.1em", textAlign: "center", textTransform: "uppercase" }}>Premium</span>
+          </div>
+
+          <div className="px-2 pb-3 flex flex-col gap-1.5">
+            {buyError && (
+              <span style={{ color: "#f87171", fontSize: "8px", fontWeight: 600, textAlign: "center", display: "block" }}>{buyError}</span>
+            )}
+            {!session?.user?.userId ? (
+              <a
+                href="/api/steam/login"
+                onClick={(e) => e.stopPropagation()}
+                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-white font-bold"
+                style={{ background: "linear-gradient(135deg, #1b2838, #2a475e)", border: "1px solid rgba(102,192,244,0.5)", fontSize: "9px", letterSpacing: "0.05em" }}
+              >
+                Login with Steam
+              </a>
+            ) : tokenBalance !== null && tokenBalance < 10 ? (
+              <div className="w-full flex flex-col items-center gap-1">
+                <span style={{ color: "#f87171", fontSize: "8px", fontWeight: 600, textAlign: "center" }}>Not enough tokens</span>
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "7px", textAlign: "center" }}>{tokenBalance}/10 tokens</span>
+              </div>
+            ) : (
+              <button
+                disabled={buying}
+                onClick={(e) => { e.stopPropagation(); handleBuy(); }}
+                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-lg font-bold transition-all duration-200"
+                style={{
+                  background: buying ? "rgba(255,215,0,0.2)" : "linear-gradient(135deg, #FFD700, #D97706)",
+                  border: "1px solid rgba(255,215,0,0.6)",
+                  color: buying ? "rgba(255,215,0,0.5)" : "#1a0a00",
+                  fontSize: "9px",
+                  letterSpacing: "0.05em",
+                  cursor: buying ? "not-allowed" : "pointer",
+                }}
+              >
+                {buying ? "..." : "Buy for 10 Tokens"}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Hover butonları — sadece premium değilse */}
+      {hov && !rel.isAdult && !isPremiumLocked && (
         <>
           <Link
             href={`/design-studio?id=${rel.id}&template=featured&imageUrl=${encodeURIComponent(rel.src.replace(/^http:\/\//i, "https://"))}${rel.isPremium ? "&isPremium=true" : ""}`}
@@ -794,14 +923,16 @@ function GalleryCard({
   item,
   index,
   onView,
-  onBuy,
   ownedIds,
+  tokenBalance,
+  onBuySuccess,
 }: {
   item: GalleryItem;
   index: number;
   onView: (item: GalleryItem) => void;
-  onBuy: (item: GalleryItem) => void;
   ownedIds: Set<string>;
+  tokenBalance: number | null;
+  onBuySuccess: (item: GalleryItem, newBalance: number) => void;
 }) {
   const router = useRouter();
   const { data: session } = useSession();
@@ -815,6 +946,34 @@ function GalleryCard({
   const [canvasFailed,   setCanvasFailed]   = useState(false);
   const [imageError,     setImageError]     = useState(false);
   const lastPtrType = useRef<string>('mouse');
+  const [miniModal, setMiniModal] = useState(false);
+  const [buying,    setBuying]    = useState(false);
+  const [buyError,  setBuyError]  = useState("");
+
+  const isPremiumLocked = item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id);
+
+  async function handleBuy() {
+    setBuying(true);
+    setBuyError("");
+    try {
+      const res = await fetch("/api/purchases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artworkId: item.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBuyError(data.error ?? "Purchase failed");
+      } else {
+        setMiniModal(false);
+        onBuySuccess(item, data.newBalance);
+      }
+    } catch {
+      setBuyError("Network error");
+    } finally {
+      setBuying(false);
+    }
+  }
 
   const aspectRatio = item.width > 0 && item.height > 0 ? `${item.width}/${item.height}` : "9/16";
 
@@ -914,7 +1073,7 @@ function GalleryCard({
       onClick={() => {
         if (item.isAdult) return;
         if (lastPtrType.current === 'touch' && !hovered) { setHovered(true); return; }
-        if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) { onBuy(item); return; }
+        if (isPremiumLocked) { setMiniModal(true); return; }
         onView(item);
       }}
     >
@@ -1055,7 +1214,7 @@ function GalleryCard({
               borderRadius: "inherit",
               overflow: "hidden",
               background: item.isPremium
-                ? "rgba(0,0,0,0.92)"
+                ? "rgba(0,0,0,0.45)"
                 : "linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 40%, transparent 60%, rgba(0,0,0,0.7) 100%)",
             }}
           >
@@ -1123,6 +1282,64 @@ function GalleryCard({
         )}
       </div>
 
+      {/* Premium mini modal */}
+      {miniModal && (
+        <div
+          className="absolute inset-0 z-30 flex flex-col rounded-xl overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+          style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)" }}
+        >
+          <button
+            className="absolute top-2 right-2 z-40 flex items-center justify-center w-6 h-6 rounded-full"
+            style={{ background: "rgba(255,255,255,0.1)" }}
+            onClick={(e) => { e.stopPropagation(); setMiniModal(false); setBuyError(""); }}
+          >
+            <X size={12} color="rgba(255,255,255,0.7)" />
+          </button>
+
+          <div className="flex-1 flex flex-col items-center justify-center gap-2 px-3">
+            <Lock size={24} color="#FFD700" />
+            <span style={{ color: "#FFD700", fontSize: "11px", fontWeight: 800, letterSpacing: "0.08em", textAlign: "center", textTransform: "uppercase" }}>Premium Content</span>
+          </div>
+
+          <div className="px-3 pb-4 flex flex-col gap-2">
+            {buyError && (
+              <span style={{ color: "#f87171", fontSize: "9px", fontWeight: 600, textAlign: "center", display: "block" }}>{buyError}</span>
+            )}
+            {!session?.user?.userId ? (
+              <a
+                href="/api/steam/login"
+                onClick={(e) => e.stopPropagation()}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-white font-bold"
+                style={{ background: "linear-gradient(135deg, #1b2838, #2a475e)", border: "1px solid rgba(102,192,244,0.5)", fontSize: "11px" }}
+              >
+                Login with Steam
+              </a>
+            ) : tokenBalance !== null && tokenBalance < 10 ? (
+              <div className="w-full flex flex-col items-center gap-1">
+                <span style={{ color: "#f87171", fontSize: "10px", fontWeight: 600, textAlign: "center" }}>Not enough tokens</span>
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "9px", textAlign: "center" }}>{tokenBalance} / 10 tokens</span>
+              </div>
+            ) : (
+              <button
+                disabled={buying}
+                onClick={(e) => { e.stopPropagation(); handleBuy(); }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold transition-all duration-200"
+                style={{
+                  background: buying ? "rgba(255,215,0,0.2)" : "linear-gradient(135deg, #FFD700, #D97706)",
+                  border: "1px solid rgba(255,215,0,0.6)",
+                  color: buying ? "rgba(255,215,0,0.5)" : "#1a0a00",
+                  fontSize: "11px",
+                  cursor: buying ? "not-allowed" : "pointer",
+                }}
+              >
+                {buying ? "Processing..." : "Buy for 10 Tokens"}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Adult overlay */}
       {item.isAdult && (
         <div
@@ -1158,7 +1375,6 @@ export default function GalleryPage() {
   const [hasMore,       setHasMore]       = useState(true);
   const [cols,          setCols]          = useState(4);
   const [selectedItem,  setSelectedItem]  = useState<GalleryItem | null>(null);
-  const [purchaseItem,  setPurchaseItem]  = useState<GalleryItem | null>(null);
   const [items,         setItems]         = useState<GalleryItem[]>([]);
   const [ownedIds,      setOwnedIds]      = useState<Set<string>>(new Set());
   const [tokenBalance,  setTokenBalance]  = useState<number | null>(null);
@@ -1202,17 +1418,18 @@ export default function GalleryPage() {
     }
   }, [buildParams]);
 
-  // URL'de ?id= varsa (satın alma sonrası reload) ilgili modalı aç
+  // URL'de ?id= varsa ilgili modalı aç — premium ve sahip olunmayan itemlar engellenir
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get("id");
     if (!id || items.length === 0) return;
     const found = items.find(i => i.id === id);
     if (found) {
-      setSelectedItem(found);
       window.history.replaceState(null, "", "/gallery");
+      if (found.isPremium && !session?.user?.isAdmin && !ownedIds.has(found.id)) return;
+      setSelectedItem(found);
     }
-  }, [items]);
+  }, [items, session, ownedIds]);
 
   // Kullanıcının sahip olduğu premium ID'leri + token balance çek
   useEffect(() => {
@@ -1318,22 +1535,15 @@ export default function GalleryPage() {
           onClose={() => setSelectedItem(null)}
           allItems={items}
           onSelect={(item) => {
-            if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) {
-              setSelectedItem(null);
-              setPurchaseItem(item);
-            } else {
-              setSelectedItem(item);
-            }
+            if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) return;
+            setSelectedItem(item);
           }}
-        />
-      )}
-      {purchaseItem && (
-        <PurchaseModal
-          item={purchaseItem}
+          ownedIds={ownedIds}
           tokenBalance={tokenBalance}
-          onClose={() => setPurchaseItem(null)}
-          onSuccess={() => {
-            window.location.href = `/gallery?id=${purchaseItem.id}`;
+          onBuySuccess={(item, newBalance) => {
+            setOwnedIds(prev => new Set([...prev, item.id]));
+            setTokenBalance(newBalance);
+            setSelectedItem(item);
           }}
         />
       )}
@@ -1533,8 +1743,13 @@ export default function GalleryPage() {
   item={item}
   index={ci * 5 + i}
   onView={setSelectedItem}
-  onBuy={setPurchaseItem}
   ownedIds={ownedIds}
+  tokenBalance={tokenBalance}
+  onBuySuccess={(boughtItem, newBalance) => {
+    setOwnedIds(prev => new Set([...prev, boughtItem.id]));
+    setTokenBalance(newBalance);
+    setSelectedItem(boughtItem);
+  }}
 />
                     )}
                   </div>
