@@ -281,7 +281,28 @@ export default function Home() {
           <p className="text-white/40 text-base">Three ways to build perfection.</p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-5">
+        {/* Mobile: yatay scroll — Desktop: 3 kolon grid */}
+        <div className="md:hidden flex gap-4 overflow-x-auto pb-3" style={{ scrollbarWidth: "none" }}>
+          {routes.map((route) => (
+            <Link key={route.id} href={route.href} className="flex-shrink-0 w-[75vw]">
+              <div className={`relative group rounded-2xl border ${route.border} bg-gradient-to-br ${route.gradient} p-5 cursor-pointer shadow-xl ${route.glow} overflow-hidden h-full`}>
+                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center mb-3">
+                  <route.icon size={18} className="text-white" />
+                </div>
+                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${route.tagColor} mb-2 inline-block`}>
+                  {route.tag}
+                </span>
+                <h3 className="text-lg font-black mb-1">{route.title}</h3>
+                <p className="text-white/50 text-sm leading-relaxed">{route.subtitle}</p>
+                <div className="mt-4 flex items-center gap-1.5 text-sm font-semibold text-white/60">
+                  Explore <ChevronRight size={14} />
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        <div className="hidden md:grid md:grid-cols-3 gap-5">
           {routes.map((route, i) => (
             <Link key={route.id} href={route.href}>
             <motion.div
@@ -326,6 +347,7 @@ export default function Home() {
           ))}
         </div>
       </section>
+
 
 
       {/* Social proof */}

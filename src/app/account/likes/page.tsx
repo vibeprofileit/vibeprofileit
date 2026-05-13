@@ -61,6 +61,11 @@ function ImageModal({
   const [miniModalId, setMiniModalId] = useState<string | null>(null);
   const [buying, setBuying] = useState(false);
   const [buyError, setBuyError] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [item.id]);
 
   async function handleBuy(rel: GalleryItem) {
     setBuying(true);
@@ -142,6 +147,7 @@ function ImageModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 16 }}
           transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+          ref={scrollRef}
           className="modal-scroll relative w-full md:w-[85vw] max-h-[calc(100vh-5rem)] md:max-h-[88vh] overflow-y-auto rounded-2xl flex flex-col"
           style={{
             maxWidth: "1150px", background: "#050505",

@@ -88,6 +88,11 @@ function ImageModal({
   const { data: session } = useSession();
   const [liked, setLiked] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [item.id]);
 
   useEffect(() => {
     if (!session?.user?.userId) return;
@@ -154,6 +159,7 @@ function ImageModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 16 }}
           transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+          ref={scrollRef}
           className="modal-scroll relative w-full md:w-[85vw] max-h-[calc(100vh-5rem)] md:max-h-[88vh] overflow-y-auto rounded-2xl flex flex-col"
           style={{
             maxWidth: "1150px",
@@ -597,11 +603,13 @@ function SortDropdown({ value, onChange }: { value: string; onChange: (v: string
 function PremiumPlaceholder() {
   return (
     <div
-      className="absolute inset-0 flex items-center justify-center"
-      style={{ background: "linear-gradient(135deg,#0a0014 0%,#1a0035 50%,#050505 100%)", animation: "premiumPulse 2s ease-in-out infinite" }}
-    >
-      <span style={{ color: "rgba(188,19,254,0.5)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" }}>Loading...</span>
-    </div>
+      className="absolute inset-0"
+      style={{
+        background: "linear-gradient(90deg, rgba(46,16,101,0.3) 25%, rgba(188,19,254,0.15) 50%, rgba(46,16,101,0.3) 75%)",
+        backgroundSize: "200% 100%",
+        animation: "skeletonPulse 1.8s ease-in-out infinite",
+      }}
+    />
   );
 }
 

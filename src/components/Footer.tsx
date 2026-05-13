@@ -7,7 +7,7 @@ export default function Footer() {
         <a href="/refund" className="hover:text-white/60 transition-colors">Refund Policy</a>
         <a href="/contact" className="hover:text-white/60 transition-colors">Contact Us</a>
       </div>
-      © 2026 VibeProfileit — All rights reserved.
+      © 2026 VibeProfileit — Designed by SirHacktan. All rights reserved.
     </footer>
   );
 }

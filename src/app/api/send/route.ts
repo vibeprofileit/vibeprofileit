@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
     const { data, error } = await resend.emails.send({
       from: "VibeProfileit <onboarding@resend.dev>",
       to: "vibeprofileit@gmail.com",
+      replyTo: email,
       subject: `New Feedback Ticket — from ${email}`,
       html: `
         <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0d0d12;color:#f0f0f0;border-radius:12px">
