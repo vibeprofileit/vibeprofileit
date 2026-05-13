@@ -3,22 +3,34 @@
 import Header from "@/components/Header";
 import { Mail, Clock, HelpCircle } from "lucide-react";
 import Footer from "@/components/Footer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function ContactPage() {
   const [email, setEmail]       = useState("");
   const [message, setMessage]   = useState("");
   const [status, setStatus]     = useState<"idle" | "sending" | "sent" | "error">("idle");
 
+  useEffect(() => {
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+    script.async = true;
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email || !message) return;
+
+    const tokenInput = (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>("[name='cf-turnstile-response']");
+    const turnstileToken = tokenInput?.value || "";
+
     setStatus("sending");
     try {
       const res = await fetch("/api/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, message }),
+        body: JSON.stringify({ email, message, turnstileToken }),
       });
       setStatus(res.ok ? "sent" : "error");
     } catch {
@@ -99,6 +111,12 @@ export default function ContactPage() {
                   onBlur={e => { e.currentTarget.style.border = "1px solid rgba(255,255,255,0.1)"; }}
                 />
               </div>
+
+              <div
+                className="cf-turnstile"
+                data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                data-theme="dark"
+              />
 
               {status === "error" && (
                 <p className="text-red-400 text-sm">Something went wrong. Please try again.</p>

@@ -5,10 +5,25 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, message } = await req.json()
+    const { email, message, turnstileToken } = await req.json()
 
     if (!email || !message) {
       return NextResponse.json({ error: "Missing fields." }, { status: 400 })
+    }
+
+    if (turnstileToken) {
+      const verifyRes = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          secret: process.env.TURNSTILE_SECRET_KEY!,
+          response: turnstileToken,
+        }),
+      });
+      const verifyData = await verifyRes.json();
+      if (!verifyData.success) {
+        return NextResponse.json({ error: "Bot verification failed." }, { status: 400 });
+      }
     }
 
     const { data, error } = await resend.emails.send({
