@@ -1313,7 +1313,19 @@ export default function GalleryPage() {
   return (
     <div className="min-h-screen bg-black text-white overflow-x-hidden">
       {selectedItem && (
-        <ImageModal item={selectedItem} onClose={() => setSelectedItem(null)} allItems={items} onSelect={setSelectedItem} />
+        <ImageModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+          allItems={items}
+          onSelect={(item) => {
+            if (item.isPremium && !session?.user?.isAdmin && !ownedIds.has(item.id)) {
+              setSelectedItem(null);
+              setPurchaseItem(item);
+            } else {
+              setSelectedItem(item);
+            }
+          }}
+        />
       )}
       {purchaseItem && (
         <PurchaseModal

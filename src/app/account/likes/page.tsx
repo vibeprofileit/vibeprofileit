@@ -85,7 +85,7 @@ function ImageModal({
 
   const seenIds = new Set<string>();
   const related = [...allItems]
-    .filter((m) => m.id !== item.id && (m.theme === item.theme || m.style === item.style))
+    .filter((m) => m.id !== item.id && !m.isPremium && (m.theme === item.theme || m.style === item.style))
     .sort(() => 0.5 - Math.random())
     .filter((m) => { if (seenIds.has(m.id)) return false; seenIds.add(m.id); return true; })
     .slice(0, 4);
