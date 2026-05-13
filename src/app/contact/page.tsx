@@ -3,20 +3,12 @@
 import Header from "@/components/Header";
 import { Mail, Clock, HelpCircle } from "lucide-react";
 import Footer from "@/components/Footer";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export default function ContactPage() {
   const [email, setEmail]       = useState("");
   const [message, setMessage]   = useState("");
   const [status, setStatus]     = useState<"idle" | "sending" | "sent" | "error">("idle");
-
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
-    script.async = true;
-    document.head.appendChild(script);
-    return () => { document.head.removeChild(script); };
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,7 +42,7 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
           {[
             { icon: <Mail size={20} />, label: "Email", value: "vibeprofileit@gmail.com", href: "mailto:vibeprofileit@gmail.com", color: "#818cf8" },
-            { icon: <Clock size={20} />, label: "Response Time", value: "Within 48 business hours", href: null, color: "#a855f7" },
+            { icon: <Clock size={20} />, label: "Response Time", value: "Within 72 business hours", href: null, color: "#a855f7" },
             { icon: <HelpCircle size={20} />, label: "In-App Support", value: "Use the contact form below", href: null, color: "#c084fc" },
           ].map(({ icon, label, value, href, color }) => (
             <div key={label} className="rounded-2xl p-6"
@@ -74,7 +66,7 @@ export default function ContactPage() {
           {status === "sent" ? (
             <div className="py-10 text-center">
               <p className="text-violet-400 font-semibold mb-1">Message sent!</p>
-              <p className="text-white/40 text-sm">We&apos;ll get back to you within 48 hours.</p>
+              <p className="text-white/40 text-sm">We&apos;ll get back to you within 72 hours.</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">

@@ -21,6 +21,14 @@ export default function FeedbackButton() {
   }, [pathname])
 
   useEffect(() => {
+    const script = document.createElement("script")
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js"
+    script.async = true
+    document.head.appendChild(script)
+    return () => { document.head.removeChild(script) }
+  }, [])
+
+  useEffect(() => {
     const onOpen  = () => { setModalOpen(true);  setOpen(false); }
     const onClose = () => setModalOpen(false)
     document.addEventListener("vp-modal-open",  onOpen)
@@ -44,6 +52,9 @@ export default function FeedbackButton() {
     e.preventDefault()
     if (!validate()) return
 
+    const tokenInput = (e.currentTarget as HTMLFormElement).querySelector<HTMLInputElement>("[name='cf-turnstile-response']")
+    const turnstileToken = tokenInput?.value || ""
+
     setIsSending(true)
     setStatus("idle")
 
@@ -51,7 +62,7 @@ export default function FeedbackButton() {
       const res = await fetch("/api/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, message }),
+        body: JSON.stringify({ email, message, turnstileToken }),
       })
 
       if (!res.ok) throw new Error("non-2xx response")
@@ -139,6 +150,13 @@ export default function FeedbackButton() {
               <p className="text-xs text-rose-400">{errors.message}</p>
             )}
           </div>
+
+          <div
+            className="cf-turnstile"
+            data-sitekey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+            data-theme="dark"
+            data-size="compact"
+          />
 
           {status === "success" && (
             <p className="text-xs text-emerald-400 text-center">

@@ -47,7 +47,7 @@ export default function RefundPage() {
             <li>Your Lemon Squeezy order number</li>
             <li>The reason for your request</li>
           </ul>
-          We will respond within 48 business hours.
+          We will respond within 72 business hours.
         </Section>
 
         <Section title="Processing">
