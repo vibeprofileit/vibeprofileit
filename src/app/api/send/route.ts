@@ -11,8 +11,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing fields." }, { status: 400 })
     }
 
-    await resend.emails.send({
-      from: "noreply@vibeprofileit.com",
+    const { data, error } = await resend.emails.send({
+      from: "VibeProfileit <onboarding@resend.dev>",
       to: "vibeprofileit@gmail.com",
       subject: `New Feedback Ticket — from ${email}`,
       html: `
@@ -33,9 +33,15 @@ export async function POST(req: NextRequest) {
       `,
     })
 
+    if (error) {
+      console.error("[send/route] Resend error:", error)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    console.log("[send/route] Email sent:", data?.id)
     return NextResponse.json({ success: true }, { status: 200 })
   } catch (err) {
-    console.error("[send/route] Resend error:", err)
+    console.error("[send/route] Unexpected error:", err)
     return NextResponse.json({ error: "Internal Server Error." }, { status: 500 })
   }
 }
