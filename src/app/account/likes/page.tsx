@@ -413,8 +413,7 @@ function LikeCard({ item, index, onView, ownedIds }: { item: GalleryItem; index:
 
       {item.isAnimated ? (
         <>
-          {/* coverUrl varsa statik WebP kapak — hover'da gizle */}
-          {item.coverUrl && !hovered && (
+          {item.coverUrl && (
             <img
               src={item.coverUrl}
               alt={item.theme}

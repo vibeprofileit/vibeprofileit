@@ -231,7 +231,7 @@ function PremiumCard({ item, index, onView }: { item: GalleryItem; index: number
 
       {item.isAnimated ? (
         <>
-          {item.coverUrl && !hovered && (
+          {item.coverUrl && (
             <img src={item.coverUrl} alt={item.theme} className="absolute inset-0 w-full h-full object-cover" />
           )}
           {!item.coverUrl && (
