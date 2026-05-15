@@ -11,7 +11,8 @@ import { Eye, X, Download, Pencil, ExternalLink, Star } from "lucide-react";
 import Footer from "@/components/Footer";
 
 async function downloadPremium(src: string, theme: string) {
-  const res = await fetch(src);
+  const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(src)}`;
+  const res = await fetch(proxyUrl);
   const blob = await res.blob();
   const ext = blob.type.includes("gif") ? "gif" : blob.type.includes("png") ? "png" : "jpg";
   const a = document.createElement("a");

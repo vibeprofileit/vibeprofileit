@@ -10,7 +10,7 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 
 async function downloadImage(url: string) {
-  const res = await fetch(url);
+  const res = await fetch(`/api/proxy-image?url=${encodeURIComponent(url)}`);
   const blob = await res.blob();
   const ext = blob.type.includes("png") ? "png" : "jpg";
   const a = document.createElement("a");

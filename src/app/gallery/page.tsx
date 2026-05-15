@@ -47,7 +47,7 @@ function normalizeItem(item: GalleryItem): GalleryItem {
 }
 
 async function downloadGalleryItem(url: string, theme: string) {
-  const res  = await fetch(url);
+  const res  = await fetch(`/api/proxy-image?url=${encodeURIComponent(url)}`);
   const blob = await res.blob();
   const ext  = blob.type.includes("gif") ? "gif" : blob.type.includes("png") ? "png" : "jpg";
   const a    = document.createElement("a");
