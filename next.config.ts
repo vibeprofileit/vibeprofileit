@@ -20,10 +20,30 @@ const nextConfig: NextConfig = {
     ],
   },
   async headers() {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://*.steamstatic.com https://*.akamaihd.net https://steamcommunity.com https://pub-a9fa3eb644a643638e6c89784ccb22fa.r2.dev https://vibe-images.vibeprofileit.workers.dev",
+      "connect-src 'self' https://aklgrigjeegqhgqcizob.supabase.co wss://aklgrigjeegqhgqcizob.supabase.co https://app.lemonsqueezy.com https://challenges.cloudflare.com",
+      "font-src 'self' data:",
+      "media-src 'self' blob: https://*.steamstatic.com https://*.akamaihd.net https://steamcommunity.com https://pub-a9fa3eb644a643638e6c89784ccb22fa.r2.dev https://vibe-images.vibeprofileit.workers.dev",
+      "worker-src 'self' blob:",
+      "object-src 'none'",
+      "frame-src https://app.lemonsqueezy.com https://challenges.cloudflare.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self' https://app.lemonsqueezy.com",
+    ].join("; ");
+
     return [
       {
         source: '/(.*)',
         headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: csp,
+          },
           {
             key: 'Cross-Origin-Embedder-Policy',
             value: 'credentialless',

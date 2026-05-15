@@ -184,7 +184,7 @@ function ImageModal({
             <div className="flex flex-col gap-5 flex-1 min-w-0">
               <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(10,10,10,0.9)", border: "1px solid rgba(188,19,254,0.1)" }}>
                 <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-black text-white flex-shrink-0"
-                  style={{ background: "linear-gradient(135deg, rgba(188,19,254,1), rgba(188,19,254,0.4))", boxShadow: "0 0 20px rgba(188,19,254,0.8)" }}>
+                  style={{ background: "linear-gradient(135deg, rgba(188,19,254,1), rgba(188,19,254,0.4))" }}>
                   V
                 </div>
                 <div>

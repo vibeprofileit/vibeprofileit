@@ -233,7 +233,7 @@ function ImageModal({
                   className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-black flex-shrink-0"
                   style={item.isPremium
                     ? { background: `linear-gradient(135deg, ${GOLD}, ${GOLD_A(0.4)})` }
-                    : { background: "linear-gradient(135deg, rgba(188,19,254,1), rgba(188,19,254,0.4))", boxShadow: "0 0 20px rgba(188,19,254,0.8), 0 0 40px rgba(188,19,254,0.3)", color: "#fff" }
+                    : { background: "linear-gradient(135deg, rgba(188,19,254,1), rgba(188,19,254,0.4))", color: "#fff" }
                   }
                 >
                   {item.isPremium ? <Lock size={20} color="#1a0a00" /> : <span className="text-white">V</span>}

@@ -485,12 +485,20 @@ function UploadPageInner() {
       let effectiveBgFile = bgFile;
       if (bgUrl && !bgFile) {
         try {
-          const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(bgUrl)}`;
-          const res = await fetch(proxyUrl);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const blob = await res.blob();
-          const fileName = bgUrl.split("/").pop()?.split("?")[0] ?? "gallery_image";
-          effectiveBgFile = new File([blob], fileName, { type: blob.type || "image/gif" });
+          let blob: Blob;
+          if (bgUrl.startsWith("data:")) {
+            // AI Studio'dan gelen base64 data URL — direkt fetch
+            const res = await fetch(bgUrl);
+            blob = await res.blob();
+          } else {
+            // Galeri görseli — R2 proxy üzerinden
+            const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(bgUrl)}`;
+            const res = await fetch(proxyUrl);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            blob = await res.blob();
+          }
+          const fileName = bgUrl.startsWith("data:") ? "ai_generated.png" : (bgUrl.split("/").pop()?.split("?")[0] ?? "gallery_image");
+          effectiveBgFile = new File([blob], fileName, { type: blob.type || "image/png" });
           setBgFile(effectiveBgFile);
         } catch {
           alert("Could not load the gallery image. Please upload manually.");

@@ -395,7 +395,17 @@ export async function POST(request: NextRequest) {
   const model          = modelKey === "kolors" ? MODEL_KOLORS : MODEL_FLUX;
   const systemPrompt   = modelKey === "kolors" ? KOLORS_SYSTEM_PROMPT : modelKey === "cars" ? CARS_SYSTEM_PROMPT : FLUX_SYSTEM_PROMPT;
   const negativePrompt = modelKey === "kolors" ? KOLORS_NEGATIVE_PROMPT : FLUX_NEGATIVE_PROMPT;
-  const finalPrompt    = `${userPrompt}, ${systemPrompt}`;
+
+  // Kategori seçilmemişse base powerPrompt otomatik ekle — siyah ekranı önler
+  const basePower = !body.category
+    ? modelKey === "kolors" ? KOLORS_BASE_POWER
+    : modelKey === "flux"   ? FLUX_BASE_POWER
+    : null
+    : null;
+
+  const finalPrompt = basePower
+    ? `${basePower}, ${userPrompt}, ${systemPrompt}`
+    : `${userPrompt}, ${systemPrompt}`;
 
   let imageUrl: string;
   try {
