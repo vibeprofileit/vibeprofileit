@@ -56,10 +56,8 @@ export async function cropGif(
     throw new Error(`GIF is too narrow for classic crop (${width}px wide).`);
   }
 
-  const [mainBuf, sideBuf] = await Promise.all([
-    runCrop(buffer, `--crop ${mainX},0+${mainW}x${height} input.gif -o /out/main.gif`),
-    runCrop(buffer, `--crop ${sideX},0+${sideW}x${height} input.gif -o /out/side.gif`),
-  ]);
+  const mainBuf = await runCrop(buffer, `--crop ${mainX},0+${mainW}x${height} input.gif -o /out/main.gif`);
+  const sideBuf = await runCrop(buffer, `--crop ${sideX},0+${sideW}x${height} input.gif -o /out/side.gif`);
 
   return [
     { name: 'main.gif', buffer: mainBuf },
