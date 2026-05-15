@@ -655,10 +655,11 @@ export default function CuratorPage() {
   const current = queue[0] ?? null;
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (status === "loading") return;
+    if (status === "unauthenticated" || !session?.user?.isAdmin) {
       router.replace("/");
     }
-  }, [status, router]);
+  }, [status, session, router]);
 
   const fetchQueue = useCallback(async () => {
     setQueueLoading(true);

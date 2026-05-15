@@ -485,7 +485,8 @@ function UploadPageInner() {
       let effectiveBgFile = bgFile;
       if (bgUrl && !bgFile) {
         try {
-          const res = await fetch(bgUrl, { mode: "cors" });
+          const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(bgUrl)}`;
+          const res = await fetch(proxyUrl);
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const blob = await res.blob();
           const fileName = bgUrl.split("/").pop()?.split("?")[0] ?? "gallery_image";
