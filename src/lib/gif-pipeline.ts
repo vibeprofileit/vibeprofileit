@@ -162,16 +162,16 @@ export async function runGifPipeline(
   const crops = await cropGif(buffer, mode);
   onProgress?.(40);
 
-  const entries = await Promise.all(
-    crops.map(async ({ name, buffer: cropBuf }) => {
-      if (cropBuf.byteLength <= LIMIT) {
-        console.log('[runGifPipeline-fastPath]', { name, bytes: cropBuf.byteLength });
-        return [name, new Blob([cropBuf], { type: 'image/gif' })] as const;
-      }
+  const entries: [string, Blob][] = [];
+  for (const { name, buffer: cropBuf } of crops) {
+    if (cropBuf.byteLength <= LIMIT) {
+      console.log('[runGifPipeline-fastPath]', { name, bytes: cropBuf.byteLength });
+      entries.push([name, new Blob([cropBuf], { type: 'image/gif' })]);
+    } else {
       const optimized = await hardOptimize(cropBuf, name, mode, onWarning, onProgress);
-      return [name, new Blob([optimized], { type: 'image/gif' })] as const;
-    }),
-  );
+      entries.push([name, new Blob([optimized], { type: 'image/gif' })]);
+    }
+  }
 
   onProgress?.(100);
   return Object.fromEntries(entries);
