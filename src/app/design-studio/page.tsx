@@ -526,6 +526,7 @@ function UploadPageInner() {
         const isGif      = effectiveBgFile.type === "image/gif" ||
                            effectiveBgFile.name.toLowerCase().endsWith(".gif");
         const isFeatured = showcaseMode === "featured";
+        const shouldWatermark = !isPremiumImage && !bgFile;
 
         if (isGif) {
           setProgress(20);
@@ -567,7 +568,7 @@ function UploadPageInner() {
             featuredCanvas.getContext("2d")!
               .drawImage(bgImg, 0, 0, srcW, srcH, 0, 0, targetW, targetH);
             setProgress(70);
-            if (!isPremiumImage) await stampWatermark(featuredCanvas);
+            if (shouldWatermark) await stampWatermark(featuredCanvas);
             if (isElite) {
               zip.file("featured_main.png", await canvasToBlob(featuredCanvas));
             } else {
@@ -590,7 +591,7 @@ function UploadPageInner() {
 
             const mainCrop = cropCanvas(masterCanvas, 0,   506);
             const sideCrop = cropCanvas(masterCanvas, 512, 100);
-            if (!isPremiumImage) await stampWatermark(sideCrop);
+            if (shouldWatermark) await stampWatermark(sideCrop);
 
             if (isElite) {
               zip.file("main.png", await canvasToBlob(mainCrop));

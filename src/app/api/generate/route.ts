@@ -118,11 +118,11 @@ const FLUX_NEGATIVE_PROMPT =
 
 const KOLORS_SYSTEM_PROMPT =
   "masterpiece, best quality, ultra highres, " +
-  "2d anime style, cel shading, hand drawn, classic anime, manga illustration, " +
-  "anime key visual, official anime art, pixiv style, " +
+  "pure 2d anime illustration, flat cel shading, hand drawn, clean lineart, " +
+  "anime art style, pixiv style, fanart quality, anime character design, " +
   "vertical composition, " +
-  "big expressive anime eyes, sharp lineart, clean lines, " +
-  "vibrant colors, high contrast";
+  "big expressive anime eyes, typical anime face proportions, small nose, " +
+  "vibrant flat colors, soft anime lighting, detailed anime hair";
 
 const KOLORS_NEGATIVE_PROMPT =
   // Kalite sorunları
@@ -136,15 +136,16 @@ const KOLORS_NEGATIVE_PROMPT =
   "poorly drawn eyes, bad hands, missing fingers, extra fingers, " +
   "bad face, ugly face, asymmetrical face, bad proportions, gross proportions, " +
   "multiple girls, multiple boys, crowd, " +
-  // Stil sorunları
+  // Stil sorunları — realizmi tamamen engelle
   "watermark, text, signature, artist name, " +
   "censored, mosaic, " +
   "dull, boring, washed out, " +
   "monochrome, grayscale, " +
-  "western cartoon, 3d render, realistic photo, photorealistic, hyperrealistic, " +
+  "realistic, photorealistic, semi-realistic, hyperrealistic, 3d render, " +
+  "realistic skin texture, real person, real face, real photo, photography, " +
+  "western cartoon, " +
   // Konu dışı
-  "food, animals, cute, kawaii, chibi, " +
-  "slice of life, school uniform, classroom, peaceful, no action";
+  "food, animals";
 
 // ---------------------------------------------------------------------------
 // Rate limiter — in-memory, 3 req / 60 s per IP
@@ -176,10 +177,20 @@ function getClientIp(req: NextRequest): string {
 // Model routing
 // ---------------------------------------------------------------------------
 
+const KOLORS_BASE_POWER =
+  "1girl, solo, beautiful anime face, big expressive eyes, detailed anime hair, " +
+  "pastel color palette, soft anime lighting, dreamy atmosphere, " +
+  "pure 2d anime illustration, pixiv style, vibrant colors, clean lineart";
+
+const FLUX_BASE_POWER =
+  "solo character, powerful battle stance, upper body portrait framing, " +
+  "cinematic rim lighting, volumetric atmosphere, highly detailed, " +
+  "sharp focus, professional concept art quality";
+
 function selectModel(prompt: string, category?: string | null): "flux" | "kolors" | "cars" {
   if (category === "anime") return "kolors";
   if (category === "cars") return "cars";
-  if (category === "darkfantasy" || category === "cyberpunk") return "flux";
+  if (category === "darkfantasy" || category === "cyberpunk" || category === "scifi") return "flux";
   const lower = prompt.toLowerCase();
   if (KOLORS_TRIGGERS.some((t) => lower.includes(t))) return "kolors";
   if (FLUX_TRIGGERS.some((t) => lower.includes(t))) return "flux";

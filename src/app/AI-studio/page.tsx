@@ -13,7 +13,7 @@ const ELITE_STYLES = [
     icon: "🎌",
     category: "anime",
     powerPrompt:
-      "high-end illustration, vibrant colors, sharp lineart, cinematic shading, expressive eyes, masterpiece quality, stunning visual, detailed background, professional art style",
+      "1girl, solo, beautiful anime face, big expressive eyes, detailed anime hair, pastel color palette, soft anime lighting, dreamy atmosphere, pure 2d anime illustration, pixiv style, vibrant colors, clean lineart",
   },
   {
     label: "Cyberpunk",
