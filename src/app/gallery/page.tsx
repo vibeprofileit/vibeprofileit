@@ -1101,15 +1101,19 @@ function GalleryCard({
         <>
           {/* coverUrl varsa server-side WebP kapak, yoksa canvas fallback */}
           {item.coverUrl ? (
-            <img
-              src={item.coverUrl}
-              alt={item.theme}
-              className="absolute inset-0 w-full h-full object-cover"
-              loading="lazy"
-              decoding="async"
-              style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
-            />
+            <>
+              {!inView && <PremiumPlaceholder />}
+              {inView && (
+                <img
+                  src={item.coverUrl}
+                  alt={item.theme}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  decoding="async"
+                  style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+              )}
+            </>
           ) : (
             <>
               {!inView && <PremiumPlaceholder />}
