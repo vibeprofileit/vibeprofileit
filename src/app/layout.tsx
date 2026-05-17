@@ -42,6 +42,13 @@ export default function RootLayout({
           src="/no-darkreader.js"
           strategy="beforeInteractive"
         />
+        <Script
+          id="cf-web-analytics"
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token": "d130f21cf981492eabd0a0cfb231c037"}'
+          strategy="afterInteractive"
+          defer
+        />
           <AuthWrapper>{children}</AuthWrapper>
           <FeedbackButton />
         </body>
