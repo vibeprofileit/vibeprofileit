@@ -11,16 +11,22 @@ function readDimensions(buf: ArrayBuffer): { width: number; height: number } {
 }
 
 async function runCrop(buf: ArrayBuffer, cmd: string): Promise<ArrayBuffer> {
+  console.log('[runCrop] starting:', cmd);
   let files;
   try {
-    files = await gifsicle.run({
-      input: [{ file: buf, name: 'input.gif' }],
-      command: [cmd],
-    });
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`Crop timed out (30s) [${cmd}]`)), 30_000)
+    );
+    files = await Promise.race([
+      gifsicle.run({ input: [{ file: buf, name: 'input.gif' }], command: [cmd] }),
+      timeout,
+    ]);
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
+    console.error('[runCrop] error:', detail);
     throw new Error(`Crop failed [${cmd}]: ${detail}`);
   }
+  console.log('[runCrop] result files:', files?.length);
   if (!files?.length) {
     throw new Error(`Crop produced no output [${cmd}]`);
   }

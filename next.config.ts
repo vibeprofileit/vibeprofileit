@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://*.steamstatic.com https://*.akamaihd.net https://steamcommunity.com https://pub-a9fa3eb644a643638e6c89784ccb22fa.r2.dev https://vibe-images.vibeprofileit.workers.dev",
-      "connect-src 'self' https://aklgrigjeegqhgqcizob.supabase.co wss://aklgrigjeegqhgqcizob.supabase.co https://app.lemonsqueezy.com https://challenges.cloudflare.com",
+      "connect-src 'self' data: blob: https://aklgrigjeegqhgqcizob.supabase.co wss://aklgrigjeegqhgqcizob.supabase.co https://app.lemonsqueezy.com https://challenges.cloudflare.com",
       "font-src 'self' data:",
       "media-src 'self' blob: https://*.steamstatic.com https://*.akamaihd.net https://steamcommunity.com https://pub-a9fa3eb644a643638e6c89784ccb22fa.r2.dev https://vibe-images.vibeprofileit.workers.dev",
       "worker-src 'self' blob:",
