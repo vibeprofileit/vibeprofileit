@@ -813,25 +813,17 @@ function UploadPageInner() {
           <button
             disabled={!canProceed || isProcessing}
             onClick={handleCutAndDownload}
-            onPointerEnter={() => setBtnHovered(true)}
-            onPointerLeave={() => setBtnHovered(false)}
             className="mt-5 w-full py-3 rounded-full font-bold text-sm text-white flex items-center justify-center gap-2 disabled:opacity-25 disabled:cursor-not-allowed overflow-hidden"
             style={{
               background: "linear-gradient(90deg,#7c3aed,#3b82f6,#7c3aed,#3b82f6,#7c3aed)",
               backgroundSize: "300% auto",
               animation: "shimmerFlow 8s linear infinite",
-              transition: "box-shadow 0.3s ease, transform 0.2s ease",
               boxShadow: "0 0 12px rgba(139,92,246,0.3)",
-              transform: btnHovered && canProceed && !isProcessing ? "scale(1.012)" : "scale(1)",
             }}
           >
-            <motion.span
-              animate={btnHovered && canProceed && !isProcessing ? { rotate: [0, -20, 15, -8, 0] } : { rotate: 0 }}
-              transition={{ duration: 0.5, ease: "easeInOut" }}
-              style={{ display: "flex", alignItems: "center" }}
-            >
+            <span style={{ display: "flex", alignItems: "center" }}>
               <Scissors size={15} />
-            </motion.span>
+            </span>
             {isProcessing
               ? `Processing: ${progress}%`
               : "Cut & Download"}
