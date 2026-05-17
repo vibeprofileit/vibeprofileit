@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
 
       const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: artwork.r2Key }));
       const buffer = await streamToBuffer(obj.Body as Readable);
-      const coverBuffer = await sharp(buffer, { animated: false }).resize(600, null, { withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
+      const coverBuffer = await sharp(buffer, { animated: false }).resize(400, null, { withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
       await r2.send(new PutObjectCommand({
         Bucket: R2_BUCKET,
         Key: coverKey,
