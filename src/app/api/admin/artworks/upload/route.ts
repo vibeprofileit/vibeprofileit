@@ -118,7 +118,7 @@ export async function POST(request: NextRequest) {
 
   if (isGif) {
     try {
-      const coverBuffer = await sharp(buffer, { animated: false }).webp({ quality: 80 }).toBuffer();
+      const coverBuffer = await sharp(buffer, { animated: false }).resize(600, null, { withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
       const coverKey = `covers/${artwork.id}.webp`;
       await r2.send(new PutObjectCommand({
         Bucket: R2_BUCKET,

@@ -3,6 +3,7 @@ import { r2, R2_BUCKET } from "@/lib/r2";
 import { prisma } from "@/lib/prisma";
 import sharp from "sharp";
 import type { Readable } from "stream";
+import type { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/adminAuth";
 
 const WORKER_BASE = "https://vibe-images.vibeprofileit.workers.dev";
@@ -28,19 +29,23 @@ export async function PATCH() {
 }
 
 // Yeni thumbnail üretimi: coverUrl eksik veya yanlış olan animated artwork'ler
-export async function POST() {
+// ?force=true → mevcut coverlar da yeniden üretilir
+export async function POST(request: NextRequest) {
   const deny = await requireAdmin(); if (deny) return deny;
-  const artworks = await prisma.artwork.findMany({
-    where: {
-      mediaType: { equals: "animated", mode: "insensitive" },
-      r2Key: { not: null },
-      OR: [
-        { coverUrl: null },
-        { coverUrl: { not: { startsWith: WORKER_BASE } } },
-      ],
-    },
-    select: { id: true, r2Key: true },
-  });
+  const force = request.nextUrl.searchParams.get("force") === "true";
+
+  const where = force
+    ? { mediaType: { equals: "animated", mode: "insensitive" as const }, r2Key: { not: null } }
+    : {
+        mediaType: { equals: "animated", mode: "insensitive" as const },
+        r2Key: { not: null },
+        OR: [
+          { coverUrl: null },
+          { coverUrl: { not: { startsWith: WORKER_BASE } } },
+        ],
+      };
+
+  const artworks = await prisma.artwork.findMany({ where, select: { id: true, r2Key: true } });
 
   const results: { ok: number; failed: number; errors: string[] } = { ok: 0, failed: 0, errors: [] };
 
@@ -51,32 +56,29 @@ export async function POST() {
     const coverUrl = `${WORKER_BASE}/${coverKey}`;
 
     try {
-      let needsUpload = true;
-      try {
-        await r2.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: coverKey }));
-        needsUpload = false;
-      } catch {
-        needsUpload = true;
+      if (!force) {
+        try {
+          await r2.send(new HeadObjectCommand({ Bucket: R2_BUCKET, Key: coverKey }));
+          await prisma.artwork.update({ where: { id: artwork.id }, data: { coverUrl } });
+          results.ok++;
+          continue;
+        } catch {
+          // dosya yok, üret
+        }
       }
 
-      if (needsUpload) {
-        const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: artwork.r2Key }));
-        const buffer = await streamToBuffer(obj.Body as Readable);
-        const coverBuffer = await sharp(buffer, { animated: false }).webp({ quality: 80 }).toBuffer();
-        await r2.send(new PutObjectCommand({
-          Bucket: R2_BUCKET,
-          Key: coverKey,
-          Body: coverBuffer,
-          ContentType: "image/webp",
-          ContentLength: coverBuffer.byteLength,
-        }));
-      }
+      const obj = await r2.send(new GetObjectCommand({ Bucket: R2_BUCKET, Key: artwork.r2Key }));
+      const buffer = await streamToBuffer(obj.Body as Readable);
+      const coverBuffer = await sharp(buffer, { animated: false }).resize(600, null, { withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
+      await r2.send(new PutObjectCommand({
+        Bucket: R2_BUCKET,
+        Key: coverKey,
+        Body: coverBuffer,
+        ContentType: "image/webp",
+        ContentLength: coverBuffer.byteLength,
+      }));
 
-      await prisma.artwork.update({
-        where: { id: artwork.id },
-        data: { coverUrl },
-      });
-
+      await prisma.artwork.update({ where: { id: artwork.id }, data: { coverUrl } });
       results.ok++;
     } catch (err) {
       results.failed++;

@@ -577,8 +577,7 @@ function RegenThumbsButton() {
     setLoading(true);
     setResult(null);
     try {
-      await fetch("/api/admin/fix-cover-urls", { method: "POST" });
-      const res = await fetch("/api/admin/artworks/regen-thumbnails", { method: "POST" });
+      const res = await fetch("/api/admin/artworks/regen-thumbnails?force=true", { method: "POST" });
       const data = await res.json();
       setResult(data);
     } catch {
