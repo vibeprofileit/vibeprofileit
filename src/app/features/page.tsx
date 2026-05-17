@@ -118,16 +118,16 @@ export default function FeaturesPage() {
               <div
                 key={feature.title}
                 onClick={() => setActiveCard(isActive ? null : i)}
-                className={`relative h-44 rounded-2xl bg-zinc-900/80 border shadow-md overflow-hidden cursor-pointer transition-all duration-300 ${
+                className={`group relative h-44 rounded-2xl bg-zinc-900/80 border overflow-hidden cursor-pointer transition-colors duration-300 ${
                   isActive
-                    ? "border-purple-500/50 shadow-purple-500/25 shadow-lg"
-                    : "border-purple-500/20 shadow-purple-500/10 hover:border-purple-500/50 hover:shadow-purple-500/25 hover:shadow-lg"
+                    ? "border-purple-500/50"
+                    : "border-purple-500/20 [@media(hover:hover)]:hover:border-purple-500/50"
                 }`}
               >
-                <div className={`absolute inset-0 flex items-center justify-center p-6 transition-opacity duration-300 ${isActive ? "opacity-0" : "opacity-100"}`}>
+                <div className={`absolute inset-0 flex items-center justify-center p-6 transition-opacity duration-300 ${isActive ? "opacity-0" : "opacity-100 [@media(hover:hover)]:group-hover:opacity-0"}`}>
                   <h3 className="text-lg font-bold text-center">{feature.title}</h3>
                 </div>
-                <div className={`absolute inset-0 flex flex-col justify-between p-6 transition-opacity duration-300 ${isActive ? "opacity-100" : "opacity-0"}`}>
+                <div className={`absolute inset-0 flex flex-col justify-between p-6 transition-opacity duration-300 ${isActive ? "opacity-100" : "opacity-0 [@media(hover:hover)]:group-hover:opacity-100"}`}>
                   <h3 className="text-base font-bold text-purple-400">{feature.title}</h3>
                   <p className="text-white/60 text-sm leading-relaxed">{feature.description}</p>
                 </div>
