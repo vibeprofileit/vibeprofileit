@@ -39,8 +39,8 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <Script
           id="remove-darkreader"
+          src="/no-darkreader.js"
           strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: `(function(){var o=new MutationObserver(function(ms){ms.forEach(function(m){if(m.type!=='attributes')return;var n=m.attributeName;if(/^data-darkreader/.test(n)){m.target.removeAttribute(n);}else if(n==='style'){var s=m.target.style,ps=[];for(var i=0;i<s.length;i++)if(/--darkreader/.test(s[i]))ps.push(s[i]);ps.forEach(function(p){s.removeProperty(p);});}});});o.observe(document.documentElement,{attributes:true,subtree:true});})();` }}
         />
           <AuthWrapper>{children}</AuthWrapper>
           <FeedbackButton />
