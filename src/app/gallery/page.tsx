@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Search, ExternalLink, ChevronDown, Pencil, Eye, X, Download, Heart, Lock, Wand2 } from "lucide-react";
 
-const CHUNK_SIZE = 24;
+const CHUNK_SIZE = 12;
 
 const CATEGORIES = [
   "All", "Premium", "Anime", "Artist", "Cars", "Cartoon", "City", "Fantasy", "Gaming",
@@ -991,7 +991,7 @@ function GalleryCard({
     if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setInView(true); obs.disconnect(); } },
-      { rootMargin: "400px" }
+      { rootMargin: "100px" }
     );
     obs.observe(el);
     return () => obs.disconnect();
@@ -1174,21 +1174,41 @@ function GalleryCard({
         </>
       ) : item.isPremium ? (
         <>
-          {(!inView || (!thumbnailLoaded && !canvasFailed)) && <PremiumPlaceholder />}
-          {canvasFailed && !!item.src ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={item.src}
-              alt={item.theme}
-              className="absolute inset-0 w-full h-full object-cover"
-              style={{ transform: "translateZ(0)" }}
-            />
-          ) : (
-            <canvas
-              ref={canvasRef}
-              className="absolute inset-0 w-full h-full"
-              style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s", transform: "translateZ(0)" }}
-            />
+          {!inView && <PremiumPlaceholder />}
+          {inView && (
+            item.coverUrl ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.coverUrl}
+                  alt={item.theme}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  decoding="async"
+                  style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+                <div className="absolute inset-0 z-10" style={{ pointerEvents: "none", userSelect: "none" }} />
+              </>
+            ) : (
+              <>
+                {(!thumbnailLoaded && !canvasFailed) && <PremiumPlaceholder />}
+                {canvasFailed && !!item.src ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.src}
+                    alt={item.theme}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{ transform: "translateZ(0)" }}
+                  />
+                ) : (
+                  <canvas
+                    ref={canvasRef}
+                    className="absolute inset-0 w-full h-full"
+                    style={{ objectFit: "cover", opacity: thumbnailLoaded ? 1 : 0, transition: "opacity 0.35s", transform: "translateZ(0)" }}
+                  />
+                )}
+              </>
+            )
           )}
         </>
       ) : item.src ? (
@@ -1493,7 +1513,7 @@ export default function GalleryPage() {
     if (!sentinel) return;
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) loadMore(); },
-      { rootMargin: "0px 0px 400px 0px" }
+      { rootMargin: "0px 0px 200px 0px" }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();

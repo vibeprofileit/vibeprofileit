@@ -116,23 +116,21 @@ export async function POST(request: NextRequest) {
     },
   });
 
-  if (isGif) {
-    try {
-      const coverBuffer = await sharp(buffer, { animated: false }).resize(400, null, { withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
-      const coverKey = `covers/${artwork.id}.webp`;
-      await r2.send(new PutObjectCommand({
-        Bucket: R2_BUCKET,
-        Key: coverKey,
-        Body: coverBuffer,
-        ContentType: "image/webp",
-        ContentLength: coverBuffer.byteLength,
-      }));
-      coverUrl = `${WORKER_BASE}/${coverKey}`;
-      await prisma.artwork.update({ where: { id: artwork.id }, data: { coverUrl } });
-      console.log(`[UPLOAD] Cover thumbnail → ${coverKey}`);
-    } catch (err) {
-      console.error("[UPLOAD] Cover thumbnail hatası (non-fatal):", err);
-    }
+  try {
+    const coverBuffer = await sharp(buffer, { animated: false }).resize(400, null, { withoutEnlargement: true }).webp({ quality: 80 }).toBuffer();
+    const coverKey = `covers/${artwork.id}.webp`;
+    await r2.send(new PutObjectCommand({
+      Bucket: R2_BUCKET,
+      Key: coverKey,
+      Body: coverBuffer,
+      ContentType: "image/webp",
+      ContentLength: coverBuffer.byteLength,
+    }));
+    coverUrl = `${WORKER_BASE}/${coverKey}`;
+    await prisma.artwork.update({ where: { id: artwork.id }, data: { coverUrl } });
+    console.log(`[UPLOAD] Cover thumbnail → ${coverKey}`);
+  } catch (err) {
+    console.error("[UPLOAD] Cover thumbnail hatası (non-fatal):", err);
   }
 
   return Response.json({ ...artwork, coverUrl }, { status: 201 });

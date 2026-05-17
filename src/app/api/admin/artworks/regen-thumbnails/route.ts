@@ -35,9 +35,8 @@ export async function POST(request: NextRequest) {
   const force = request.nextUrl.searchParams.get("force") === "true";
 
   const where = force
-    ? { mediaType: { equals: "animated", mode: "insensitive" as const }, r2Key: { not: null } }
+    ? { r2Key: { not: null } }
     : {
-        mediaType: { equals: "animated", mode: "insensitive" as const },
         r2Key: { not: null },
         OR: [
           { coverUrl: null },
