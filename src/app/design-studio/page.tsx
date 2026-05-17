@@ -821,9 +821,7 @@ function UploadPageInner() {
               backgroundSize: "300% auto",
               animation: "shimmerFlow 8s linear infinite",
               transition: "box-shadow 0.3s ease, transform 0.2s ease",
-              boxShadow: btnHovered && canProceed && !isProcessing
-                ? "0 0 24px rgba(139,92,246,0.75),0 0 48px rgba(59,130,246,0.4),0 0 0 1px rgba(139,92,246,0.5)"
-                : "0 0 12px rgba(139,92,246,0.3)",
+              boxShadow: "0 0 12px rgba(139,92,246,0.3)",
               transform: btnHovered && canProceed && !isProcessing ? "scale(1.012)" : "scale(1)",
             }}
           >
