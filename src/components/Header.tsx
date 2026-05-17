@@ -67,7 +67,7 @@ export default function Header() {
               style={{ width: 36, height: 36 }}
               className="object-contain"
             />
-            <span className="text-2xl font-semibold tracking-normal select-none bg-gradient-to-r from-[#6600ff] via-[#6600ff] via-[70%] to-white bg-clip-text text-transparent">
+            <span className="hidden sm:block text-2xl font-semibold tracking-normal select-none bg-gradient-to-r from-[#6600ff] via-[#6600ff] via-[70%] to-white bg-clip-text text-transparent">
               VibeProfileit
             </span>
           </div>
@@ -192,7 +192,7 @@ export default function Header() {
       {/* Mobile menu panel */}
       {mobileOpen && (
         <div className="md:hidden bg-[#0a0a0f] border-t border-white/10">
-          <nav className="flex flex-col px-6 py-4 gap-1">
+          <nav className="flex flex-col px-6 py-4 gap-1 max-h-[calc(100vh-4rem)] overflow-y-auto">
             {NAV_LINKS.map(({ label, href }) => (
               <Link
                 key={href}

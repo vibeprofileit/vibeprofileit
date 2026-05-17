@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vercel --prod --yes --scope vibeprofileit-3210s-projects)",
+      "Bash(vercel ls *)",
+      "Bash(vercel alias *)",
+      "Bash(curl -s \"https://vibeprofileit.com/api/gallery?limit=3&offset=0&seed=1\")"
+    ]
+  }
+}

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 
 const features = [
   {
@@ -74,15 +75,17 @@ const faqs = [
 
 export default function FeaturesPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [activeCard, setActiveCard] = useState<number | null>(null);
 
   return (
-    <div className="relative min-h-screen bg-[#0a0a0f] text-white px-6 py-16 overflow-hidden">
-      {/* Radial glow background */}
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+    <div className="min-h-screen bg-[#0a0a0f] text-white">
+      <Header />
+      {/* Glow background - isolated so it never affects header z-index */}
+      <div className="pointer-events-none fixed inset-0 -z-10 flex items-center justify-center">
         <div className="w-[700px] h-[700px] rounded-full bg-gradient-radial from-violet-600/10 via-blue-700/5 to-transparent blur-3xl" />
       </div>
 
-      <div className="relative max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto px-6 pt-24 pb-16">
         {/* Back link */}
         <Link
           href="/"
@@ -92,12 +95,7 @@ export default function FeaturesPage() {
         </Link>
 
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-14 text-center"
-        >
+        <div className="mb-14 text-center">
           <h1 className="text-4xl md:text-5xl font-black mb-4" style={{
             backgroundImage: "linear-gradient(to right, #a855f7, #ffffff)",
             WebkitBackgroundClip: "text",
@@ -110,39 +108,36 @@ export default function FeaturesPage() {
           <p className="text-white/40 text-lg max-w-xl mx-auto">
             Everything you need to make your Steam profile stand out — no friction, no fluff.
           </p>
-        </motion.div>
+        </div>
 
         {/* Core Features Grid */}
         <div className="grid md:grid-cols-3 gap-5 mb-20">
-          {features.map((feature, i) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: i * 0.1 }}
-              className="group relative h-44 rounded-2xl bg-zinc-900/80 border border-purple-500/20 shadow-md shadow-purple-500/10 overflow-hidden cursor-default hover:border-purple-500/50 hover:shadow-purple-500/25 hover:shadow-lg transition-all duration-300"
-            >
-              {/* Default: centered title */}
-              <div className="absolute inset-0 flex items-center justify-center p-6 group-hover:opacity-0 transition-opacity duration-300">
-                <h3 className="text-lg font-bold text-center">{feature.title}</h3>
+          {features.map((feature, i) => {
+            const isActive = activeCard === i;
+            return (
+              <div
+                key={feature.title}
+                onClick={() => setActiveCard(isActive ? null : i)}
+                className={`relative h-44 rounded-2xl bg-zinc-900/80 border shadow-md overflow-hidden cursor-pointer transition-all duration-300 ${
+                  isActive
+                    ? "border-purple-500/50 shadow-purple-500/25 shadow-lg"
+                    : "border-purple-500/20 shadow-purple-500/10 hover:border-purple-500/50 hover:shadow-purple-500/25 hover:shadow-lg"
+                }`}
+              >
+                <div className={`absolute inset-0 flex items-center justify-center p-6 transition-opacity duration-300 ${isActive ? "opacity-0" : "opacity-100"}`}>
+                  <h3 className="text-lg font-bold text-center">{feature.title}</h3>
+                </div>
+                <div className={`absolute inset-0 flex flex-col justify-between p-6 transition-opacity duration-300 ${isActive ? "opacity-100" : "opacity-0"}`}>
+                  <h3 className="text-base font-bold text-purple-400">{feature.title}</h3>
+                  <p className="text-white/60 text-sm leading-relaxed">{feature.description}</p>
+                </div>
               </div>
-
-              {/* Hover: title top + description */}
-              <div className="absolute inset-0 flex flex-col justify-between p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <h3 className="text-base font-bold text-purple-400">{feature.title}</h3>
-                <p className="text-white/60 text-sm leading-relaxed">{feature.description}</p>
-              </div>
-            </motion.div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Prompt Tips */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="mb-20"
-        >
+        <div className="mb-20">
           <h2 className="text-2xl font-black mb-2 text-center">
             How to Write a <span className="text-purple-400">Good Prompt</span>
           </h2>
@@ -152,40 +147,15 @@ export default function FeaturesPage() {
 
           <div className="grid md:grid-cols-2 gap-3">
             {[
-              {
-                label: "Be specific",
-                bad: "cool character",
-                good: "armored knight, dark forest, moonlight",
-              },
-              {
-                label: "Character + Place + Mood",
-                tip: "The best prompts include all three. Example: [character], [location], [lighting/atmosphere]",
-              },
-              {
-                label: "Use Vibes, keep it short",
-                tip: "If you select Anime vibe, just write 'anime girl' — the system handles the rest.",
-              },
-              {
-                label: "Looking too realistic?",
-                tip: "Select the Anime vibe and add '2d anime, illustration' to your prompt.",
-              },
-              {
-                label: "Too dark / pure black output?",
-                tip: "Avoid 'dark night, black'. Use 'moonlight', 'dusk' or 'dramatic' instead.",
-              },
-              {
-                label: "Cars",
-                tip: "Select Cars vibe. Brand + location + weather is enough. Example: black BMW, rainy Tokyo street, neon reflections",
-              },
-              {
-                label: "Unwanted flames or energy?",
-                tip: "Avoid words like flames, fire, energy, glowing, aura in your prompt.",
-              },
+              { label: "Be specific", bad: "cool character", good: "armored knight, dark forest, moonlight" },
+              { label: "Character + Place + Mood", tip: "The best prompts include all three. Example: [character], [location], [lighting/atmosphere]" },
+              { label: "Use Vibes, keep it short", tip: "If you select Anime vibe, just write 'anime girl' — the system handles the rest." },
+              { label: "Looking too realistic?", tip: "Select the Anime vibe and add '2d anime, illustration' to your prompt." },
+              { label: "Too dark / pure black output?", tip: "Avoid 'dark night, black'. Use 'moonlight', 'dusk' or 'dramatic' instead." },
+              { label: "Cars", tip: "Select Cars vibe. Brand + location + weather is enough. Example: black BMW, rainy Tokyo street, neon reflections" },
+              { label: "Unwanted flames or energy?", tip: "Avoid words like flames, fire, energy, glowing, aura in your prompt." },
             ].map((item, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-purple-500/15 bg-zinc-900/60 px-5 py-4"
-              >
+              <div key={i} className="rounded-xl border border-purple-500/15 bg-zinc-900/60 px-5 py-4">
                 <p className="text-sm font-bold text-purple-400 mb-2">{item.label}</p>
                 {"bad" in item ? (
                   <div className="flex flex-col gap-1 text-sm">
@@ -198,14 +168,10 @@ export default function FeaturesPage() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* FAQ Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.35 }}
-        >
+        <div>
           <h2 className="text-2xl font-black mb-2 text-center">
             Common <span className="text-purple-400">Questions</span>
           </h2>
@@ -218,9 +184,7 @@ export default function FeaturesPage() {
               <div
                 key={i}
                 className={`rounded-xl border bg-zinc-900/60 overflow-hidden transition-colors duration-200 ${
-                  openIndex === i
-                    ? "border-purple-500/40"
-                    : "border-white/8 hover:border-purple-500/20"
+                  openIndex === i ? "border-purple-500/40" : "border-white/8 hover:border-purple-500/20"
                 }`}
               >
                 <button
@@ -256,7 +220,7 @@ export default function FeaturesPage() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
       </div>
 
       <Footer />

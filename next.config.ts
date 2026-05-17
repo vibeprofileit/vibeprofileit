@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  outputFileTracingIncludes: {
+    "/api/**/*": ["./node_modules/@prisma/engines/**", "./node_modules/.prisma/**"],
+  },
   allowedDevOrigins: ["192.168.1.112", "192.168.1.110"],
   images: {
     unoptimized: true,
