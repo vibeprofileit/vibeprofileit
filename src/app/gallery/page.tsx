@@ -1457,7 +1457,7 @@ export default function GalleryPage() {
     searchRef.current      = debouncedSearch;
     offsetRef.current      = 0;
     hasMoreRef.current     = true;
-    loadingMoreRef.current = false;
+    loadingMoreRef.current = true;
     setItems([]);
     setHasMore(true);
     setLoading(true);
@@ -1472,6 +1472,7 @@ export default function GalleryPage() {
         hasMoreRef.current = data.hasMore ?? false;
         offsetRef.current  = fetched.length;
         setHasMore(data.hasMore ?? false);
+        loadingMoreRef.current = false;
         setTimeout(() => {
           if (hasMoreRef.current && document.body.scrollHeight <= window.innerHeight + 200) loadMore();
         }, 500);
