@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
@@ -76,6 +76,11 @@ const faqs = [
 export default function FeaturesPage() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [activeCard, setActiveCard] = useState<number | null>(null);
+  const [isTouch, setIsTouch] = useState(false);
+
+  useEffect(() => {
+    setIsTouch(!window.matchMedia("(hover: hover)").matches);
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
@@ -114,20 +119,25 @@ export default function FeaturesPage() {
         <div className="grid md:grid-cols-3 gap-5 mb-20">
           {features.map((feature, i) => {
             const isActive = activeCard === i;
+            const showBack = isTouch ? isActive : false;
             return (
               <div
                 key={feature.title}
-                onClick={() => setActiveCard(isActive ? null : i)}
-                className={`group relative h-44 rounded-2xl bg-zinc-900/80 border overflow-hidden cursor-pointer transition-colors duration-300 ${
-                  isActive
-                    ? "border-purple-500/50"
-                    : "border-purple-500/20 [@media(hover:hover)]:hover:border-purple-500/50"
+                onClick={() => { if (isTouch) setActiveCard(isActive ? null : i); }}
+                className={`group relative h-44 rounded-2xl bg-zinc-900/80 border overflow-hidden transition-colors duration-300 ${
+                  isTouch
+                    ? `cursor-pointer ${isActive ? "border-purple-500/50" : "border-purple-500/20"}`
+                    : "cursor-default hover:border-purple-500/50 border-purple-500/20"
                 }`}
               >
-                <div className={`absolute inset-0 flex items-center justify-center p-6 transition-opacity duration-300 ${isActive ? "opacity-0" : "opacity-100 [@media(hover:hover)]:group-hover:opacity-0"}`}>
+                <div className={`absolute inset-0 flex items-center justify-center p-6 transition-opacity duration-300 ${
+                  showBack ? "opacity-0" : "opacity-100 group-hover:opacity-0"
+                }`}>
                   <h3 className="text-lg font-bold text-center">{feature.title}</h3>
                 </div>
-                <div className={`absolute inset-0 flex flex-col justify-between p-6 transition-opacity duration-300 ${isActive ? "opacity-100" : "opacity-0 [@media(hover:hover)]:group-hover:opacity-100"}`}>
+                <div className={`absolute inset-0 flex flex-col justify-between p-6 transition-opacity duration-300 ${
+                  showBack ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                }`}>
                   <h3 className="text-base font-bold text-purple-400">{feature.title}</h3>
                   <p className="text-white/60 text-sm leading-relaxed">{feature.description}</p>
                 </div>
