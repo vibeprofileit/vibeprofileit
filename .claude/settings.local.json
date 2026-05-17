@@ -4,7 +4,9 @@
       "Bash(vercel --prod --yes --scope vibeprofileit-3210s-projects)",
       "Bash(vercel ls *)",
       "Bash(vercel alias *)",
-      "Bash(curl -s \"https://vibeprofileit.com/api/gallery?limit=3&offset=0&seed=1\")"
+      "Bash(curl -s \"https://vibeprofileit.com/api/gallery?limit=3&offset=0&seed=1\")",
+      "Bash(Get-ChildItem -Path \"D:\\\\vibeprofileit.com\\\\src\" -Recurse -Include \"*gallery*\")",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   }
 }
